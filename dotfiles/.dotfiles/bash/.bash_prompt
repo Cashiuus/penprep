@@ -1,0 +1,24 @@
+### Shell Prompt Customizations
+#
+#
+
+function git-current-branch {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1) /'
+}
+export PS1="\$(git-current-branch)$PS1"
+
+### Python Virtualenv Helper
+# Call virtualenvwrapper's "workon" if .venv exists.
+check_virtualenv() {
+    if [ -e .venv ]; then
+        env=`cat .venv`
+        if [ "$env" != "${VIRTUAL_ENV##*/}" ]; then
+            echo "Found .venv in directory. Calling: workon ${env}"
+            workon $env
+        fi
+    fi
+}
+
+# Call check_virtualenv in case opening directly into a directory (e.g
+# when opening a new tab in Terminal.app).
+check_virtualenv
