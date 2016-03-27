@@ -1,0 +1,29 @@
+# Unifying coding style of different editors and IDEs.
+# See http://EditorConfig.org
+# Full List of properties: https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties
+
+[*]
+indent_style = space
+inent_size = 4
+end_of_line = lf
+
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{js,py}]
+charset = utf-8
+
+[*.md]
+
+
+[*.{js,json,less,dust}]
+indent_style = tab
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+
+
+[{package.json,.travis.yml}]
+indent_style = space
+indent_size = 2

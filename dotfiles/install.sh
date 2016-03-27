@@ -34,7 +34,7 @@ mkdir -p "${BACKUPS_DIR}"
 
 for file in .bashrc .bash_profile .profile; do
     echo -e "${GREEN}[*] ${RESET}Moving original files to backup folder"
-    mv "${HOME}/${file}" "${BACKUPS_DIR}/" || echo -e "${YELLOW}[NOTE] ${RESET}No original ${file} found."
+    mv "${HOME}/${file}" "${BACKUPS_DIR}/" || echo -e "${YELLOW}[NOTE] ${RESET}No original ${file} found." 1>&2
 done
 
 cp -R .dotfiles/* "${DOTFILES_DIR}/"
@@ -45,7 +45,7 @@ for file in .bashrc .bash_profile .profile; do
 done
 
 function finish {
-    # Any script-termination routines go here, but function cannot be empty
+    # TODO: This doesn't work for the current terminal because it's running in its own process
     source ~/.bashrc
 }
 # End of script

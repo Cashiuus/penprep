@@ -56,9 +56,9 @@ if [ -e "${file}" ]; then
     sed -i 's/^.*completion_drops_rest_of_word=.*/completion_drops_rest_of_word=true/' "${file}"
     sed -i 's/^.*tab_order_beside=.*/tab_order_beside=true/' "${file}"
     sed -i 's/^.*show_indent_guide=.*/show_indent_guide=true/' "${file}"
-    sed -i 's/^.*long_line_column=.*/long_line_column=99/' "${file}"                # Originally 72, g0tmi1k uses 48
+    sed -i 's/^.*long_line_column=.*/long_line_column=90/' "${file}"                # Originally 72, g0tmi1k uses 48
     sed -i 's/^.*line_wrapping=.*/line_wrapping=true/' "${file}"
-    sed -i 's/^.*line_break_column=.*/line_break_column=99/' "${file}"
+    sed -i 's/^.*line_break_column=.*/line_break_column=90/' "${file}"
     sed -i 's/^.*pref_editor_newline_strip=.*/pref_editor_newline_strip=true/' "${file}"
     sed -i 's/^.*pref_editor_ensure_convert_line_endings=.*/pref_editor_ensure_convert_line_endings=true/' "${file}"
     sed -i 's/^.*pref_editor_replace_tabs=.*/pref_editor_replace_tabs=true/' "${file}"
@@ -92,7 +92,7 @@ indent_type=2
 autocomplete_doc_words=true
 autocompletion_max_entries=10
 completion_drops_rest_of_word=true
-statusbar_template=line: %l / %L	 col: %c	 sel: %s	 %w      %t      %mmode: %M      encoding: %e      filetype: %f      scope: %S
+statusbar_template=line: %l / %L     col: %c     sel: %s     %w      %t      %mmode: %M      encoding: %e      filetype: %f      scope: %S
 editor_font=Monospace 10
 tagbar_font=Sans 9
 msgwin_font=Sans 9
@@ -166,7 +166,7 @@ EOF
 # Add custom config for flake8 checking, exclude noisy Error Codes
 file="${HOME}/.config/flake8"
 cat << EOF > "${file}"
-# E***/W*** Codes are PEP8, F*** codes are PyFlakes, 
+# E***/W*** Codes are PEP8, F*** codes are PyFlakes,
 # N8** codes are pep8-naming, C9** are McCabe complexity plugin
 # See: http://pep8.readthedocs.org/en/latest/intro.html#error-codes
 [flake8]
@@ -183,7 +183,7 @@ file="${HOME}/.config/geany/filetype_extensions.conf"
 sed -i 's/^C=\*\.c;\*\.h.*;/C=*.c;*.h;*.nasl;/' "${file}"
 sed -i 's/^Sh=\*\.sh;configure;.*/Sh=*.sh;configure;configure.in;configure.in.in;configure.ac;*.ksh;*.mksh;*.zsh;*.ash;*.bash;*.m4;PKGBUILD;*profile;*.bash*;/' "${file}"
 
-# Geany -> Tools -> Plugin Manger -> Save Actions -> HTML Characters: Enabled. Split Windows: Enabled. Save Actions: Enabled. -> Preferences -> Backup Copy -> Enable -> Directory to save backup files in: /root/Backups/geany/. 
+# Geany -> Tools -> Plugin Manger -> Save Actions -> HTML Characters: Enabled. Split Windows: Enabled. Save Actions: Enabled. -> Preferences -> Backup Copy -> Enable -> Directory to save backup files in: /root/Backups/geany/.
 #Directory levels to include in the backup destination: 5 -> Apply -> Ok -> Ok
 sed -i 's#^.*active_plugins.*#active_plugins=/usr/lib/geany/htmlchars.so;/usr/lib/geany/saveactions.so;/usr/lib/geany/splitwindow.so;#' "${file}"
 

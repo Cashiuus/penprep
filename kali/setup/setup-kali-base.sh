@@ -34,15 +34,7 @@ source vfeed_install.sh
 gsettings set org.gnome.desktop.session idle-delay 0
 
 
-function print_banner() {
-    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2016 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
-    cat /etc/os-release
-    cat /proc/version
-    uname -a
-    lsb_release -a
-    echo -e "${BLUE}=====================<${RESET} version: ${__version__} ${BLUE}>=====================\n${RESET}"
-}
-print_banner
+
 
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
@@ -76,11 +68,13 @@ dconf write /org/gnome/nautilus/preferences/show-hidden-files true
 # =============================[ Folder Structure ]================================ #
 
 # Create folders in /opt
-for ' '
+#for 'git'
+mkdir -p /opt/git
 
 # Create folders in ~
-for 'git engagements pendrop .virtualenvs'; do
-
+for dir in 'git engagements pendrop .virtualenvs workspace'; do
+    mkdir -p "${HOME}/${dir}"
+done
 
 
 
@@ -110,18 +104,18 @@ vfeed_install "${GIT_BASE_DIR}" || echo -e "${RED}[-]${RESET} Error installing v
 
 
 
-
 FINISH_TIME=$(date +%s)
 echo -e "${GREEN} [*] Kali Base Setup Completed Successfully ${YELLOW} --( Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes )--\n${RESET}"
 
-echo -e "${GREEN}=========${RESET}[ OS Specs ]${GREEN}=========${RESET}"
-cat /etc/os-release
-cat /proc/version
-uname -a
-lsb_release -a
-echo -e "${GREEN}=====================================${RESET}"
-
-
+function print_banner() {
+    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2016 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
+    cat /etc/os-release
+    cat /proc/version
+    uname -a
+    lsb_release -a
+    echo -e "${BLUE}=======================<${RESET} version: ${__version__} ${BLUE}>=======================\n${RESET}"
+}
+print_banner
 
 
 function finish {
