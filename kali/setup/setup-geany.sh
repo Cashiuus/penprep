@@ -223,7 +223,8 @@ function geany_templates {
         templates_dir="${HOME}/.config/geany/templates/files"
         [[ ! -d "${templates_dir}" ]] && mkdir -p "${templates_dir}"
         cp -r "${APP_BASE}"/../templates/* "${templates_dir}/"
-        echo -e "[*] Geany File Templates have been copied over, enjoy!"
+        echo -e "${GREEN}[*]${RESET} Geany File Templates have been copied over, enjoy!"
+    fi
 }
 
 geany_templates
