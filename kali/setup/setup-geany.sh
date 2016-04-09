@@ -3,7 +3,7 @@
 # File:     setup-geany.sh
 #
 # Author:   cashiuus@gmail.com
-# Created:  10/10/2015          (Revised:  01/24/2016)
+# Created:  10/10/2015          (Revised:  04/09/2016)
 #
 # Purpose:  Configure Geany settings on fresh Kali 2.x install
 #
@@ -19,7 +19,8 @@ BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 BACKUPS_DIR="${HOME}/Backups/geany"
-
+SCRIPT_DIR=$(readlink -f $0)
+APP_BASE=$(dirname ${SCRIPT_DIR})
 # =============================[ BEGIN ]================================ #
 apt-get -y install geany python-pip
 pip install flake8 pep8-naming
@@ -215,4 +216,16 @@ EOF
 }
 
 enable_geany_backups
+
+
+function geany_templates {
+    if [[ -d "${APP_BASE}/../templates" ]]; then
+        templates_dir="${HOME}/.config/geany/templates/files"
+        [[ ! -d "${templates_dir}" ]] && mkdir -p "${templates_dir}"
+        cp -r "${APP_BASE}"/../templates/* "${templates_dir}/"
+        echo -e "[*] Geany File Templates have been copied over, enjoy!"
+}
+
+geany_templates
+
 exit 0
