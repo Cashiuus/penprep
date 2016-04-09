@@ -10,7 +10,7 @@
 # TODO:
 #   - App shortcut is at: /usr/share/applications/geany.desktop, add to favorites?
 ## =============================================================================
-__version__="0.1"
+__version__="1.1"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"    # Success

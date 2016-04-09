@@ -3,12 +3,12 @@
 # File:     setup-gnome.sh
 #
 # Author:   Cashiuus
-# Created:  11/27/2015  - Revised:  01/30/2016
+# Created:  11/27/2015  - Revised:  9-APR-2016
 #
-# Purpose:  Configure GNOME settings on fresh Kali 2.x install
+# Purpose:  Configure GNOME settings on fresh Kali 2016.1 install
 #
 ## =============================================================================
-__version__="0.3"
+__version__="1.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"    # Success
@@ -206,6 +206,9 @@ function install_gnome_extension() {
       # enable extension
       gsettings set org.gnome.shell enabled-extensions "[${EXTENSION_LIST},'${EXTENSION_UUID}']"
       echo "Extension with ID ${EXTENSION_ID} has been enabled. Restart Gnome Shell to take effect."
+
+      dconf write /org/gnome/shell/extensions/show-ip/last-device 'eth0'
+      dconf write /org/gnome/shell/extensions/show-ip/public false
     fi
   else
     # extension is not available
@@ -225,7 +228,6 @@ function enable_ext_taskwarrior() {
     git clone https://github.com/sgaraud/gnome-extension-taskwarrior "${filedir}"
   fi
 }
-
 
 
 function enable_skype_ext() {
@@ -306,13 +308,11 @@ dconf write /org/gnome/shell/extensions/TaskBar/tray-button-icon "'/usr/share/gn
 
 
 
-
-
 function finish {
   # Any script-termination routines go here
   rm -f /tmp/extension.txt
   rm -f /tmp/extension.zip
-  echo -e "${GREEN}[*]${RESET} GNOME Setup Complete. Refreshing now, goodbye!"
+  echo -e "${GREEN}[*]${RESET} GNOME Setup Complete. Restart to take effect, as 'gnome-shell --replace' doesn't completely work."
   #gnome-shell --replace &
 }
 # End of script

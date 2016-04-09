@@ -11,7 +11,7 @@
 #
 # Source Code of Conky Variables: https://github.com/brndnmtthws/conky/blob/master/doc/variables.xml
 ## =============================================================================
-__version__="0.1"
+__version__="1.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"    # Success
