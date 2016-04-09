@@ -39,6 +39,7 @@ else
 fi
 
 # ====[ Nautilus ]==== #
+echo -e "${GREEN}[*]${RESET} Configuring Nautilus gsettings"
 gsettings set org.gnome.nautilus.desktop home-icon-visible true                   # Default: false
 gsettings set org.gnome.nautilus.desktop font "'Cantrell 9'"                      # Default: <blank>
 gsettings set org.gnome.nautilus.preferences show-hidden-files true               # Default: false
@@ -57,6 +58,7 @@ gsettings set org.gnome.nautilus.window-state start-with-sidebar true           
 gsettings set org.gnome.nautilus.window-state maximized false                     # Default: false
 
 # ====[ Gedit ]==== #
+echo -e "${GREEN}[*]${RESET} Configuring Gedit gsettings"
 gsettings set org.gnome.gedit.preferences.editor display-line-numbers true
 gsettings set org.gnome.gedit.preferences.editor editor-font "'Monospace 10'"
 gsettings set org.gnome.gedit.preferences.editor insert-spaces true
@@ -74,8 +76,43 @@ gsettings set org.gnome.gedit.state.window side-panel-size 150                  
 
 
 
+
+
+# ==============================[ GNOME Core Settings ]====================================== #
+echo -e "${GREEN}[*]${RESET} Configuring core GNOME gsettings"
+
+# Disable tracker service
+gsettings set org.freedesktop.Tracker.Miner.Files crawling-interval -2
+gsettings set org.freedesktop.Tracker.Miner.Files enable-monitors false
+
+# TODO: Modify the default "favorite apps"
+gsettings set org.gnome.shell favorite-apps "['iceweasel.desktop', 'gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
+
+# ====[ GNOME Desktop Settings ]==== #
+gsettings set org.gnome.desktop.background show-desktop-icons true
+gsettings set org.gnome.desktop.wm.preferences titlebar-uses-system-font false
+gsettings set org.gnome.desktop.wm.preferences titlebar-font "'Droid Bold 10'"    # Default: 'Cantarell Bold 11'
+
+# Workspaces
+gsettings set org.gnome.shell.overrides dynamic-workspaces false
+gsettings set org.gnome.desktop.wm.preferences num-workspaces 3
+# Top bar
+gsettings set org.gnome.desktop.interface clock-show-date true
+gsettings set org.gnome.desktop.datetime automatic-timezone true
+gsettings set org.gnome.desktop.interface clock-format '12h'                      # Default: 24h
+gsettings set org.gnome.desktop.interface toolbar-icons-size 'small'              # Default: 'large'
+# Privacy
+gsettings set org.gnome.desktop.privacy hide-identity true                        # Default: false
+
+
+
+
+
+
+
 # ========================== [ 3rd Party Extensions ] =============================== #
 echo -e "\n${GREEN}[*]${RESET} Configuring 3rd Party GNOME Extensions..."
+
 [[ ! -d "/usr/share/gnome-shell/extensions/" ]] && mkdir -p "/usr/share/gnome-shell/extensions"
 
 # ====[ Ext: TaskBar ]==== #
@@ -95,7 +132,7 @@ function enable_frippery() {
   timeout 300 curl --progress -k -L -f "http://frippery.org/extensions/${FRIPPERY_VERSION}" > /tmp/frippery.tgz
   tar -zxf /tmp/frippery.tgz -C ~/
 }
-enable_frippery
+
 
 # ====[ Ext: Icon Hider ]==== #
 function enable_icon_hider() {
@@ -106,7 +143,8 @@ function enable_icon_hider() {
     git clone -q https://github.com/ikalnitsky/gnome-shell-extension-icon-hider.git /usr/share/gnome-shell/extensions/icon-hider@kalnitsky.org/
   fi
 }
-enable_icon_hider
+
+
 
 # ====[ Ext: Drop-Down-Terminal ]==== #
 function enable_ext_dropdown_terminal() {
@@ -114,12 +152,14 @@ function enable_ext_dropdown_terminal() {
   # Default toggle shortcut: ~ (key above left tab)
   # ALT + ~   Cycle between applications
   echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Drop-Down-Terminal${RESET} (Tap ~ to toggle)"
-  filedir="/usr/share/gnome-shell/extensions/show-ip@sgaraud.github.com"
+  filedir="/usr/share/gnome-shell/extensions/drop-down-terminal@gs-extensions.zzrough.org"
   if [[ ! -d "${filedir}" ]]; then
     mkdir -p "${filedir}"
     git clone https://github.com/zzrough/gs-extensions-drop-down-terminal /usr/share/gnome-shell/extensions/drop-down-terminal@gs-extensions.zzrough.org
   fi
 }
+
+
 
 function enable_ext_show_ip() {
   # Ext: https://extensions.gnome.org/extension/941/show-ip/
@@ -131,6 +171,23 @@ function enable_ext_show_ip() {
   fi
 }
 
+function install_extension_showip() {
+  # Reference: http://bernaerts.dyndns.org/linux/76-gnome/283-gnome-shell-install-extension-command-line-script
+  # Another method for installing GNOME extensions
+  # 1. Get extension ID
+  GNOME_VERSION='3.18'
+  # TODO: Get this ID dynamically?
+  EXTENSION_ID='941'
+  # 2. Get extension description for the download URL & UUID
+  wget --header='Accept-Encoding:none' -O /tmp/extension.txt "https://extensions.gnome.org/extension-info/?pk=${EXTENSION_ID}&shell_version=${GNOME_VERSION}"
+
+  # 3. Download the extension into our desired path
+
+  # 4. Enable extension in gsettings if not already enabled
+
+}
+#install_extension_showip
+
 
 function enable_skype_ext() {
   # Ext: https://extensions.gnome.org/extension/696/skype-integration/
@@ -139,11 +196,18 @@ function enable_skype_ext() {
 }
 
 
+# Setup the Extensions - Comment ones you don't want to setup
+enable_frippery
+enable_icon_hider
+enable_ext_dropdown_terminal
+enable_ext_show_ip
+#enable_skype_ext
+
+
 function enable_extensions() {
-  # TODO: "Removable drive menu" , "drop-down-terminal" , "Workspaces-to-dock"
   # Removed from below list: "Panel_Favorites@rmy.pobox.com"
   echo -e "${GREEN}[*]${RESET} Enabling the installed extensions..."
-  for EXTENSION in "alternate-tab@gnome-shell-extensions.gcampax.github.com" "drive-menu@gnome-shell-extensions.gcampax.github.com" "TaskBar@zpydr" "Bottom_Panel@rmy.pobox.com" "Move_Clock@rmy.pobox.com" "icon-hider@kalnitsky.org"; do
+  for EXTENSION in "alternate-tab@gnome-shell-extensions.gcampax.github.com" "drive-menu@gnome-shell-extensions.gcampax.github.com" "TaskBar@zpydr" "Bottom_Panel@rmy.pobox.com" "Move_Clock@rmy.pobox.com" "icon-hider@kalnitsky.org" "drop-down-terminal@gs-extensions.zzrough.org" "show-ip@sgaraud.github.com"; do
     GNOME_EXTENSIONS=$(gsettings get org.gnome.shell enabled-extensions | sed 's_^.\(.*\).$_\1_')
     echo "${GNOME_EXTENSIONS}" | grep -q "${EXTENSION}" || gsettings set org.gnome.shell enabled-extensions "[${GNOME_EXTENSIONS}, '${EXTENSION}']"
   done
@@ -156,7 +220,7 @@ function enable_extensions() {
 enable_extensions
 
 
-echo -e "${GREEN}[*]${RESET} Configuring custom gsettings..."
+echo -e "${GREEN}[*]${RESET} Configuring GNOME 3rd Party Extension gsettings..."
 
 # ====[ Ext: Dash-to-Dock settings ]==== #
 gsettings set org.gnome.shell.extensions.dash-to-dock extend-height true        # Set dock to use full height
@@ -204,57 +268,12 @@ dconf write /org/gnome/shell/extensions/TaskBar/tray-button-icon "'/usr/share/gn
 
 
 
-function install_extension_showip() {
-  # Reference: http://bernaerts.dyndns.org/linux/76-gnome/283-gnome-shell-install-extension-command-line-script
-  # Another method for installing GNOME extensions
-  # 1. Get extension ID
-  GNOME_VERSION='3.18'
-  # TODO: Get this ID dynamically?
-  EXTENSION_ID='941'
-  # 2. Get extension description for the download URL & UUID
-  wget --header='Accept-Encoding:none' -O /tmp/extension.txt "https://extensions.gnome.org/extension-info/?pk=${EXTENSION_ID}&shell_version=${GNOME_VERSION}"
-
-  # 3. Download the extension into our desired path
-
-  # 4. Enable extension in gsettings if not already enabled
-
-}
-#install_extension_showip
-
-
-
-# ==============================[ GNOME Core Settings ]====================================== #
-# Disable tracker service
-gsettings set org.freedesktop.Tracker.Miner.Files crawling-interval -2
-gsettings set org.freedesktop.Tracker.Miner.Files enable-monitors false
-
-# TODO: Modify the default "favorite apps"
-gsettings set org.gnome.shell favorite-apps "['iceweasel.desktop', 'gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
-
-# ====[ GNOME Desktop Settings ]==== #
-gsettings set org.gnome.desktop.background show-desktop-icons true
-gsettings set org.gnome.desktop.wm.preferences titlebar-uses-system-font false
-gsettings set org.gnome.desktop.wm.preferences titlebar-font "'Droid Bold 10'"    # Default: 'Cantarell Bold 11'
-
-# Workspaces
-gsettings set org.gnome.shell.overrides dynamic-workspaces false
-gsettings set org.gnome.desktop.wm.preferences num-workspaces 3
-# Top bar
-gsettings set org.gnome.desktop.interface clock-show-date true
-gsettings set org.gnome.desktop.datetime automatic-timezone true
-gsettings set org.gnome.desktop.interface clock-format '12h'                      # Default: 24h
-gsettings set org.gnome.desktop.interface toolbar-icons-size 'small'              # Default: 'large'
-# Privacy
-gsettings set org.gnome.desktop.privacy hide-identity true                        # Default: false
-
-
 
 function finish {
   # Any script-termination routines go here
   rm -f /tmp/extension.txt
   rm -f /tmp/extension.zip
-
-  clear
+  echo -e "${GREEN}[*]${RESET} GNOME Setup Complete. Refreshing now, goodbye!"
   gnome-shell --replace &
 }
 # End of script
