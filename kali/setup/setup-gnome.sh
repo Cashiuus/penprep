@@ -181,7 +181,6 @@ function install_gnome_extension() {
   GNOME_VERSION='3.18'
   #EXTENSION_ID='941'
   EXTENSION_ID=$1
-  echo -e "${GREEN}[*]${RESET} Installing Extension #${EXTENSION_ID} by retrieving from portal"
 
   GNOME_SITE="https://extensions.gnome.org"
   # 2. Get extension description for the download URL & UUID
@@ -189,6 +188,9 @@ function install_gnome_extension() {
 
   EXTENSION_UUID=$(cat /tmp/extension.txt | grep "uuid" | sed 's/^.*uuid[\": ]*\([^\"]*\).*$/\1/')
   EXTENSION_URL=$(cat /tmp/extension.txt | grep "download_url" | sed 's/^.*download_url[\": ]*\([^\"]*\).*$/\1/')
+
+  echo -e "${GREEN}[*]${RESET} Installing Extension ${BLUE}${EXTENSION_UUID}${RESET} by retrieving from portal"
+
   # 3. Download the extension into our desired path
   if [[ "$EXTENSION_URL" != "" ]]; then
     wget --header='Accept-Encoding:none' -O /tmp/extension.zip "${GNOME_SITE}${EXTENSION_URL}"
@@ -198,15 +200,16 @@ function install_gnome_extension() {
 
     # 4. Enable extension in gsettings if not already enabled
     # check if extension is already enabled
+    EXTENSION_LIST=$(gsettings get org.gnome.shell enabled-extensions | sed 's/^.\(.*\).$/\1/')
     EXTENSION_ENABLED=$(echo ${EXTENSION_LIST} | grep ${EXTENSION_UUID})
-    if [[ "$EXTENSION_ENABLED" = "" ]; then
+    if [[ "$EXTENSION_ENABLED" = "" ]]; then
       # enable extension
       gsettings set org.gnome.shell enabled-extensions "[${EXTENSION_LIST},'${EXTENSION_UUID}']"
       echo "Extension with ID ${EXTENSION_ID} has been enabled. Restart Gnome Shell to take effect."
     fi
   else
     # extension is not available
-    echo "Extension with ID ${EXTENSION_ID} is not available for Gnome Shell ${GNOME_VERSION}"
+    echo "Extension with ID ${EXTENSION_ID} is not available for Gnome Shell ${GNOME_VERSION}."
   fi
 }
 install_gnome_extension '941'
