@@ -79,7 +79,7 @@ gsettings set org.gnome.gedit.state.window side-panel-size 150                  
 
 
 # ==============================[ GNOME Core Settings ]====================================== #
-echo -e "${GREEN}[*]${RESET} Configuring core GNOME gsettings"
+echo -e "${GREEN}[*]${RESET} Configuring GNOME core gsettings"
 
 # Disable tracker service
 gsettings set org.freedesktop.Tracker.Miner.Files crawling-interval -2
@@ -246,7 +246,7 @@ enable_ext_dropdown_terminal
 function enable_extensions() {
   # Removed from below list: "Panel_Favorites@rmy.pobox.com"
   echo -e "${GREEN}[*]${RESET} Enabling the installed extensions..."
-  for EXTENSION in "alternate-tab@gnome-shell-extensions.gcampax.github.com" "drive-menu@gnome-shell-extensions.gcampax.github.com" "TaskBar@zpydr" "Bottom_Panel@rmy.pobox.com" "Move_Clock@rmy.pobox.com" "icon-hider@kalnitsky.org" "drop-down-terminal@gs-extensions.zzrough.org" "show-ip@sgaraud.github.com"; do
+  for EXTENSION in "alternate-tab@gnome-shell-extensions.gcampax.github.com" "drive-menu@gnome-shell-extensions.gcampax.github.com" "TaskBar@zpydr" "Bottom_Panel@rmy.pobox.com" "Move_Clock@rmy.pobox.com" "icon-hider@kalnitsky.org" "drop-down-terminal@gs-extensions.zzrough.org"; do
     GNOME_EXTENSIONS=$(gsettings get org.gnome.shell enabled-extensions | sed 's_^.\(.*\).$_\1_')
     echo "${GNOME_EXTENSIONS}" | grep -q "${EXTENSION}" || gsettings set org.gnome.shell enabled-extensions "[${GNOME_EXTENSIONS}, '${EXTENSION}']"
   done
@@ -313,7 +313,7 @@ function finish {
   rm -f /tmp/extension.txt
   rm -f /tmp/extension.zip
   echo -e "${GREEN}[*]${RESET} GNOME Setup Complete. Refreshing now, goodbye!"
-  gnome-shell --replace &
+  #gnome-shell --replace &
 }
 # End of script
 trap finish EXIT
