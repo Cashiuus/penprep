@@ -7,6 +7,8 @@
 #
 # Purpose:  Configure Geany settings on fresh Kali 2.x install
 #
+# TODO:
+#   - App shortcut is at: /usr/share/applications/geany.desktop, add to favorites?
 ## =============================================================================
 __version__="0.1"
 __author__="Cashiuus"

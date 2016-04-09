@@ -76,15 +76,17 @@ gsettings set org.gnome.gedit.state.window side-panel-size 150                  
 
 # ========================== [ 3rd Party Extensions ] =============================== #
 echo -e "\n${GREEN}[*]${RESET} Configuring 3rd Party GNOME Extensions..."
-[[ ! -d "/usr/share/gnome-shell/extensions/" ]] && mkdir -p "/usr/share/gnome-shell/extensions/"
+[[ ! -d "/usr/share/gnome-shell/extensions/" ]] && mkdir -p "/usr/share/gnome-shell/extensions"
 
 # ====[ Ext: TaskBar ]==== #
 if [[ ! -d "/usr/share/gnome-shell/extensions/TaskBar@zpydr/" ]]; then
+  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}TaskBar${RESET}"
   git clone -q https://github.com/zpydr/gnome-shell-extension-taskbar.git /usr/share/gnome-shell/extensions/TaskBar@zpydr/
 fi
 
 # ====[ Ext: Frippery ]==== #
 function enable_frippery() {
+  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Frippery${RESET}"
   #mkdir -p ~/.local/share/gnome-shell/extensions/
   # GNOME 3.14 -> frippery-0.9.5
   #FRIPPERY_VERSION="gnome-shell-frippery-0.9.5.tgz"
@@ -97,6 +99,7 @@ enable_frippery
 
 # ====[ Ext: Icon Hider ]==== #
 function enable_icon_hider() {
+  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Icon Hider${RESET}"
   filedir="/usr/share/gnome-shell/extensions/icon-hider@kalnitsky.org/"
   if [[ ! -d "${filedir}" ]]; then
     mkdir -p "${filedir}"
@@ -110,6 +113,7 @@ function enable_ext_dropdown_terminal() {
   # Ext: https://extensions.gnome.org/extension/442/drop-down-terminal/
   # Default toggle shortcut: ~ (key above left tab)
   # ALT + ~   Cycle between applications
+  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Drop-Down-Terminal${RESET} (Tap ~ to toggle)"
   filedir="/usr/share/gnome-shell/extensions/show-ip@sgaraud.github.com"
   if [[ ! -d "${filedir}" ]]; then
     mkdir -p "${filedir}"
@@ -117,24 +121,28 @@ function enable_ext_dropdown_terminal() {
   fi
 }
 
-#function enable_ext_show_ip() {
+function enable_ext_show_ip() {
   # Ext: https://extensions.gnome.org/extension/941/show-ip/
+  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Show-IP${RESET}"
   filedir="/usr/share/gnome-shell/extensions/show-ip@sgaraud.github.com"
   if [[ ! -d "${filedir}" ]]; then
     mkdir -p "${filedir}"
     /usr/share/gnome-shell/extensions/show-ip@sgaraud.github.com
+  fi
+}
 
-#}
 
-
-#function enable_skype_ext() {
+function enable_skype_ext() {
   # Ext: https://extensions.gnome.org/extension/696/skype-integration/
   # Git: https://github.com/chrisss404/gnome-shell-ext-SkypeNotification
-#}
+  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Skype-Integration${RESET}"
+}
+
 
 function enable_extensions() {
   # TODO: "Removable drive menu" , "drop-down-terminal" , "Workspaces-to-dock"
   # Removed from below list: "Panel_Favorites@rmy.pobox.com"
+  echo -e "${GREEN}[*]${RESET} Enabling the installed extensions..."
   for EXTENSION in "alternate-tab@gnome-shell-extensions.gcampax.github.com" "drive-menu@gnome-shell-extensions.gcampax.github.com" "TaskBar@zpydr" "Bottom_Panel@rmy.pobox.com" "Move_Clock@rmy.pobox.com" "icon-hider@kalnitsky.org"; do
     GNOME_EXTENSIONS=$(gsettings get org.gnome.shell enabled-extensions | sed 's_^.\(.*\).$_\1_')
     echo "${GNOME_EXTENSIONS}" | grep -q "${EXTENSION}" || gsettings set org.gnome.shell enabled-extensions "[${GNOME_EXTENSIONS}, '${EXTENSION}']"
@@ -147,6 +155,8 @@ function enable_extensions() {
 }
 enable_extensions
 
+
+echo -e "${GREEN}[*]${RESET} Configuring custom gsettings..."
 
 # ====[ Ext: Dash-to-Dock settings ]==== #
 gsettings set org.gnome.shell.extensions.dash-to-dock extend-height true        # Set dock to use full height
@@ -209,8 +219,7 @@ function install_extension_showip() {
   # 4. Enable extension in gsettings if not already enabled
 
 }
-
-
+#install_extension_showip
 
 
 
@@ -235,10 +244,8 @@ gsettings set org.gnome.desktop.interface clock-show-date true
 gsettings set org.gnome.desktop.datetime automatic-timezone true
 gsettings set org.gnome.desktop.interface clock-format '12h'                      # Default: 24h
 gsettings set org.gnome.desktop.interface toolbar-icons-size 'small'              # Default: 'large'
-
 # Privacy
 gsettings set org.gnome.desktop.privacy hide-identity true                        # Default: false
-
 
 
 
@@ -288,9 +295,6 @@ trap finish EXIT
 # wget -O /tmp/extension.zip "https:extensions.gnome.org/download-extension/removeaccesibility@lomegor.shell-extension.zip?version_tag=2847"
 # mkdir -p "/usr/share/gnome-shell/extensions/removeaccesibility@lomegor"
 # unzip /tmp/extension.zip -d "/usr/share/gnome-shell/extensions/removeaccesibility@lomegor"
-
-
-
 
 
 # Kali 2016 Default Enabled Extensions (via: gsettings get org.gnome.shell enabled-extensions)

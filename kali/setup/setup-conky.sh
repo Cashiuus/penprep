@@ -3,10 +3,9 @@
 # File:     setup-conky.sh
 #
 # Author:   Cashiuus
-# Created:  01/27/2016
-# Revised:
+# Created:  01/27/2016          Revised:    09-APR-2016
 #
-# Purpose:
+# Purpose:  Setup conky monitor dashboard on desktop with pre-configured style
 #
 #
 #
@@ -22,24 +21,28 @@ BLUE="\033[01;34m"     # Heading
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
-OLD_CONKY=0
+OLD_CONKY=1
 
 # =============================[ Install & Setup ]================================ #
 
 apt-get -y install conky
 
 
-# Conky < 1.9 uses old config style
+# Conky < 1.9 uses old config style we are used to using
 # Conky >= 1.10 uses new Lua-based configuration style
 
 if [[ ${OLD_CONKY} == 1 ]]; then
     # If we've set this variable to 1, we want old conky.
+    echo -e "${GREEN}[*]${RESET} Performing setup of OLD version Conky..."
     file="${HOME}/.conkyrc"
     if [[ ! -e "${file}" ]]; then
         cat <<EOF > "${file}"
 background yes
 gap_x 12
 gap_y 35
+
+# -----[ Window Size & Position ]----- #
+alignment bottom_right
 
 border_width 1
 draw_borders no
@@ -75,12 +78,13 @@ use_spacer none
 show_graph_scale no
 show_graph_range no
 
+# --[ PROCESS CONFIGURATIONS ]-- #
 update_interval 2.0
 total_run_times 0
-
 cpu_avg_samples 2
 net_avg_samples 2
 
+# --[ TEXT LAYOUT ]-- #
 TEXT
 \${color green}SYSTEM: \$nodename (\$machine)\${hr 1}\${color}
 Uptime: \$alignr\$uptime
@@ -100,8 +104,6 @@ Highest CPU \${alignr} CPU% MEM%
 Highest MEM \${alignr} CPU% MEM%
 \${top_mem name 1}\${alignr}\${top_mem cpu 1}\${top_mem mem 1}
 
-
-
 \${color green}FILESYSTEMS\${hr 1}\${color}
 Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
 \${fs_bar 4 /}+
@@ -111,16 +113,17 @@ Down\${color}: \${downspeed eth0}KB/s \${color white}Up\${color}: \${upspeed eth
 \${downspeedgraph eth0 10,80 99cc33 006600} \${alignr}\${upspeedgraph eth0 10,80 ffcc00 ff0000}
 \${endif}
 
-
-\${color green}CUSTOM COMMANDS \${hr 1}\${color}
+\${color green}CUSTOM ALIASES \${hr 1}\${color}
 bashload \${alignr}update-kali
+myip \${alignr}timer
+open <file> \${alignr}openports
+workon <project> \${alignr}webserv
 EOF
     fi
 else
-    # New conky method
+    # TODO: New conky method
     filedir="${HOME}/.config/conky"
     [[ ! -d "${filedir}" ]] && mkdir -p "${file}"
-
 
 
 fi
@@ -187,7 +190,7 @@ chmod -f 0500 "${file}"
 
 # End of script
 /usr/local/bin/conky-start
-
+clear
 
 
 # ============================ [ NOTES ] ================================= #

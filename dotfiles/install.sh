@@ -34,11 +34,12 @@ mkdir -p "${BACKUPS_DIR}"
 
 for file in .bashrc .bash_profile .profile; do
     echo -e "${GREEN}[*] ${RESET}Moving original files to backup folder"
-    mv "${HOME}/${file}" "${BACKUPS_DIR}/" || echo -e "${YELLOW}[NOTE] ${RESET}No original ${file} found." 1>&2
+    mv "${HOME}/${file}" "${BACKUPS_DIR}/" 2>/dev/null || echo -e "${YELLOW}[NOTE] ${RESET}No original ${file} found."
 done
 
 cp -R .dotfiles/* "${DOTFILES_DIR}/"
 
+echo -e "${GREEN}[*]${RESET} Creating symlinks..."
 for file in .bashrc .bash_profile .profile; do
     echo -e "${GREEN}[*] ${RESET}Creating symlink for ${file} in Home directory"
     ln -s "${APP_BASE}/${file}" "${HOME}/${file}"
