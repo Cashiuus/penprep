@@ -103,10 +103,6 @@ vfeed_install "${GIT_BASE_DIR}" || echo -e "${RED}[-]${RESET} Error installing v
 
 
 
-
-FINISH_TIME=$(date +%s)
-echo -e "${GREEN} [*] Kali Base Setup Completed Successfully ${YELLOW} --( Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes )--\n${RESET}"
-
 function print_banner() {
     echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2016 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
     cat /etc/os-release
@@ -118,9 +114,23 @@ function print_banner() {
 print_banner
 
 
+
 function finish {
-    # Any script-termination routines go here, but function cannot be empty
-    clear
+  echo -e "\n\n${GREEN}[+]${RESET} ${GREEN}Cleaning${RESET} the system"
+  #--- Clean package manager
+  for FILE in clean autoremove; do apt -y -qq "${FILE}"; done
+  apt -y -qq purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')   # Purged packages
+  #--- Update locate database
+  updatedb
+  #--- Reset folder location
+  cd ~/ &>/dev/null
+  #--- Remove any history files (as they could contain sensitive info)
+  history -c 2>/dev/null
+  for i in $(cut -d: -f6 /etc/passwd | sort -u); do
+    [ -e "${i}" ] && find "${i}" -type f -name '.*_history' -delete
+  done
+  FINISH_TIME=$(date +%s)
+  echo -e "${GREEN} [*] Kali Base Setup Completed Successfully ${YELLOW} --( Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes )--\n${RESET}"
 }
 # End of script
 trap finish EXIT
@@ -156,9 +166,6 @@ trap finish EXIT
 
 #Ask for a path with a default value
 #read -p "Enter the path to the file: " -i "/usr/local/etc/" -e FILEPATH
-
-
-
 
 
 # ==================[ BASH GUIDES ]====================== #

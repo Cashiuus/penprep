@@ -26,17 +26,27 @@ EXTENSION_PATH="/usr/share/gnome-shell/extensions"
 # Disable idle timeout to screensaver
 gsettings set org.gnome.desktop.session idle-delay 0
 
-# =========== [ Disable Package Updater Notifications ] =============== #
+# ===[ RAM check ]=== #
+if [[ "$(free -m | grep -i Mem | awk '{print $2}')" < 2048 ]]; then
+  echo -e '\n '${RED}'[!]'${RESET}" ${RED}You have 2GB or less of RAM and using GNOME${RESET}" 1>&2
+  echo -e " ${YELLOW}[i]${RESET} ${YELLOW}Might want to use XFCE instead${RESET}..."
+  sleep 15s
+fi
+
+# ===[ Disable notification package updater ]=== #
 if [[ $(which gnome-shell) ]]; then
-    # Disable notification package updater
-    echo -e "\n${GREEN}[*]${RESET} Disabling notification ${GREEN}package updater${RESET} service"
-    export DISPLAY=:0.0   #[[ -z $SSH_CONNECTION ]] || export DISPLAY=:0.0
-    dconf write /org/gnome/settings-daemon/plugins/updates/active false
-    dconf write /org/gnome/desktop/notifications/application/gpk-update-viewer/active false
-    timeout 5 killall -w /usr/lib/apt/methods/http >/dev/null 2>&1
+  echo -e "\n${GREEN}[*]${RESET} Disabling notification ${GREEN}package updater${RESET} service"
+  export DISPLAY=:0.0   #[[ -z $SSH_CONNECTION ]] || export DISPLAY=:0.0
+  dconf write /org/gnome/settings-daemon/plugins/updates/active false
+  dconf write /org/gnome/desktop/notifications/application/gpk-update-viewer/active false
+  timeout 5 killall -w /usr/lib/apt/methods/http >/dev/null 2>&1
 else
   USING_GNOME=0
 fi
+
+
+
+
 
 # ====[ Nautilus ]==== #
 echo -e "${GREEN}[*]${RESET} Configuring Nautilus gsettings"

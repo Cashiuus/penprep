@@ -32,11 +32,11 @@ apt-get -y install conky
 # Conky >= 1.10 uses new Lua-based configuration style
 
 if [[ ${OLD_CONKY} == 1 ]]; then
-    # If we've set this variable to 1, we want old conky.
-    echo -e "${GREEN}[*]${RESET} Performing setup of OLD version Conky..."
-    file="${HOME}/.conkyrc"
-    if [[ ! -e "${file}" ]]; then
-        cat <<EOF > "${file}"
+  # If we've set this variable to 1, we want old conky.
+  echo -e "${GREEN}[*]${RESET} Performing setup of OLD version Conky..."
+  file="${HOME}/.conkyrc"
+  if [[ ! -e "${file}" ]]; then
+    cat <<EOF > "${file}"
 background yes
 gap_x 12
 gap_y 35
@@ -119,12 +119,95 @@ myip \${alignr}timer
 open <file> \${alignr}openports
 workon <project> \${alignr}webserv
 EOF
-    fi
+  fi
 else
-    # TODO: New conky method
-    filedir="${HOME}/.config/conky"
-    [[ ! -d "${filedir}" ]] && mkdir -p "${file}"
+  # TODO: New conky method
+  #filedir="${HOME}/.config/conky"
+  file="${HOME}/.conkyrc"
+  [[ ! -d "${file}" ]] && mkdir -p "${file}"
+  cat <<EOF > "${file}"
+conky.config = {
+    background = false,
+    gap_x = 12,
+    gap_y = 35,
+    alignment = 'bottom_right',
 
+    default_color = 'white',
+    border_width = 1,
+    draw_borders = false,
+    draw_outline = false,
+    draw_graph_borders = true,
+    draw_shades = true,
+
+    use_xft = true,
+    xftalpha = 0.9,
+    xftfont = 'DejaVu Sans Mono:size=8',
+    override_utf8_locale = false,
+    uppercase = false,
+
+    own_window = true,
+    own_window_type = 'normal',
+    own_window_transparent = false,
+    own_window_colour = 'black',
+    own_window_argb_visual = true,
+    own_window_argb_value = 50,
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+
+    double_buffer = true,
+    no_buffers = true,
+
+    out_to_console = false,
+    out_to_stderr = false,
+    extra_newline = false,
+
+    use_spacer = 'none',
+    show_graph_scale = false,
+    show_graph_range = false,
+
+    # --[ PROCESS CONFIGURATIONS ]-- #
+    update_interval = 2.0,
+    total_run_times = 0,
+    cpu_avg_samples = 2,
+    net_avg_samples = 2,
+};
+
+conky.text = [[
+# --[ TEXT LAYOUT ]-- #
+TEXT
+\${color green}SYSTEM: \$nodename (\$machine)\${hr 1}\${color}
+Uptime: \$alignr\$uptime
+CPU: \${alignr}\${freq_g} GHz
+Processes: \${alignr}\$processes (\$running_processes running)
+Load: \${alignr}\$loadavg
+\${cpugraph 20}
+Ram \${alignr}\$mem / \$memmax (\$memperc%)
+\${membar 4}
+Swap \${alignr}\$swap / \$swapmax (\$swapperc%)
+\${swapbar 4}
+
+Highest CPU \${alignr} CPU% MEM%
+\${top name 1}\$alignr\${top cpu 1}\${top mem 1}
+
+
+Highest MEM \${alignr} CPU% MEM%
+\${top_mem name 1}\${alignr}\${top_mem cpu 1}\${top_mem mem 1}
+
+\${color green}FILESYSTEMS\${hr 1}\${color}
+Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
+\${fs_bar 4 /}+
+\${color yellow}NETWORK \${hr 1}\${color}
+\${if_up eth0}\${color white}LAN: eth0 (\${addr eth0})
+Down\${color}: \${downspeed eth0}KB/s \${color white}Up\${color}: \${upspeed eth0}KB/s
+\${downspeedgraph eth0 10,80 99cc33 006600} \${alignr}\${upspeedgraph eth0 10,80 ffcc00 ff0000}
+\${endif}
+
+\${color green}CUSTOM ALIASES \${hr 1}\${color}
+bashload \${alignr}update-kali
+myip \${alignr}timer
+open <file> \${alignr}openports
+workon <project> \${alignr}webserv
+]]
+EOF
 
 fi
 
@@ -141,6 +224,7 @@ $(which sleep) 5s
 $(which conky) &
 EOF
 chmod -f 0500 "${file}"
+bash /usr/local/bin/conky-start >/dev/null 2>&1 &
 
 
 mkdir -p "${HOME}/.config/autostart"
@@ -149,6 +233,7 @@ if [[ -w "${file}" ]]; then
     echo -e "${GREEN}[*] ${RESET}Adding conky-autostart file"
     cat <<EOF > "${file}"
 [Desktop Entry]
+Name=conky
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true

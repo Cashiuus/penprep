@@ -3,7 +3,7 @@
 # Filename: setup-ssh-server.sh
 #
 # Author:   cashiuus - cashiuus@gmail.com
-# Created:  01-Dec-2015 - (Revised: 12-Feb-2016)
+# Created:  01-Dec-2015 - (Revised: 09-APR-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -14,7 +14,7 @@
 # Thanks to: https://www.lisenet.com/2013/openssh-server-installation-and-configuration-on-debian/
 #
 ## =============================================================================
-__version__="0.1"
+__version__="0.9"
 __author__='Cashiuus'
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
@@ -51,6 +51,7 @@ if [[ ! -d insecure_original_kali_keys ]]; then
     mkdir insecure_original_kali_keys
     mv ssh_host_* insecure_original_kali_keys/
     DO_MD5='yes'
+    #find ~/.ssh/ -type f ! -name authorized_keys -delete 2>/dev/null
 fi
 
 # Wipe clean any ssh keys in root profile, leaving authorized_keys file intact
@@ -81,19 +82,19 @@ version_check $ver 6.5
 if [ $? == 0 ]; then
     echo -e "[*] Newer OpenSSH Version detected, proceeding with new key format"
     #TODO: -o fails for this key type: ssh-keygen -b 4096 -t rsa1 -o -f /etc/ssh/ssh_host_key -P ""
-    ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P ""
-    ssh-keygen -b 2048 -t rsa -o -f /etc/ssh/ssh_host_rsa_key -P ""
-    ssh-keygen -b 1024 -t dsa -o -f /etc/ssh/ssh_host_dsa_key -P ""
-    ssh-keygen -b 521 -t ecdsa -o -f /etc/ssh/ssh_host_ecdsa_key -P ""
+    ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P "" >/dev/null
+    ssh-keygen -b 4096 -t rsa -o -f /etc/ssh/ssh_host_rsa_key -P "" >/dev/null
+    ssh-keygen -b 1024 -t dsa -o -f /etc/ssh/ssh_host_dsa_key -P "" >/dev/null
+    ssh-keygen -b 521 -t ecdsa -o -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
 else
     echo -e "[-] OpenSSH Version is older than v6.5, Proceeding with PEM key format"
-    ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P ""
-    ssh-keygen -b 2048 -t rsa -f /etc/ssh/ssh_host_rsa_key -P ""
-    ssh-keygen -b 1024 -t dsa -f /etc/ssh/ssh_host_dsa_key -P ""
-    ssh-keygen -b 521 -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -P ""
+    ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P "" >/dev/null
+    ssh-keygen -b 4096 -t rsa -f /etc/ssh/ssh_host_rsa_key -P "" >/dev/null
+    ssh-keygen -b 1024 -t dsa -f /etc/ssh/ssh_host_dsa_key -P "" >/dev/null
+    ssh-keygen -b 521 -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
 fi
 # Generate personal key pair
-ssh-keygen -b 2048 -t rsa -f "${HOME}/.ssh/id_rsa" -P ""
+ssh-keygen -b 4096 -t rsa -f "${HOME}/.ssh/id_rsa" -P "" >/dev/null
 
 # Protect files
 chmod 0700 "${HOME}/.ssh"
@@ -106,7 +107,7 @@ function md5_compare() {
     echo -e "[*] Compare the MD5 Hashes below to ensure new key is, in fact, new!"
     openssl md5 /etc/ssh/insecure_original_kali_keys/ssh_host_*
     openssl md5 /etc/ssh/ssh_host_*
-    sleep 5
+    sleep 10
 }
 [[ ${DO_MD5} ]] && md5_compare
 
@@ -116,7 +117,7 @@ function md5_compare() {
 # to avoid old key being read first if this key is replacing an existing entry
 file="${HOME}/.ssh/authorized_keys"
 cat "${HOME}/.ssh/id_rsa.pub" >> "${file}"
-# NOTE: authorized_keys file should be set to 644 according to google which is never wrong ever amirite?
+# NOTE: authorized_keys file should be set to 644 according to google, which is never wrong ever amirite?
 chmod 644 "${file}"
 
 # Configure the MOTD banner message remote users see, 2 versions below
@@ -149,10 +150,8 @@ fi
 file=/etc/ssh/sshd_config
 # Find "Banner" in file and change to motd if not already
 # Orig: #Banner /etc/issue.net
-
 # *NOTE: When using '/' for paths in sed, use a different delimiter, such as # or |
 sed -i 's|^[#B]anner /etc/issue\.net|Banner /etc/motd|g' $file
-#sed -i 's/^Banner \/etc\/issue\.net/Banner \/etc\/motd/g' $file
 
 # Change SSH port to non-default
 file=/etc/ssh/sshd_config; [[ -e $file ]] && cp -n $file{,.bkup}
@@ -187,6 +186,8 @@ grep -q '^Ciphers ' "${file}" 2>/dev/null || echo "Ciphers aes256-ctr,aes192-ctr
 
 # -- Add Inactivty Timeouts
 #echo "\nClientAliveInterval 600\nClientAliveCountMax 3" >> "${file}"
+#sed -i 's|^ClientAliveInterval.*|ClientAliveInterval 600|' "${file}"
+sed -i 's|^ClientAliveCountMax.*|ClientAliveCountMax 3|' "${file}"
 
 # -- Add Whitelist and Blacklist of Users
 #grep -q '^AllowUsers ' "${file}" 2>/dev/null || echo "\nAllowUsers newuser newuser2" >> "${file}"
@@ -199,9 +200,12 @@ grep -q '^Ciphers ' "${file}" 2>/dev/null || echo "Ciphers aes256-ctr,aes192-ctr
 # ============[ IPTABLES ]============== #
 #iptables -A INPUT -p tcp --dport $SSH_SERVER_PORT -j ACCEPT
 
-# Restart SSH Server
-service ssh restart
-update-rc.d -f ssh enable
+# ===[ Restart SSH / Enable Autostart ]=== #
+#service ssh restart
+#update-rc.d -f ssh enable
+systemctl start ssh
+systemctl enable ssh
+
 
 # Connect to SSH Server
 #ssh -24x -i "${HOME}/.ssh/my_key" root@$SSH_SERVER_IP -p $SSH_SERVER_PORT
