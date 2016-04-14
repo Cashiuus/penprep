@@ -3,14 +3,14 @@
 # File:     setup-python.sh
 #
 # Author:   Cashiuus
-# Created:  03/10/2016  - (Revised: )
+# Created:  03/10/2016  - (Revised: 10-APR-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
-# Purpose:
+# Purpose:  Setup Python in Kali Linux and specify default.
 #
-#   References:
-#       http://www.extellisys.com/articles/python-on-debian-wheezy
+# References:
+#   http://www.extellisys.com/articles/python-on-debian-wheezy
 ## =============================================================================
 __version__="0.9"
 __author__="Cashiuus"
@@ -53,8 +53,9 @@ else
 fi
 
 # Pre-requisites
-echo -e "\n ${GREEN}-----------${RESET}[ Installing Python Dependencies ]${GREEN}-----------${RESET}"
-apt-get install -y -qq build-essential python python-pip virtualenvwrapper
+echo -e "\n ${GREEN}-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup-Python ]${GREEN}-----------${RESET}"
+echo -e "${PURPLE}[penprep] ${GREEN}[*]${RESET} Installing Python Dependencies"
+apt-get install -y -qq build-essential python python-pip virtualenv virtualenvwrapper
 
 # Install base pip files
 file="/tmp/requirements.txt"
@@ -91,7 +92,7 @@ if [ $INSTALL_PY3 == "true" ]; then
 fi
 
 
-echo -e "\n ${GREEN}-----------${RESET}[ Creating Virtual Environments ]${GREEN}-----------${RESET}"
+echo -e "\n${PURPLE}[penprep] ${GREEN}[*]${RESET} Creating Virtual Environments"
 if [ ! -e /usr/local/bin/virtualenvwrapper.sh ]; then
   # apt-get package symlinking to where this file is expected to be
   ln -s /usr/share/virtualenvwrapper/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh
@@ -117,7 +118,7 @@ fi
 mkvirtualenv env-${py2version} -p /usr/bin/python${py2version}
 
 # Add lines to shell dot-file if they aren't there
-echo -e "\n ${GREEN}-----------${RESET}[ Updating Shell Startup - ${SHELL_FILE} ]${GREEN}-----------${RESET}"
+echo -e "\n${PURPLE}[penprep] ${GREEN}[*]${RESET} Updating Shell Startup - ${GREEN}${SHELL_FILE}${RESET}"
 file=$SHELL_FILE
 grep -q '^### Load Python Virtualenvwrapper' "${file}" 2>/dev/null \
   || echo '### Load Python Virtualenvwrapper Script helper' >> "${file}"
@@ -129,7 +130,7 @@ grep -q '^export WORKON_HOME=$HOME/.virtualenvs' "${file}" 2>/dev/null \
 source "${file}"
 
 # Finally, activate the desired default
-echo -e "\n ${GREEN}-----------${RESET}[ Setup Complete - Activating Environment ]${GREEN}-----------${RESET}"
+echo -e "\n ${GREEN}-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup Complete - Activating Environment ]${GREEN}-----------${RESET}"
 if [ $DEFAULT_VERSION == "3" ]; then
   workon env-${py3version}
 else
@@ -139,3 +140,7 @@ fi
 # Install or upgrade a package to ALL virtualenvs
 #allvirtualenv pip install django
 #allvirtualenv pip install -U django
+
+
+# ---- virtualenwrapper helpers ------
+#virtualenvwrapper_get_python_version

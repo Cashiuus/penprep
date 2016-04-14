@@ -181,8 +181,16 @@ sed -i 's|#AuthorizedKeysFile.*|AuthorizedKeysFile  %h/.ssh/authorized_keys|' "$
 #sed -i 's/X11Forwarding.*/X11Forwarding no/' >> "${file}"
 sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 15/' "${file}"
 
-# -- Ciphers
-grep -q '^Ciphers ' "${file}" 2>/dev/null || echo "Ciphers aes256-ctr,aes192-ctr,aes128-ctr" >> "${file}"
+# -- Ciphers - https://cipherli.st/
+grep -q '^Ciphers ' "${file}" 2>/dev/null \
+    || echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" >> "${file}"
+
+grep -q '^MACs ' "${file}" 2>/dev/null \
+    || echo "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com" >> "${file}"
+
+grep -q '^KexAlgorithms ' "${file}" 2>/dev/null \
+    || echo "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256" >> "${file}"
+
 
 # -- Add Inactivty Timeouts
 #echo "\nClientAliveInterval 600\nClientAliveCountMax 3" >> "${file}"
