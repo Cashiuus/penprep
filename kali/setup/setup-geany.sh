@@ -73,6 +73,11 @@ if [ -e "${file}" ]; then
     sed -i 's/^.*treeview_position=.*/treeview_position=744/' "${file}"
     sed -i 's/^.*msgwindow_position=.*/msgwindow_position=405/' "${file}"
     sed -i 's/^.*pref_search_hide_find_dialog=.*/pref_search_hide_find_dialog=true/' "${file}"
+
+    #pref_template_developer=
+    #pref_template_mail=cashiuus@gmail.com
+    #pref_template_initial=JMH
+
     #sed -i 's#^.*project_file_path=.*#project_file_path=/root/#' "${file}"
     #grep -q '^custom_commands=sort;' "${file}" || sed -i 's/\[geany\]/[geany]\ncustom_commands=sort;/' "${file}"
 else
@@ -172,10 +177,14 @@ cat << EOF > "${file}"
 # E***/W*** Codes are PEP8, F*** codes are PyFlakes,
 # N8** codes are pep8-naming, C9** are McCabe complexity plugin
 # See: http://pep8.readthedocs.org/en/latest/intro.html#error-codes
+# See: https://www.python.org/dev/peps/pep-0008/
 [flake8]
-ignore = F403,E265
-# E265 -    block comment should start with a '# '
-# F403 -    from module import *’ used; unable to detect undefined names
+ignore = F403,E265,E266,E402
+# ==[ Quick Reference of Codes to Disable ]== #
+# E265 - block comment should start with a '# '
+# E266 - too many leading '#' for block comment
+# E402 - module level import not at top of file
+# F403 - from module import *’ used; unable to detect undefined names
 max-line-length = 90
 exclude = tests/*,.git,__pycache
 EOF

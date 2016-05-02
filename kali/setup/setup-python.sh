@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ## =============================================================================
 # File:     setup-python.sh
 #
@@ -71,6 +71,7 @@ netaddr
 pefile
 pep8
 Pillow
+pygeoip
 python-Levenshtein
 python-libnmap
 requests
@@ -88,7 +89,7 @@ pip install -r /tmp/requirements.txt
 # Install Python 3.x
 if [ $INSTALL_PY3 == "true" ]; then
   echo -e "${GREEN}[*]${RESET} Installing Python 3..."
-  apt-get -y -qq install python3
+  apt-get -y -qq install python3 python3-all
 fi
 
 
