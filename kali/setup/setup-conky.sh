@@ -96,10 +96,8 @@ Ram \${alignr}\$mem / \$memmax (\$memperc%)
 \${membar 4}
 Swap \${alignr}\$swap / \$swapmax (\$swapperc%)
 \${swapbar 4}
-
 Highest CPU \${alignr} CPU% MEM%
 \${top name 1}\$alignr\${top cpu 1}\${top mem 1}
-
 
 Highest MEM \${alignr} CPU% MEM%
 \${top_mem name 1}\${alignr}\${top_mem cpu 1}\${top_mem mem 1}
@@ -107,6 +105,7 @@ Highest MEM \${alignr} CPU% MEM%
 \${color green}FILESYSTEMS\${hr 1}\${color}
 Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
 \${fs_bar 4 /}+
+
 \${color yellow}NETWORK \${hr 1}\${color}
 \${if_up eth0}\${color white}LAN: eth0 (\${addr eth0})
 Down\${color}: \${downspeed eth0}KB/s \${color white}Up\${color}: \${upspeed eth0}KB/s
@@ -140,7 +139,7 @@ conky.config = {
 
     use_xft = true,
     xftalpha = 0.9,
-    xftfont = 'DejaVu Sans Mono:size=8',
+    font = 'DejaVu Sans Mono:size=8',
     override_utf8_locale = false,
     uppercase = false,
 
@@ -163,7 +162,6 @@ conky.config = {
     show_graph_scale = false,
     show_graph_range = false,
 
-    # --[ PROCESS CONFIGURATIONS ]-- #
     update_interval = 2.0,
     total_run_times = 0,
     cpu_avg_samples = 2,
@@ -181,10 +179,8 @@ Ram \${alignr}\$mem / \$memmax (\$memperc%)
 \${membar 4}
 Swap \${alignr}\$swap / \$swapmax (\$swapperc%)
 \${swapbar 4}
-
 Highest CPU \${alignr} CPU% MEM%
 \${top name 1}\$alignr\${top cpu 1}\${top mem 1}
-
 
 Highest MEM \${alignr} CPU% MEM%
 \${top_mem name 1}\${alignr}\${top_mem cpu 1}\${top_mem mem 1}
@@ -192,6 +188,7 @@ Highest MEM \${alignr} CPU% MEM%
 \${color green}FILESYSTEMS\${hr 1}\${color}
 Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
 \${fs_bar 4 /}+
+
 \${color yellow}NETWORK \${hr 1}\${color}
 \${if_up eth0}\${color white}LAN: eth0 (\${addr eth0})
 Down\${color}: \${downspeed eth0}KB/s \${color white}Up\${color}: \${upspeed eth0}KB/s
@@ -226,9 +223,8 @@ bash /usr/local/bin/conky-start >/dev/null 2>&1 &
 
 mkdir -p "${HOME}/.config/autostart"
 file="${HOME}/.config/autostart/conkyscript.desktop"
-if [[ -w "${file}" ]]; then
-    echo -e "${GREEN}[*] ${RESET}Adding conky-autostart file"
-    cat <<EOF > "${file}"
+echo -e "${GREEN}[*] ${RESET}Adding conky-autostart file"
+cat <<EOF > "${file}"
 [Desktop Entry]
 Name=conky
 Exec=/usr/local/bin/conky-start
@@ -238,7 +234,6 @@ X-GNOME-Autostart-enabled=true
 Type=Application
 Comment=
 EOF
-fi
 
 
 # =========[ Keyboard Shortcut (Alt+F2) to 'conky-refresh' ]======= #
