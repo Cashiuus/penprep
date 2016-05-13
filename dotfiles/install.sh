@@ -47,6 +47,7 @@ done
 
 function finish {
     # TODO: This doesn't work for the current terminal because it's running in its own process
+    source ~/.bash_profile
     source ~/.bashrc
 }
 # End of script

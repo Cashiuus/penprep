@@ -45,9 +45,6 @@ else
 fi
 
 
-
-
-
 # ====[ Nautilus ]==== #
 echo -e "${GREEN}[*]${RESET} Configuring Nautilus gsettings"
 gsettings set org.gnome.nautilus.desktop home-icon-visible true                   # Default: false

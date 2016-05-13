@@ -3,7 +3,7 @@
 # File:     setup-apache-ssl.sh
 #
 # Author:   Cashiuus
-# Created:  10-APR-2016 - - - - - - (Revised: 10-APR-2016)
+# Created:  10-APR-2016 - - - - - - (Revised: 13-MAY-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -32,9 +32,8 @@ APP_NAME=$(basename "${APP_PATH}")
 APP_ARGS=$@
 LOG_FILE="${APP_BASE}/debug.log"
 
-# =============================[      ]================================ #
-
-
+## ========================================================================== ##
+# ===============================[  BEGIN  ]================================== #
 
 apt-get -qq update
 apt-get -y -qq install apache2 openssl

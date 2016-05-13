@@ -52,7 +52,7 @@ esac
 
 
 function install_vm_tools {
-    apt-get update
+    apt-get -qq update
     apt-get -y install open-vm-tools-desktop fuse
 }
 

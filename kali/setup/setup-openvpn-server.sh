@@ -2,8 +2,8 @@
 ## =============================================================================
 # Filename: setup-openvpn-server.sh
 #
-# Author:   cashiuus - cashiuus@gmail.com
-# Created:      -   (Revised: 17-Jan-2016)
+# Author:   Cashiuus
+# Created:  12-NOV-2015   -   (Revised: 13-MAY-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -16,7 +16,7 @@
 #
 # OpenVPN Hardening Cheat Sheet: http://darizotas.blogspot.com/2014/04/openvpn-hardening-cheat-sheet.html
 ## =============================================================================
-__version__="0.1"
+__version__="1.1"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"    # Success
@@ -50,10 +50,11 @@ if [[ $(which openvpn) ]]; then
     sleep 2
 fi
 
-if [[ -f "${APP_BASE}/../config/mybuilds.conf" ]]; then
+if [[ -f "${APP_BASE}/../config/settings.conf" ]]; then
     # If custom config is present, use it for VPN server specs
-    source "${APP_BASE}/../config/mybuilds.conf"
-elif [[ $VPN_SERVER == '' ]]; then
+    source "${APP_BASE}/../config/settings.conf"
+fi
+if [[ $VPN_SERVER == '' ]]; then
     echo -e "${YELLOW}[ERROR] << Invalid VPN Server >> Missing VPN Server variable"
     echo -e -n "${GREEN}[+] ${RESET}"
     read -p "Enter OpenVPN Server IP: " -e VPN_SERVER

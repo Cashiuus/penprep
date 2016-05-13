@@ -2,8 +2,8 @@
 ## =============================================================================
 # Filename: setup-ssh-server.sh
 #
-# Author:   cashiuus - cashiuus@gmail.com
-# Created:  01-Dec-2015 - (Revised: 09-APR-2016)
+# Author:   Cashiuus
+# Created:  01-Dec-2015 - (Revised: 13-May-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -14,7 +14,7 @@
 # Thanks to: https://www.lisenet.com/2013/openssh-server-installation-and-configuration-on-debian/
 #
 ## =============================================================================
-__version__="0.9"
+__version__="1.0"
 __author__='Cashiuus'
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
@@ -25,14 +25,15 @@ RED="\033[01;31m"      # Issues/Errors
 BLUE="\033[01;34m"     # Heading
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
-## ==================================[ BEGIN ]===================================== ##
+## ========================================================================== ##
+# ===============================[  BEGIN  ]================================== #
 
-if [[ -f "${APP_BASE}/../config/mybuilds.conf" ]]; then
-    source "${APP_BASE}/../config/mybuilds.conf"
+if [[ -f "${APP_BASE}/../config/settings.conf" ]]; then
+    source "${APP_BASE}/../config/settings.conf"
 else
-    echo -e "${YELLOW}[-] ERROR: ${RESET} settings.local file is missing."
+    echo -e "${YELLOW}[-] ERROR: ${RESET} settings.conf file is missing."
     echo -e -n "${GREEN}[+] ${RESET}"
-    read -p "Enter SSH Server IP: " -e SSH_SERVER_IP
+    read -p "Enter SSH Server IP (If unsure, enter 0.0.0.0): " -e SSH_SERVER_IP
     echo -e
     echo -e -n "${GREEN}[+] ${RESET} Enter SSH Server Port: "
     read SSH_SERVER_PORT
@@ -67,11 +68,12 @@ function version () {
 }
 
 function version_check () {
+    # Check the installed version of OpenSSH and return
     if [ $(version $1) -ge $(version $2) ]; then
-        echo "$1 is newer than $2"
+        echo "$1 is newer than $2" >/dev/null
         return 0
     elif [ $(version $1) -lt $(version $2) ]; then
-        echo "$1 is older than $2"
+        echo "$1 is older than $2" >/dev/null
         return 1
     fi
 }
@@ -81,8 +83,10 @@ function version_check () {
 version_check $ver 6.5
 if [ $? == 0 ]; then
     echo -e "[*] Newer OpenSSH Version detected, proceeding with new key format"
+
     #TODO: -o fails for this key type: ssh-keygen -b 4096 -t rsa1 -o -f /etc/ssh/ssh_host_key -P ""
-    ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P "" >/dev/null
+    # We don't need this rsa1 key, it's for SSH protocol version 1
+    #ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P "" >/dev/null
     ssh-keygen -b 4096 -t rsa -o -f /etc/ssh/ssh_host_rsa_key -P "" >/dev/null
     ssh-keygen -b 1024 -t dsa -o -f /etc/ssh/ssh_host_dsa_key -P "" >/dev/null
     ssh-keygen -b 521 -t ecdsa -o -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
@@ -267,3 +271,28 @@ EOF
     tail /var/log/messages
 
 }
+
+# ==================[ NOTES ]===================
+
+# ssh-keygen
+#   -q                      Quiet mode
+#   -b #                    No. of bits; RSA keys - min 1024, default is 2048
+#                           DSA keys must be exactly 1024, as specified by FIPS 186-2
+#                           ECDSA keys, elliptic curve sizes of 256, 384, or 521 bits
+#                           Ed25519 uses a fixed bits length and -b will be ignored.
+#   -f <output_keyfile>
+#   -t                      [ dsa | ecdsa | ed25519 | rsa | rsa1 ]
+#   -o                      SSH-Keygen will use the new OpenSSH format rather than PEM.
+#   -P "<pw>"               Password for the key, -P "" makes it blank
+
+
+# Generate default, unattended host keys for use in scripts
+#   ssh-keygen -A
+
+# Hash a "known_hosts" file. This replaces all hosts with hashed representations,
+# orig file becomes "known_hosts.old" so be sure to remove it afterwards for security.
+# Also, it will not hash already-hashed entries, so it's safe to run this over and over.
+#   ssh-keygen -H -f <known_hosts_file>
+
+
+

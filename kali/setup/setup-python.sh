@@ -75,6 +75,8 @@ pygeoip
 python-Levenshtein
 python-libnmap
 requests
+Scrapy
+six
 EOF
 pip install -r /tmp/requirements.txt
 
