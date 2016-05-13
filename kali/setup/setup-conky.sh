@@ -3,7 +3,7 @@
 # File:     setup-conky.sh
 #
 # Author:   Cashiuus
-# Created:  01/27/2016          Revised:    09-MAY-2016
+# Created:  01/27/2016          Revised:    13-MAY-2016
 #
 # Purpose:  Setup conky monitor dashboard on desktop with pre-configured style
 #
@@ -21,8 +21,9 @@ BLUE="\033[01;34m"     # Heading
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
-OLD_CONKY=0
-
+USE_OLD_CONKY=0
+OLD_CONKY_CONF="${HOME}/.conkyrc"
+NEW_CONKY_CONF="${HOME}/.config/conky/conky.conf"
 # =============================[ Install & Setup ]================================ #
 
 apt-get -y install conky
@@ -31,12 +32,11 @@ apt-get -y install conky
 # Conky < 1.9 uses old config style we are used to using
 # Conky >= 1.10 uses new Lua-based configuration style
 
-if [[ ${OLD_CONKY} -eq 1 ]]; then
+if [[ ${USE_OLD_CONKY} -eq 1 ]]; then
   # If we've set this variable to 1, we want old conky.
   echo -e "${GREEN}[*]${RESET} Performing setup of OLD version Conky..."
-  file="${HOME}/.conkyrc"
-  if [[ ! -e "${file}" ]]; then
-    cat <<EOF > "${file}"
+  if [[ ! -e "${OLD_CONKY_CONF}" ]]; then
+    cat <<EOF > "${OLD_CONKY_CONF}"
 background yes
 gap_x 12
 gap_y 35
@@ -122,10 +122,9 @@ EOF
   fi
 else
   # TODO: New conky method
-  #filedir="${HOME}/.config/conky"
-  file="${HOME}/.conkyrc"
-  [[ ! -d "${file}" ]] && mkdir -p "${file}"
-  cat <<EOF > "${file}"
+  filedir="${HOME}/.config/conky"
+  [[ ! -d "${filedir}" ]] && mkdir -p "${filedir}"
+  cat <<EOF > "${NEW_CONKY_CONF}"
 conky.config = {
     background = false,
     gap_x = 12,
@@ -263,8 +262,7 @@ fi
 
 # End of script
 bash /usr/local/bin/conky-start >/dev/null 2>&1 &
-clear
-
+echo -e "${GREEN}[*]${RESET} Conky install complete!"
 
 # ============================ [ NOTES ] ================================= #
 #
