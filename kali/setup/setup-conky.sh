@@ -3,13 +3,13 @@
 # File:     setup-conky.sh
 #
 # Author:   Cashiuus
-# Created:  01/27/2016          Revised:    09-APR-2016
+# Created:  01/27/2016          Revised:    09-MAY-2016
 #
 # Purpose:  Setup conky monitor dashboard on desktop with pre-configured style
 #
 #
-#
 # Source Code of Conky Variables: https://github.com/brndnmtthws/conky/blob/master/doc/variables.xml
+# Ref: http://forums.opensuse.org/english/get-technical-help-here/how-faq-forums/unreviewed-how-faq/464737-easy-configuring-conky-conkyconf.html
 ## =============================================================================
 __version__="1.0"
 __author__="Cashiuus"
@@ -21,7 +21,7 @@ BLUE="\033[01;34m"     # Heading
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
-OLD_CONKY=1
+OLD_CONKY=0
 
 # =============================[ Install & Setup ]================================ #
 
@@ -31,7 +31,7 @@ apt-get -y install conky
 # Conky < 1.9 uses old config style we are used to using
 # Conky >= 1.10 uses new Lua-based configuration style
 
-if [[ ${OLD_CONKY} == 1 ]]; then
+if [[ ${OLD_CONKY} -eq 1 ]]; then
   # If we've set this variable to 1, we want old conky.
   echo -e "${GREEN}[*]${RESET} Performing setup of OLD version Conky..."
   file="${HOME}/.conkyrc"
@@ -172,8 +172,6 @@ conky.config = {
 };
 
 conky.text = [[
-# --[ TEXT LAYOUT ]-- #
-TEXT
 \${color green}SYSTEM: \$nodename (\$machine)\${hr 1}\${color}
 Uptime: \$alignr\$uptime
 CPU: \${alignr}\${freq_g} GHz
@@ -219,8 +217,8 @@ echo -e "${GREEN}[*] ${RESET}Adding conky-start script"
 cat <<EOF > "${file}"
 #!/bin/bash
 
-$(which timeout) 10 $(which killall) -q -9 -w conky
-$(which sleep) 5s
+$(which timeout) 10 $(which killall) -9 -q -w conky
+$(which sleep) 20s
 $(which conky) &
 EOF
 chmod -f 0500 "${file}"
@@ -234,6 +232,7 @@ if [[ -w "${file}" ]]; then
     cat <<EOF > "${file}"
 [Desktop Entry]
 Name=conky
+Exec=/usr/local/bin/conky-start
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
@@ -242,22 +241,11 @@ Comment=
 EOF
 fi
 
-# =========[ Refresh Script ]======== #
-file="/usr/local/bin/conky-refresh"
-echo -e "${GREEN}[*] ${RESET}Adding conky-refresh script"
-cat <<EOF > "${file}"
-#!/bin/bash
-
-$(which timeout) 10 $(which killall) -9 -q -w conky
-$(which conky) &
-EOF
-chmod -f 0500 "${file}"
-
 
 # =========[ Keyboard Shortcut (Alt+F2) to 'conky-refresh' ]======= #
 #file="${HOME}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml"
 #if [[ -e "${file}" ]]; then
-    #grep -q '<property name="&lt;Primary&gt;r" type="string" value="/usr/local/bin/conky-refresh"/>' "${file}" || sed -i 's#<property name=\&lt;Alt\&gt;F2" type="string" value="xfrun4"/>#<property name="\&lt;Alt\&gt;F2" type="string" value="xfrun4"/>\n        <property name="\&lt;Primary\&gt;r" type="string" value="/usr/local/bin/conky-refresh"/>#' "${file}"
+    #grep -q '<property name="&lt;Primary&gt;r" type="string" value="/usr/local/bin/conky-start"/>' "${file}" || sed -i 's#<property name=\&lt;Alt\&gt;F2" type="string" value="xfrun4"/>#<property name="\&lt;Alt\&gt;F2" type="string" value="xfrun4"/>\n        <property name="\&lt;Primary\&gt;r" type="string" value="/usr/local/bin/conky-refresh"/>#' "${file}"
 #fi
 
 # ===========================[ Conky with GNU Screen ]=============================== #
@@ -274,7 +262,7 @@ chmod -f 0500 "${file}"
 
 
 # End of script
-/usr/local/bin/conky-start
+bash /usr/local/bin/conky-start >/dev/null 2>&1 &
 clear
 
 

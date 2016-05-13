@@ -23,6 +23,8 @@ RESET="\033[00m"       # Normal
 EXTENSION_PATH="/usr/share/gnome-shell/extensions"
 
 # =============================[      ]================================ #
+apt-get -qq update
+apt-get -y install gconf-editor
 # Disable idle timeout to screensaver
 gsettings set org.gnome.desktop.session idle-delay 0
 
@@ -81,7 +83,9 @@ gsettings set org.gnome.gedit.preferences.ui bottom-panel-visible true          
 gsettings set org.gnome.gedit.preferences.ui toolbar-visible true
 gsettings set org.gnome.gedit.state.window side-panel-size 150                    # Default: 200
 
-
+# ====[ Terminal ]==== #
+gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_type transparent
+gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_darkness 0.97
 
 
 
@@ -93,7 +97,7 @@ gsettings set org.freedesktop.Tracker.Miner.Files crawling-interval -2
 gsettings set org.freedesktop.Tracker.Miner.Files enable-monitors false
 
 # TODO: Modify the default "favorite apps"
-gsettings set org.gnome.shell favorite-apps "['iceweasel.desktop', 'gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
+gsettings set org.gnome.shell favorite-apps "['gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
 
 # ====[ GNOME Desktop Settings ]==== #
 gsettings set org.gnome.desktop.background show-desktop-icons true
@@ -361,9 +365,22 @@ trap finish EXIT
 # mkdir -p "/usr/share/gnome-shell/extensions/removeaccesibility@lomegor"
 # unzip /tmp/extension.zip -d "/usr/share/gnome-shell/extensions/removeaccesibility@lomegor"
 
-
+# ===========[ gsettings ]==============
+# gsettings [--schemadir SCHEMADIR] COMMAND [ARGS..]
+#
+# gsettings list-keys org.gnome.shell
+# gsettings list-children org.gnome.shell
+#
+# Get a list of keys or key values
+# gconftool-2 -a /apps/gnome-terminal/profiles/Default
+# gconftool-2 --get /apps/gnome-terminal/profiles/Default/background_color
+#
+# Dump your current terminal preferences
+# gconftool-2 --dump '/apps/gnome-terminal' > gnome-terminal-conf.xml
+# Modify the file, then load it back into settings
+# gconftool-2 --load gnome-terminal-conf.xml
+#
 # Kali 2016 Default Enabled Extensions (via: gsettings get org.gnome.shell enabled-extensions)
 # ['apps-menu@gnome-shell-extensions.gcampax.github.com', 'places-menu@gnome-shell-extensions.gcampax.github.com', 'workspace-indicator@gnome-shell-extensions.gcampax.github.com', 'dash-to-dock@micxgx.gmail.com', 'ProxySwitcher@flannaghan.com', 'EasyScreenCast@iacopodeenosee.gmail.com', 'refresh-wifi@kgshank.net', 'user-theme@gnome-shell-extensions.gcampax.github.com']
 
 # Kali 2016 Default Favorites (via: gsettings get org.gnome.shell favorite-apps)
-# ['iceweasel.desktop', 'gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'kali-msfconsole.desktop', 'kali-armitage.desktop', 'kali-burpsuite.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'leafpad.desktop', 'gnome-tweak-tool.desktop']
