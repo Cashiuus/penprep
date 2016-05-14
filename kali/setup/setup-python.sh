@@ -3,7 +3,7 @@
 # File:     setup-python.sh
 #
 # Author:   Cashiuus
-# Created:  03/10/2016  - (Revised: 10-APR-2016)
+# Created:  10-Mar-2016  -          (Revised: 10-May-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -18,6 +18,7 @@ __author__="Cashiuus"
 RED="\033[01;31m"      # Issues/Errors
 GREEN="\033[01;32m"    # Success
 YELLOW="\033[01;33m"   # Warnings/Information
+PURPLE="\033[01;35m"   # Other
 BLUE="\033[01;34m"     # Heading
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
@@ -47,13 +48,13 @@ fi
 
 # Determine active shell to update the correct resource file
 if [[ "${SHELL}" == "/usr/bin/zsh" ]]; then
-  SHELL_FILE=~/.zshrc
+    SHELL_FILE=~/.zshrc
 else
-  SHELL_FILE=~/.bashrc
+    SHELL_FILE=~/.bashrc
 fi
 
 # Pre-requisites
-echo -e "\n ${GREEN}-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup-Python ]${GREEN}-----------${RESET}"
+echo -e "\n${GREEN}[*]-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup-Python ]${GREEN}-----------[*]${RESET}"
 echo -e "${PURPLE}[penprep] ${GREEN}[*]${RESET} Installing Python Dependencies"
 apt-get install -y -qq build-essential python python-pip virtualenv virtualenvwrapper
 
@@ -64,6 +65,7 @@ argparse
 beautifulsoup4
 colorama
 django
+django-environ
 dnspython
 lxml
 mechanize
@@ -90,16 +92,17 @@ pip install -r /tmp/requirements.txt
 
 # Install Python 3.x
 if [ $INSTALL_PY3 == "true" ]; then
-  echo -e "${GREEN}[*]${RESET} Installing Python 3..."
-  apt-get -y -qq install python3 python3-all
+    echo -e "${GREEN}[*]${RESET} Installing Python 3..."
+    apt-get -y -qq install python3 python3-all
 fi
 
 
 echo -e "\n${PURPLE}[penprep] ${GREEN}[*]${RESET} Creating Virtual Environments"
 if [ ! -e /usr/local/bin/virtualenvwrapper.sh ]; then
-  # apt-get package symlinking to where this file is expected to be
-  ln -s /usr/share/virtualenvwrapper/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh
+    # apt-get package symlinking to where this file is expected to be
+    ln -s /usr/share/virtualenvwrapper/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh
 fi
+
 source /usr/local/bin/virtualenvwrapper.sh
 
 # Custom post-creation script for new envs to auto-install core pip packages
@@ -113,8 +116,8 @@ EOF
 
 # Virtual Environment Setup - Python 3.5.x
 if [ $INSTALL_PY3 == "true" ]; then
-  #/usr/local/opt/python-${py3version}/bin/pyvenv env-${py3version}
-  mkvirtualenv env-${py3version} -p /usr/bin/python${py3version}
+    #/usr/local/opt/python-${py3version}/bin/pyvenv env-${py3version}
+    mkvirtualenv env-${py3version} -p /usr/bin/python${py3version}
 fi
 
 # Virtual Environment Setup - Python 2.7.x
@@ -124,20 +127,20 @@ mkvirtualenv env-${py2version} -p /usr/bin/python${py2version}
 echo -e "\n${PURPLE}[penprep] ${GREEN}[*]${RESET} Updating Shell Startup - ${GREEN}${SHELL_FILE}${RESET}"
 file=$SHELL_FILE
 grep -q '^### Load Python Virtualenvwrapper' "${file}" 2>/dev/null \
-  || echo '### Load Python Virtualenvwrapper Script helper' >> "${file}"
+    || echo '### Load Python Virtualenvwrapper Script helper' >> "${file}"
 grep -q '^[[ -e "/usr/local/bin/virtualenvwrapper.sh"' "${file}" 2>/dev/null \
-  || echo '[[ -e /usr/local/bin/virtualenvwrapper.sh ]] && source "/usr/local/bin/virtualenvwrapper.sh"' >> "${file}"
+    || echo '[[ -e /usr/local/bin/virtualenvwrapper.sh ]] && source "/usr/local/bin/virtualenvwrapper.sh"' >> "${file}"
 grep -q '^export WORKON_HOME=$HOME/.virtualenvs' "${file}" 2>/dev/null \
-  || echo 'export WORKON_HOME=$HOME/.virtualenvs' >> "${file}"
+    || echo 'export WORKON_HOME=$HOME/.virtualenvs' >> "${file}"
 
 source "${file}"
 
 # Finally, activate the desired default
 echo -e "\n ${GREEN}-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup Complete - Activating Environment ]${GREEN}-----------${RESET}"
 if [ $DEFAULT_VERSION == "3" ]; then
-  workon env-${py3version}
+    workon env-${py3version}
 else
-  workon env-${py2version}
+    workon env-${py2version}
 fi
 
 # Install or upgrade a package to ALL virtualenvs
