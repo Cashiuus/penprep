@@ -35,8 +35,8 @@ py2version="2.7"
 py3version="3.5"
 
 #======[ ROOT PRE-CHECK ]=======#
-if [[ $EUID -ne 0 ]];then
-    if [[ $(dpkg-query -s sudo) ]];then
+if [[ $EUID -ne 0 ]]; then
+    if [[ $(dpkg-query -s sudo) ]]; then
         export SUDO="sudo"
         # $SUDO - run commands with this prefix now to account for either scenario.
     else
@@ -55,8 +55,8 @@ fi
 
 # Pre-requisites
 echo -e "\n${GREEN}[*]-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup-Python ]${GREEN}-----------[*]${RESET}"
-echo -e "${PURPLE}[penprep] ${GREEN}[*]${RESET} Installing Python Dependencies"
-apt-get install -y -qq build-essential python python-pip virtualenv virtualenvwrapper
+echo -e "${PURPLE}[penprep]${RESET} Installing Python Dependencies"
+$SUDO apt-get install -y -qq build-essential python python-pip virtualenv virtualenvwrapper
 
 # Install base pip files
 file="/tmp/requirements.txt"
@@ -93,14 +93,14 @@ pip install -r /tmp/requirements.txt
 # Install Python 3.x
 if [ $INSTALL_PY3 == "true" ]; then
     echo -e "${GREEN}[*]${RESET} Installing Python 3..."
-    apt-get -y -qq install python3 python3-all
+    $SUDO apt-get -y -qq install python3 python3-all
 fi
 
 
 echo -e "\n${PURPLE}[penprep] ${GREEN}[*]${RESET} Creating Virtual Environments"
 if [ ! -e /usr/local/bin/virtualenvwrapper.sh ]; then
     # apt-get package symlinking to where this file is expected to be
-    ln -s /usr/share/virtualenvwrapper/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh
+    $SUDO ln -s /usr/share/virtualenvwrapper/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh
 fi
 
 source /usr/local/bin/virtualenvwrapper.sh
