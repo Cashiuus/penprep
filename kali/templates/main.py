@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ==============================================================================
+# Created:      01-May-2016         -           Revised:
 # File:
-# Depends:
+# Depends:      n/a
 # Compat:       2.7+
-# Created:      02/21/2016  -   Revised:
-# Author:       Cashiuus - Cashiuus@gmail.com
+# Author:       Cashiuus - Cashiuus{at}gmail
 #
 # Purpose:
 #
@@ -79,6 +79,7 @@ def create_file(path):
         if e.errno == errno.EEXIST:
             # The file already exists
             pass
+            return False
         else:
             # Something went wrong, troubleshoot error
             raise
@@ -86,6 +87,7 @@ def create_file(path):
         # No exception, so file was hopefully created.
         with os.fdopen(file_handle, 'w') as file_obj:
             file_obj.write("### Log File")
+        return True
 
 
 def shutdown_app():

@@ -1,29 +1,37 @@
 #!/bin/bash
 ## =============================================================================
-# File:
+# File:     file
 #
 # Author:   Cashiuus
-# Created:  03/10/2016  - (Revised: )
+# Created:  10-APR-2016 - - - - - - (Revised: )
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
 # Purpose:
 #
 #
-## =============================================================================
-__version__="0.1"
+## ========================================================================== ##
+__version__="0.9"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
+# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
+# [https://en.wikipedia.org/wiki/ANSI_escape_code]
 GREEN="\033[01;32m"    # Success
 YELLOW="\033[01;33m"   # Warnings/Information
 RED="\033[01;31m"      # Issues/Errors
 BLUE="\033[01;34m"     # Heading
+PURPLE="\033[01;35m"   # Other
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
-SCRIPT_DIR=$(readlink -f $0)
-APP_BASE=$(dirname ${SCRIPT_DIR})
+APP_PATH=$(readlink -f $0)
+APP_BASE=$(dirname "${APP_PATH}")
+APP_NAME=$(basename "${APP_PATH}")
+APP_ARGS=$@
 LOG_FILE="${APP_BASE}/debug.log"
+# These can be used to know height (LINES) and width (COLS) of current terminal in script
+LINES=$(tput lines)
+COLS=$(tput cols)
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]];then
@@ -35,7 +43,8 @@ if [[ $EUID -ne 0 ]];then
         exit 1
     fi
 fi
-# =============================[      ]================================ #
+## ========================================================================== ##
+# ===============================[  BEGIN  ]================================== #
 
 
 
@@ -70,8 +79,17 @@ trap finish EXIT
 #   -w      file exists and write permission granted
 #   -x      file exists and execute permission granted
 #   -z      file is size zero (empty)
+#
+#   $#      Number of arguments passed to script by user
+#   $@      A list of available parameters (*avoid using this)
+#   $?      The exit value of the command run before requesting this
+#   $0      Name of the running script
+#   $1..5   Arguments given to script by user
+#   $$      Process ID of the currently-running shell the script is running in
+#
 #   [[ $? -eq 0 ]]      Previous command was successful
 #   [[ $? -ne 0 ]]      Previous command NOT successful
+#
 #
 # ====[ READ ]==== #
 #   -p ""   Instead of echoing text, provide it right in the "prompt" argument
@@ -83,7 +101,8 @@ trap finish EXIT
 #   -i ""   Specify a default value. If user hits ENTER or doesn't respond, this value is saved
 #
 # Ask for a path with a default value
-#read -p "Enter the path to the file: " -i "/usr/local/etc/" -e FILEPATH
+#read -n 5 -p "Enter the path to the file: " -i "/usr/local/etc/" -e FILEPATH
+#echo -e ""
 
 # ====[ TOUCH ]==== #
 #touch

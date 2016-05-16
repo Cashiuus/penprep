@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ## =============================================================================
 # File:     setup-python.sh
 #
@@ -115,7 +115,7 @@ pip install requests
 EOF
 
 # Virtual Environment Setup - Python 3.5.x
-if [ $INSTALL_PY3 == "true" ]; then
+if [[ $INSTALL_PY3 == "true" ]]; then
     #/usr/local/opt/python-${py3version}/bin/pyvenv env-${py3version}
     mkvirtualenv env-${py3version} -p /usr/bin/python${py3version}
 fi
@@ -137,7 +137,7 @@ source "${file}"
 
 # Finally, activate the desired default
 echo -e "\n ${GREEN}-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup Complete - Activating Environment ]${GREEN}-----------${RESET}"
-if [ $DEFAULT_VERSION == "3" ]; then
+if [[ $DEFAULT_VERSION == "3" ]]; then
     workon env-${py3version}
 else
     workon env-${py2version}

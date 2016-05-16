@@ -6,6 +6,7 @@
 alias bashload="source ${HOME}/.bashrc"
 alias update-kali="apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade"
 alias cls='clear'
+alias open="gedit"
 
 ### Custom Folder Workflows
 alias d="cd ~/Documents"
@@ -42,16 +43,17 @@ echo -n "External IP:  " ; curl ifconfig.me ; echo'
 #alias localip="ipconfig getifaddr en0"
 
 ### Application Shortcuts
-alias open="gedit"
-alias chrome='/opt/google/chrome/chrome'
-alias tmux="tmux attach || tmux new"
 alias axel="axel -a"
+# Show 3 months by default for calendar
+alias cal='cal -3'
+alias chrome='/opt/google/chrome/chrome'
+alias lynx='lynx -force_html -width=$COLUMNS' #best settings for viewing HTML
+alias links='links -force-html' #need to enable colour in config menu manually
+
 alias screen="screen -xRR"
 alias strings="strings -a"
-# Always print human-readable for various disk space commands
-alias df='df -h'
-alias free='free -h'
-alias du='du -s -h'
+alias tmux="tmux attach || tmux new"
+
 # Stopwatch
 alias timer='echo "Timer started. Stop with Ctrl-D." && date && time cat && date'
 
@@ -85,6 +87,8 @@ alias cdup="cd .."
 
 ### CLI Navigation
 alias more='less'
+alias head='head -n $((${LINES:-12}-2))' #as many as possible without scrolling
+alias tail='tail -n $((${LINES:-12}-2)) -s.1' #Likewise, also more responsive -f
 
 ### Colorizing
 alias grep="grep --color=auto -I" #ignore binary files when searching inside
@@ -109,6 +113,11 @@ alias la="ls -laF ${colorflag}"
 alias lsd="ls -lF ${colorflag} | grep --color=never '^d'"
 
 export LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:'
+
+# Always print human-readable for various disk space commands
+alias df='df -h'
+alias free='free -h'
+alias du='du -s -h'
 
 # Setup SUDO action for non-root usage
 if [ $UID -ne 0 ]; then

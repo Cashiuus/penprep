@@ -59,6 +59,8 @@ esac
 
 ### Enable a colored prompt
 force_color_prompt=yes
+# Enable gcc colours, available since gcc 4.9.0
+export GCC_COLORS=1
 
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
