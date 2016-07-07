@@ -56,7 +56,15 @@ fi
 # Pre-requisites
 echo -e "\n${GREEN}[*]-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup-Python ]${GREEN}-----------[*]${RESET}"
 echo -e "${PURPLE}[penprep]${RESET} Installing Python Dependencies"
-$SUDO apt-get install -y -qq build-essential python python-pip virtualenv virtualenvwrapper
+$SUDO apt-get -y install build-essential python python-pip virtualenv \
+    virtualenv-clone virtualenvwrapper
+
+# Pillow depends
+$SUDO apt-get -y install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
+    liblcms2-dev libwebp-dev zlib1g-dev
+
+# Postgresql and psycopg2 depends
+libpq-dev
 
 # Install base pip files
 file="/tmp/requirements.txt"
@@ -64,8 +72,6 @@ cat <<EOF > "${file}"
 argparse
 beautifulsoup4
 colorama
-django
-django-environ
 dnspython
 lxml
 mechanize
@@ -73,12 +79,14 @@ netaddr
 pefile
 pep8
 Pillow
+psycopg2
 pygeoip
 python-Levenshtein
 python-libnmap
 requests
 Scrapy
 six
+wheel
 EOF
 pip install -r /tmp/requirements.txt
 
@@ -110,18 +118,33 @@ file="${WORKON_HOME}/postmkvirtualenv"
 cat <<EOF > "${file}"
 #!/usr/bin/env bash
 pip install argparse
+pip install beautifulsoup4
 pip install pep8
 pip install requests
+pip install Scrapy
+EOF
+
+# Custom Django requirements file for quick Django setups
+file="${WORKON_HOME}/django-requirements.txt"
+cat <<EOF > "${file}"
+cookiecutter
+django
+django-environ
+django-extensions
+django-scrapy
+six
 EOF
 
 # Virtual Environment Setup - Python 3.5.x
 if [[ $INSTALL_PY3 == "true" ]]; then
     #/usr/local/opt/python-${py3version}/bin/pyvenv env-${py3version}
     mkvirtualenv env-${py3version} -p /usr/bin/python${py3version}
+    deactivate
 fi
 
 # Virtual Environment Setup - Python 2.7.x
 mkvirtualenv env-${py2version} -p /usr/bin/python${py2version}
+deactivate
 
 # Add lines to shell dot-file if they aren't there
 echo -e "\n${PURPLE}[penprep] ${GREEN}[*]${RESET} Updating Shell Startup - ${GREEN}${SHELL_FILE}${RESET}"
@@ -143,7 +166,7 @@ else
     workon env-${py2version}
 fi
 
-# Install or upgrade a package to ALL virtualenvs
+# Install or upgrade (-U) a package to ALL virtualenvs
 #allvirtualenv pip install django
 #allvirtualenv pip install -U django
 

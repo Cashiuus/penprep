@@ -414,29 +414,38 @@ EOF
 
 
 function set_terminator_default {
+  #--- Configure terminator
+  mkdir -p ~/.config/terminator/
+  file=~/.config/terminator/config; [ -e "${file}" ] && cp -n $file{,.bkup}
+cat <<EOF > "${file}" || echo -e ' '${RED}'[!] Issue with writing file'${RESET} 1>&2
+[global_config]
+  enabled_plugins = TerminalShot, LaunchpadCodeURLHandler, APTURLHandler, LaunchpadBugURLHandler
+[keybindings]
+[profiles]
+  [[default]]
+    background_darkness = 0.9
+    scroll_on_output = False
+    copy_on_selection = True
+    background_type = transparent
+    scrollback_infinite = True
+    show_titlebar = False
+[layouts]
+  [[default]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+    [[[window0]]]
+      type = Window
+      parent = ""
+[plugins]
+EOF
   #--- Set terminator for XFCE's default
   if [[ $(which terminator) ]]; then
     mkdir -p ~/.config/xfce4/
-    file=~/.config/xfce4/helpers.rc; [ -e "${file}" ] && cp -n $file{,.bkup}    #exo-preferred-applications   #xdg-mime default
-    sed -i 's#^TerminalEmulator=.*#TerminalEmulator=custom-TerminalEmulator#' "${file}"
-    grep -q '^TerminalEmulator=custom-TerminalEmulator' "${file}" 2>/dev/null || echo 'TerminalEmulator=custom-TerminalEmulator' >> "${file}"
-
-    #--- XFCE fixes for GNOME Terminator
-    mkdir -p ~/.local/share/xfce4/helpers/
-    file=~/.local/share/xfce4/helpers/custom-TerminalEmulator.desktop; [[ -e "${file}" ]] && cp -n $file{,.bkup}
-    sed -i 's#^X-XFCE-CommandsWithParameter=.*#X-XFCE-CommandsWithParameter=/usr/bin/terminator --command="%s"#' "${file}" 2>/dev/null \
-      || cat <<EOF > "${file}"
-[Desktop Entry]
-NoDisplay=true
-Version=1.0
-Encoding=UTF-8
-Type=X-XFCE-Helper
-X-XFCE-Category=TerminalEmulator
-X-XFCE-CommandsWithParameter=/usr/bin/terminator --command="%s"
-Icon=terminator
-Name=terminator
-X-XFCE-Commands=/usr/bin/terminator
-EOF
+    file=~/.config/xfce4/helpers.rc; [ -e "${file}" ] && cp -n $file{,.bkup}
+    ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
+    sed -i 's_^TerminalEmulator=.*_TerminalEmulator=debian-x-terminal-emulator_' "${file}" 2>/dev/null \
+      || echo -e 'TerminalEmulator=debian-x-terminal-emulator' >> "${file}"
   fi
 }
 
