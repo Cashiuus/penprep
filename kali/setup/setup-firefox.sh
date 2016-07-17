@@ -1,6 +1,6 @@
 #!/bin/bash
 ## =============================================================================
-# File:     setup-iceweasel.sh
+# File:     setup-firefox.sh
 #
 # Author:   Cashiuus
 # Created:  10-APR-2016 - - - - - - (Revised: )
@@ -21,25 +21,51 @@ RESET="\033[00m"       # Normal
 
 
 # Launch it to generate first-run files
-echo -e "\n ${GREEN}[+]${RESET} Installing ${GREEN}iceweasel${RESET} ~ GUI web browser"
-apt-get install -y -qq unzip curl iceweasel
-timeout 15 iceweasel >/dev/null 2>&1
-timeout 5 killall -9 -q -w iceweasel >/dev/null
-file=$(find /root/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'prefs.js' -print -quit) && [ -e "${file}" ] && cp -n $file{,.bkup}   #/etc/iceweasel/pref/*.js
+echo -e "\n ${GREEN}[+]${RESET} Installing ${GREEN}Mozilla Firefox${RESET} web browser"
+apt-get -y -qq install unzip curl firefox-esr
+
+export DISPLAY=:0.0
+timeout 15 firefox >/dev/null 2>&1
+timeout 5 killall -9 -q -w firefox-esr >/dev/null
+
+file=$(find ~/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'prefs.js' -print -quit)
+[ -e "${file}" ] && cp -n $file{,.bkup}   #/etc/firefox-esr/pref/*.js
 ([[ -e "${file}" && "$(tail -c 1 $file)" != "" ]]) && echo >> "${file}"
-sed -i 's/^.browser.safebrowsing.enabled.*/user_pref("browser.safebrowsing.enabled", false);' "${file}" 2>/dev/null || echo 'user_pref("browser.safebrowsing.enabled", false);' >> "${file}"               # Iceweasel -> Edit -> Preferences ->  Security -> Block reported web forgeries
-sed -i 's/^.browser.safebrowsing.malware.enabled.*/user_pref("browser.safebrowsing.malware.enabled", false);' "${file}" 2>/dev/null || echo 'user_pref("browser.safebrowsing.malware.enabled", false);' >> "${file}"     # Iceweasel -> Edit -> Preferences -> Security -> Block reported attack sites
-sed -i 's/^.browser.safebrowsing.remoteLookups.enabled.*/user_pref("browser.safebrowsing.remoteLookups.enabled", false);' "${file}" 2>/dev/null || echo 'user_pref("browser.safebrowsing.remoteLookups.enabled", false);' >> "${file}"
-sed -i 's/^.*browser.startup.page.*/user_pref("browser.startup.page", 0);' "${file}" 2>/dev/null || echo 'user_pref("browser.startup.page", 0);' >> "${file}"                                              # Iceweasel -> Edit -> Preferences -> General -> When firefox starts: Show a blank page
-sed -i 's/^.*privacy.donottrackheader.enabled.*/user_pref("privacy.donottrackheader.enabled", true);' "${file}" 2>/dev/null || echo 'user_pref("privacy.donottrackheader.enabled", true);' >> "${file}"    # Privacy -> Enable: Tell websites I do not want to be tracked
-sed -i 's/^.*browser.showQuitWarning.*/user_pref("browser.showQuitWarning", true);' "${file}" 2>/dev/null || echo 'user_pref("browser.showQuitWarning", true);' >> "${file}"                               # Stop Ctrl+Q from quitting without warning
-sed -i 's/^.*extensions.https_everywhere._observatory.popup_shown.*/user_pref("extensions.https_everywhere._observatory.popup_shown", true);' "${file}" 2>/dev/null || echo 'user_pref("extensions.https_everywhere._observatory.popup_shown", true);' >> "${file}"
-sed -i 's/^.network.security.ports.banned.override/user_pref("network.security.ports.banned.override", "1-65455");' "${file}" 2>/dev/null || echo 'user_pref("network.security.ports.banned.override", "1-65455");' >> "${file}"    # Remove "This address is restricted"
+sed -i 's/^.network.proxy.socks_remote_dns.*/user_pref("network.proxy.socks_remote_dns", true);' "${file}" 2>/dev/null \
+  || echo 'user_pref("network.proxy.socks_remote_dns", true);' >> "${file}"
+sed -i 's/^.browser.safebrowsing.enabled.*/user_pref("browser.safebrowsing.enabled", false);' "${file}" 2>/dev/null \
+  || echo 'user_pref("browser.safebrowsing.enabled", false);' >> "${file}"
+sed -i 's/^.browser.safebrowsing.malware.enabled.*/user_pref("browser.safebrowsing.malware.enabled", false);' "${file}" 2>/dev/null \
+  || echo 'user_pref("browser.safebrowsing.malware.enabled", false);' >> "${file}"
+sed -i 's/^.browser.safebrowsing.remoteLookups.enabled.*/user_pref("browser.safebrowsing.remoteLookups.enabled", false);' "${file}" 2>/dev/null \
+  || echo 'user_pref("browser.safebrowsing.remoteLookups.enabled", false);' >> "${file}"
+sed -i 's/^.*browser.startup.page.*/user_pref("browser.startup.page", 0);' "${file}" 2>/dev/null \
+  || echo 'user_pref("browser.startup.page", 0);' >> "${file}"
+sed -i 's/^.*privacy.donottrackheader.enabled.*/user_pref("privacy.donottrackheader.enabled", true);' "${file}" 2>/dev/null \
+  || echo 'user_pref("privacy.donottrackheader.enabled", true);' >> "${file}"
+sed -i 's/^.*browser.showQuitWarning.*/user_pref("browser.showQuitWarning", true);' "${file}" 2>/dev/null \
+  || echo 'user_pref("browser.showQuitWarning", true);' >> "${file}"
+sed -i 's/^.*extensions.https_everywhere._observatory.popup_shown.*/user_pref("extensions.https_everywhere._observatory.popup_shown", true);' "${file}" 2>/dev/null \
+  || echo 'user_pref("extensions.https_everywhere._observatory.popup_shown", true);' >> "${file}"
+sed -i 's/^.network.security.ports.banned.override/user_pref("network.security.ports.banned.override", "1-65455");' "${file}" 2>/dev/null \
+  || echo 'user_pref("network.security.ports.banned.override", "1-65455");' >> "${file}"
+
+# Old Iceweasel plugins
+#sed -i 's/^.browser.safebrowsing.enabled.*/user_pref("browser.safebrowsing.enabled", false);' "${file}" 2>/dev/null || echo 'user_pref("browser.safebrowsing.enabled", false);' >> "${file}"               # Iceweasel -> Edit -> Preferences ->  Security -> Block reported web forgeries
+#sed -i 's/^.browser.safebrowsing.malware.enabled.*/user_pref("browser.safebrowsing.malware.enabled", false);' "${file}" 2>/dev/null || echo 'user_pref("browser.safebrowsing.malware.enabled", false);' >> "${file}"     # Iceweasel -> Edit -> Preferences -> Security -> Block reported attack sites
+#sed -i 's/^.browser.safebrowsing.remoteLookups.enabled.*/user_pref("browser.safebrowsing.remoteLookups.enabled", false);' "${file}" 2>/dev/null || echo 'user_pref("browser.safebrowsing.remoteLookups.enabled", false);' >> "${file}"
+#sed -i 's/^.*browser.startup.page.*/user_pref("browser.startup.page", 0);' "${file}" 2>/dev/null || echo 'user_pref("browser.startup.page", 0);' >> "${file}"                                              # Iceweasel -> Edit -> Preferences -> General -> When firefox starts: Show a blank page
+#sed -i 's/^.*privacy.donottrackheader.enabled.*/user_pref("privacy.donottrackheader.enabled", true);' "${file}" 2>/dev/null || echo 'user_pref("privacy.donottrackheader.enabled", true);' >> "${file}"    # Privacy -> Enable: Tell websites I do not want to be tracked
+#sed -i 's/^.*browser.showQuitWarning.*/user_pref("browser.showQuitWarning", true);' "${file}" 2>/dev/null || echo 'user_pref("browser.showQuitWarning", true);' >> "${file}"                               # Stop Ctrl+Q from quitting without warning
+#sed -i 's/^.*extensions.https_everywhere._observatory.popup_shown.*/user_pref("extensions.https_everywhere._observatory.popup_shown", true);' "${file}" 2>/dev/null || echo 'user_pref("extensions.https_everywhere._observatory.popup_shown", true);' >> "${file}"
+#sed -i 's/^.network.security.ports.banned.override/user_pref("network.security.ports.banned.override", "1-65455");' "${file}" 2>/dev/null || echo 'user_pref("network.security.ports.banned.override", "1-65455");' >> "${file}"    # Remove "This address is restricted"
 
 
 
-### Iceweasel Bookmarks
-file=$(find /root/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'bookmarks.html' -print -quit) && [ -e "${file}" ] && cp -n $file{,.bkup}
+### Replace the default Firefox Bookmarks
+file=$(find ~/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'bookmarks.html' -print -quit)
+[[ -e "${file}" ]] && cp -n $file{,.bkup}     #/etc/firefox-esr/profile/bookmarks.html
+
 cat << EOF > "${file}"
 <!DOCTYPE NETSCAPE-Bookmark-file-1>
 <!-- This is an automatically generated file.

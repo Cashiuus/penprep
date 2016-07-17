@@ -55,16 +55,19 @@ fi
 
 # Pre-requisites
 echo -e "\n${GREEN}[*]-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup-Python ]${GREEN}-----------[*]${RESET}"
-echo -e "${PURPLE}[penprep]${RESET} Installing Python Dependencies"
-$SUDO apt-get -y install build-essential python python-pip virtualenv \
+echo -e "${GREEN}[*] ${PURPLE}[penprep]${RESET} Installing Python Dependencies"
+$SUDO apt-get -y install build-essential python python-pip python-dev virtualenv \
     virtualenv-clone virtualenvwrapper
 
 # Pillow depends
 $SUDO apt-get -y install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
     liblcms2-dev libwebp-dev zlib1g-dev
 
+# lxml depends
+apt-get -y install libxml2-dev libxslt1-dev zlib1g-dev
+
 # Postgresql and psycopg2 depends
-libpq-dev
+apt-get -y install libpq-dev
 
 # Install base pip files
 file="/tmp/requirements.txt"
@@ -100,12 +103,12 @@ pip install -r /tmp/requirements.txt
 
 # Install Python 3.x
 if [ $INSTALL_PY3 == "true" ]; then
-    echo -e "${GREEN}[*]${RESET} Installing Python 3..."
-    $SUDO apt-get -y -qq install python3 python3-all
+    echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET} Installing Python 3..."
+    $SUDO apt-get -y -qq install python3 python3-all python3-dev
 fi
 
 
-echo -e "\n${PURPLE}[penprep] ${GREEN}[*]${RESET} Creating Virtual Environments"
+echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET} Creating Virtual Environments"
 if [ ! -e /usr/local/bin/virtualenvwrapper.sh ]; then
     # apt-get package symlinking to where this file is expected to be
     $SUDO ln -s /usr/share/virtualenvwrapper/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh
@@ -147,7 +150,7 @@ mkvirtualenv env-${py2version} -p /usr/bin/python${py2version}
 deactivate
 
 # Add lines to shell dot-file if they aren't there
-echo -e "\n${PURPLE}[penprep] ${GREEN}[*]${RESET} Updating Shell Startup - ${GREEN}${SHELL_FILE}${RESET}"
+echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET}  Updating Shell Startup - ${GREEN}${SHELL_FILE}${RESET}"
 file=$SHELL_FILE
 grep -q '^### Load Python Virtualenvwrapper' "${file}" 2>/dev/null \
     || echo '### Load Python Virtualenvwrapper Script helper' >> "${file}"

@@ -26,19 +26,22 @@ APP_BASE=$(dirname ${SCRIPT_DIR})
 GIT_BASE_DIR="/opt/git"
 GIT_DEV_DIR="${HOME}/git"
 
+CREATE_USER_DIRECTORIES=(engagements git pendrop .virtualenvs workspace)
+
 # TODO: Clean this up
-source vfeed_install.sh
+#source vfeed_install.sh
 
 # =============================[  BEGIN APPLICATION  ]================================ #
 # Adjust timeout before starting because lock screen has caused issues during upgrade
+xset s 0 0
+xset s off
 gsettings set org.gnome.desktop.session idle-delay 0
-
-
-
 
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
-echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" > /etc/apt/sources.list
+echo "# kali-rolling" > /etc/apt/sources.list
+echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list
+echo "dev-src http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list
 #export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get -y dist-upgrade
@@ -56,13 +59,41 @@ apt-get -y autoremove
 
 
 
-
-
 # ====[ Configure - Nautilus ]==== #
-
 dconf write /org/gnome/nautilus/preferences/show-hidden-files true
+gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
+gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'
+gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'type', 'date_modified']"
+gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
+gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'small'
+gsettings set org.gnome.nautilus.list-view use-tree-view true                     # Default: false
+gsettings set org.gnome.nautilus.preferences sort-directories-first true          # Default: false
+gsettings set org.gnome.nautilus.window-state sidebar-width 188                   # Default: 188
+gsettings set org.gnome.nautilus.window-state start-with-sidebar true             # Default: true
+gsettings set org.gnome.nautilus.window-state maximized false                     # Default: false
 
 
+# ====[ Configure - Gedit ]==== #
+echo -e "${GREEN}[*]${RESET} Configuring Gedit gsettings"
+gsettings set org.gnome.gedit.preferences.editor display-line-numbers true
+gsettings set org.gnome.gedit.preferences.editor editor-font "'Monospace 10'"
+gsettings set org.gnome.gedit.preferences.editor insert-spaces true
+gsettings set org.gnome.gedit.preferences.editor right-margin-position 90
+gsettings set org.gnome.gedit.preferences.editor tabs-size 4                      # Default: uint32 8
+gsettings set org.gnome.gedit.preferences.editor create-backup-copy false
+gsettings set org.gnome.gedit.preferences.editor auto-save false
+gsettings set org.gnome.gedit.preferences.editor scheme 'classic'
+gsettings set org.gnome.gedit.preferences.editor ensure-trailing-newline true
+gsettings set org.gnome.gedit.preferences.editor auto-indent true                 # Default: false
+gsettings set org.gnome.gedit.preferences.editor syntax-highlighting true
+gsettings set org.gnome.gedit.preferences.ui bottom-panel-visible true            # Default: false
+gsettings set org.gnome.gedit.preferences.ui toolbar-visible true
+gsettings set org.gnome.gedit.state.window side-panel-size 150                    # Default: 200
+
+
+# Modify the default "favorite apps"
+gsettings set org.gnome.shell favorite-apps \
+    "['gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
 
 
 # =============================[ Folder Structure ]================================ #
@@ -93,8 +124,7 @@ done
 
 # =============================[ Github/Git Repositories ]================================ #
 
-# ===[ vFeed ]=== #
-vfeed_install "${GIT_BASE_DIR}" || echo -e "${RED}[-]${RESET} Error installing vfeed"
+
 
 
 
