@@ -25,7 +25,10 @@ EXTENSION_PATH="/usr/share/gnome-shell/extensions"
 # =============================[      ]================================ #
 apt-get -qq update
 apt-get -y install gconf-editor
+
 # Disable idle timeout to screensaver
+xset s 0 0
+xset s off
 gsettings set org.gnome.desktop.session idle-delay 0
 
 # ===[ RAM check ]=== #
@@ -37,8 +40,8 @@ fi
 
 # ===[ Disable notification package updater ]=== #
 if [[ $(which gnome-shell) ]]; then
-  echo -e "\n${GREEN}[*]${RESET} Disabling notification ${GREEN}package updater${RESET} service"
-  export DISPLAY=:0.0   #[[ -z $SSH_CONNECTION ]] || export DISPLAY=:0.0
+  echo -e "\n\n${GREEN}[*]${RESET} Disabling notification ${GREEN}package updater${RESET} service"
+  export DISPLAY=:0.0
   dconf write /org/gnome/settings-daemon/plugins/updates/active false
   dconf write /org/gnome/desktop/notifications/application/gpk-update-viewer/active false
   timeout 5 killall -w /usr/lib/apt/methods/http >/dev/null 2>&1
@@ -83,7 +86,7 @@ gsettings set org.gnome.gedit.preferences.ui bottom-panel-visible true          
 gsettings set org.gnome.gedit.preferences.ui toolbar-visible true
 gsettings set org.gnome.gedit.state.window side-panel-size 150                    # Default: 200
 
-# ====[ Terminal ]==== #
+# ====[ Configure - Default GNOME Terminal ]==== #
 gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_type transparent
 gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_darkness 0.97
 
@@ -96,8 +99,9 @@ echo -e "${GREEN}[*]${RESET} Configuring GNOME core gsettings"
 gsettings set org.freedesktop.Tracker.Miner.Files crawling-interval -2
 gsettings set org.freedesktop.Tracker.Miner.Files enable-monitors false
 
-# TODO: Modify the default "favorite apps"
-gsettings set org.gnome.shell favorite-apps "['gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
+# Modify the default "favorite apps"
+gsettings set org.gnome.shell favorite-apps \
+    "['gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
 
 # ====[ GNOME Desktop Settings ]==== #
 gsettings set org.gnome.desktop.background show-desktop-icons true
@@ -114,11 +118,6 @@ gsettings set org.gnome.desktop.interface clock-format '12h'                    
 gsettings set org.gnome.desktop.interface toolbar-icons-size 'small'              # Default: 'large'
 # Privacy
 gsettings set org.gnome.desktop.privacy hide-identity true                        # Default: false
-
-
-
-
-
 
 
 # ========================== [ 3rd Party Extensions ] =============================== #

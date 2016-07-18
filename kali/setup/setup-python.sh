@@ -93,8 +93,9 @@ wheel
 EOF
 pip install -r /tmp/requirements.txt
 
-# TODO: kali comes with some pip packages already on it and they are from apt-get packages
-#pip install pip --upgrade
+pip install pip --upgrade
+pip install lxml --upgrade
+
 #pip install argparse --upgrade
 
 # Figure out which outdated $(pip list --oudated) pip packages are apt pkgs and which are not
@@ -104,7 +105,8 @@ pip install -r /tmp/requirements.txt
 # Install Python 3.x
 if [ $INSTALL_PY3 == "true" ]; then
     echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET} Installing Python 3..."
-    $SUDO apt-get -y -qq install python3 python3-all python3-dev
+    $SUDO apt-get -y -qq update
+    $SUDO apt-get -y install python3 python3-all python3-dev
 fi
 
 

@@ -57,7 +57,9 @@ fi
 
 # Wipe clean any ssh keys in root profile, leaving authorized_keys file intact
 [[ ! -d "${HOME}/.ssh" ]] && mkdir -p "${HOME}/.ssh"
-find "${HOME}/.ssh/" -type f ! -name authorized_keys -delete
+
+# TODO: Sure we want to do this? What about when running this on pre-existing systems?
+#find "${HOME}/.ssh/" -type f ! -name authorized_keys -delete
 
 # Get the currently-installed version of openssh-server
 tmp=$(dpkg -s openssh-server | grep "^Version" | cut -d ":" -f3)
@@ -82,7 +84,7 @@ function version_check () {
 # TODO: Ask user if they also want to implement a password
 version_check $ver 6.5
 if [ $? == 0 ]; then
-    echo -e "[*] Newer OpenSSH Version detected, proceeding with new key format"
+    echo -e "${GREEN}[*] ${RESET}Newer OpenSSH Version detected, proceeding with new key format"
 
     #TODO: -o fails for this key type: ssh-keygen -b 4096 -t rsa1 -o -f /etc/ssh/ssh_host_key -P ""
     # We don't need this rsa1 key, it's for SSH protocol version 1
@@ -108,7 +110,7 @@ chmod 0400 "${HOME}/.ssh/id_rsa"
 
 function md5_compare() {
     # Compare MD5 to ensure new key is different from original
-    echo -e "[*] Compare the MD5 Hashes below to ensure new key is, in fact, new!"
+    echo -e "\n${GREEN}[*] ${RESET}Compare the MD5 Hashes below to ensure new key is, in fact, new!"
     openssl md5 /etc/ssh/insecure_original_kali_keys/ssh_host_*
     openssl md5 /etc/ssh/ssh_host_*
     sleep 10
@@ -151,15 +153,15 @@ fi
 
 
 # ===========================[ SSHD CONFIG TWEAKS ] =============================== #
-file=/etc/ssh/sshd_config
+file=/etc/ssh/sshd_config; [[ -e $file ]] && cp -n $file{,.bkup}
+
 # Find "Banner" in file and change to motd if not already
 # Orig: #Banner /etc/issue.net
 # *NOTE: When using '/' for paths in sed, use a different delimiter, such as # or |
-sed -i 's|^[#B]anner /etc/issue\.net|Banner /etc/motd|g' $file
+sed -i 's|^[#B]anner /etc/issue.*|Banner /etc/motd|' "${file}"
 
 # Change SSH port to non-default
-file=/etc/ssh/sshd_config; [[ -e $file ]] && cp -n $file{,.bkup}
-sed -i "s/^[#P]ort.*/Port ${SSH_SERVER_PORT}/g" "${file}"
+sed -i 's/^[#P]ort.*/Port ${SSH_SERVER_PORT}/' "${file}"
 
 # Enable RootLogin
 sed -i 's/^PermitRootLogin .*/PermitRootLogin yes/g' "${file}"
@@ -175,11 +177,11 @@ sed -i -e 's|\(ServerKeyBits\) 1024|\1 2048|' "${file}"
 sed -i 's/^LoginGraceTime.*/LoginGraceTime 60/' "${file}"
 
 # -- Enable Public Key Logins
-sed -i 's|#AuthorizedKeysFile.*|AuthorizedKeysFile  %h/.ssh/authorized_keys|' "${file}"
+sed -i 's|^#AuthorizedKeysFile.*|AuthorizedKeysFile  %h/.ssh/authorized_keys|' "${file}"
 
 # -- Disable Password Logins if using Pub Key Auth
 #sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' "${file}"
-#sed -i -e 's|\(PasswordAuthentication\) no|\1 yes|' /etc/ssh/sshd_config
+#sed -i -e 's|\(PasswordAuthentication\) no|\1 yes|' "${file}"
 
 # -- X11 Forwarding
 #sed -i 's/X11Forwarding.*/X11Forwarding no/' >> "${file}"
@@ -225,7 +227,7 @@ systemctl enable ssh
 # Check for any Invalid User Login Attempts
 #cat /var/log/auth.log | grep "Invalid user" | cut -d " " -f 1-3,6-11 | uniq | sort
 
-restrict_login_geoip() {
+function restrict_login_geoip() {
     apt-get -y install geoip-bin geoip-database
     # Test it out
     geoiplookup 8.8.8.8
