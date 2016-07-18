@@ -27,9 +27,8 @@ GIT_BASE_DIR="/opt/git"
 GIT_DEV_DIR="${HOME}/git"
 
 CREATE_USER_DIRECTORIES=(engagements git pendrop .virtualenvs workspace)
+CREATE_OPT_DIRECTORIES=(git pentest)
 
-# TODO: Clean this up
-#source vfeed_install.sh
 
 # =============================[  BEGIN APPLICATION  ]================================ #
 # Adjust timeout before starting because lock screen has caused issues during upgrade
@@ -41,11 +40,12 @@ gsettings set org.gnome.desktop.session idle-delay 0
 # Change the apt/sources.list repository listings to just a single entry:
 echo "# kali-rolling" > /etc/apt/sources.list
 echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list
-echo "dev-src http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list
+echo "deb-src http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list
 #export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get -y dist-upgrade
-apt-get -y install build-essential locate sudo gcc git htop make sysv-rc-conf
+apt-get -y install build-essential locate sudo gcc git make
+apt-get -y install htop sysv-rc-conf
 apt-get -y autoremove
 
 # Add dpkg for opposing architecture "dpkg --add-architecture amd64
@@ -97,18 +97,25 @@ gsettings set org.gnome.shell favorite-apps \
 
 
 # =============================[ Folder Structure ]================================ #
-
-# Create folders in /opt
-#for 'git'
-mkdir -p /opt/git
+# Count number of folders we are creating
+count=0
+while [ "x${CREATE_USER_DIRECTORIES[count]}" != "x" ]
+do
+    count=$(( $count + 1 ))
+done
 
 # Create folders in ~
-for dir in 'git engagements pendrop .virtualenvs workspace'; do
+echo -e "[*] Creating ${count} directories in HOME directory path..."
+for dir in ${CREATE_USER_DIRECTORIES[@]}; do
     mkdir -p "${HOME}/${dir}"
 done
 
 
-
+# Create folders in /opt
+echo -e "[*] Creating directories in /opt/ path..."
+for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
+    mkdir -p "opt/${dir}"
+done
 
 # =============================[ Dotfiles ]================================ #
 # Configure /etc/skel shell dotfiles
@@ -123,10 +130,6 @@ done
 
 
 # =============================[ Github/Git Repositories ]================================ #
-
-
-
-
 
 
 

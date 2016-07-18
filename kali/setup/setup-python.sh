@@ -3,16 +3,16 @@
 # File:     setup-python.sh
 #
 # Author:   Cashiuus
-# Created:  10-Mar-2016  -          (Revised: 10-May-2016)
+# Created:  10-Mar-2016  -  (Revised: 17-July-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
-# Purpose:  Setup Python in Kali Linux and specify default.
+# Purpose:  Setup Python 2 & 3 in Kali Linux and specify default version.
 #
 # References:
 #   http://www.extellisys.com/articles/python-on-debian-wheezy
 ## =============================================================================
-__version__="0.9"
+__version__="1.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 RED="\033[01;31m"      # Issues/Errors
@@ -30,7 +30,7 @@ APP_ARGS=$@
 LOG_FILE="${APP_BASE}/debug.log"
 # --------------- #
 INSTALL_PY3="true"
-DEFAULT_VERSION="2"     # Set to 3 for py3; Determines which is activated at the end
+DEFAULT_VERSION="2"     # Set this to 3 for py3; Determines which is activated at the end
 py2version="2.7"
 py3version="3.5"
 
@@ -64,10 +64,10 @@ $SUDO apt-get -y install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
     liblcms2-dev libwebp-dev zlib1g-dev
 
 # lxml depends
-apt-get -y install libxml2-dev libxslt1-dev zlib1g-dev
+$SUDO apt-get -y install libxml2-dev libxslt1-dev zlib1g-dev
 
 # Postgresql and psycopg2 depends
-apt-get -y install libpq-dev
+$SUDO apt-get -y install libpq-dev
 
 # Install base pip files
 file="/tmp/requirements.txt"
