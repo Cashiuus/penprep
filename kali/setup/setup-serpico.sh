@@ -45,21 +45,42 @@ if [[ $EUID -ne 0 ]];then
 fi
 ## ========================================================================== ##
 # ===============================[  BEGIN  ]================================== #
+# RVM
+if [[ ! $(which rvm) ]]; then
+	echo -e "[-] Please first install RVM and run this setup again, goodbye!"
+	exit 1
+fi
 
-apt-get install libsqlite3-dev libxslt-dev libxml2-dev zlib1g-dev gcc \
+apt-get -y install libsqlite3-dev libxslt-dev libxml2-dev zlib1g-dev gcc \
     gawk libreadline6-dev libyaml-dev libsqlite3-dev libgdbm-dev \
     libncurses5-dev bison
-
 
 cd /opt
 git clone https://github.com/SerpicoProject/Serpico
 cd Serpico
 
+# TODO: Something wrong with version 2.1.5, using 2.1-head for now.
+#rvm install ruby-2.1.5
+#rvm use ruby-2.1.5
+rvm install ruby-2.1-head
+rvm use ruby-2.1-head
+
+# This also means modifying the Serpico Gemfile to allow setup
+file='/opt/Serpico/Gemfile'
+sed -i s'|^ruby "2.1.5"|ruby "2.1.10"|' "${file}"
+
+# Install proper gems
 gem install bundler
 bundle install
 
+echo -e "[*] You will now setup a new user account..."
+# Run first-time setup script
 ruby scripts/first_time.rb
 
+echo -e "[*] Record password and press any key when ready to launch server"
+read
+
+# Launch serpico server
 ruby serpico.rb
 
 firefox https://127.0.0.1:8443/ &

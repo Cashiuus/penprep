@@ -3,7 +3,7 @@
 # File:     setup-rvm.sh
 #
 # Author:   Cashiuus
-# Created:  23-JUN-2016 - - - - - - (Revised: )
+# Created:  23-JUN-2016 - - - - - - (Revised: 22-JUL-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -65,11 +65,21 @@ source /etc/profile.d/rvm.sh
 # Fix Gnome terminal to play nice with RVM and launch as a login shell
 gconftool-2 --set --type boolean /apps/gnome-terminal/profiles/Default/login_shell true
 
-# Install the latest default version
+# Install the latest stable version
 rvm install ruby-head
 
 ruby -v
 rvm list known
 
-echo -e "[*] Type: rvm install <version> - and install Ruby versions you need"
+echo -e "\n\n[*] Type: rvm install <version> - and install Ruby versions you need"
 echo -e "[*] Type: rvm use <version> - to start using one now"
+echo -e "[*] Set a default: rvm use <version> --default\n\n"
+
+
+### Clean out all traces of RVM
+# https://rvm.io/support/troubleshooting
+##!/bin/bash
+#/usr/bin/sudo rm -rf $HOME/.rvm $HOME/.rvmrc /etc/rvmrc /etc/profile.d/rvm.sh /usr/local/rvm /usr/local/bin/rvm
+#/usr/bin/sudo /usr/sbin/groupdel rvm
+#/bin/echo "RVM is removed. Please check all .bashrc|.bash_profile|.profile|.zshrc for RVM source lines and delete
+#or comment out if this was a Per-User installation."
