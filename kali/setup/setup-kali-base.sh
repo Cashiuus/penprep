@@ -3,7 +3,7 @@
 # File:     setup-kali-base.sh
 #
 # Author:   Cashiuus - @cashiuus
-# Created:  27-Jan-2016  - Revised: 21-Feb-2016
+# Created:  27-Jan-2016  - Revised: 24-JUL-2016
 #
 # Purpose:  Setup bare bones kali with reasonable default options & packages
 #           This script will not perform actions that require reboot (e.g. vm-tools)
@@ -78,48 +78,53 @@ fi
 #fi
 
 
-# ====[ Configure - Nautilus ]==== #
-dconf write /org/gnome/nautilus/preferences/show-hidden-files true
-gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
-gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'
-gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'type', 'date_modified']"
-gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
-gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'small'
-gsettings set org.gnome.nautilus.list-view use-tree-view true                     # Default: false
-gsettings set org.gnome.nautilus.preferences sort-directories-first true          # Default: false
-gsettings set org.gnome.nautilus.window-state sidebar-width 188                   # Default: 188
-gsettings set org.gnome.nautilus.window-state start-with-sidebar true             # Default: true
-gsettings set org.gnome.nautilus.window-state maximized false                     # Default: false
+if [[ ${GDMSESSION} == 'default' ]]; then
+  # ====[ Configure - Nautilus ]==== #
+  dconf write /org/gnome/nautilus/preferences/show-hidden-files true
+  gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
+  gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'
+  gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'type', 'date_modified']"
+  gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
+  gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'small'
+  gsettings set org.gnome.nautilus.list-view use-tree-view true                     # Default: false
+  gsettings set org.gnome.nautilus.preferences sort-directories-first true          # Default: false
+  gsettings set org.gnome.nautilus.window-state sidebar-width 188                   # Default: 188
+  gsettings set org.gnome.nautilus.window-state start-with-sidebar true             # Default: true
+  gsettings set org.gnome.nautilus.window-state maximized false                     # Default: false
 
+  # ====[ Configure - Gedit ]==== #
+  echo -e "${GREEN}[*]${RESET} Configuring Gedit gsettings"
+  gsettings set org.gnome.gedit.preferences.editor display-line-numbers true
+  gsettings set org.gnome.gedit.preferences.editor editor-font "'Monospace 10'"
+  gsettings set org.gnome.gedit.preferences.editor insert-spaces true
+  gsettings set org.gnome.gedit.preferences.editor right-margin-position 90
+  gsettings set org.gnome.gedit.preferences.editor tabs-size 4                      # Default: uint32 8
+  gsettings set org.gnome.gedit.preferences.editor create-backup-copy false
+  gsettings set org.gnome.gedit.preferences.editor auto-save false
+  gsettings set org.gnome.gedit.preferences.editor scheme 'classic'
+  gsettings set org.gnome.gedit.preferences.editor ensure-trailing-newline true
+  gsettings set org.gnome.gedit.preferences.editor auto-indent true                 # Default: false
+  gsettings set org.gnome.gedit.preferences.editor syntax-highlighting true
+  gsettings set org.gnome.gedit.preferences.ui bottom-panel-visible true            # Default: false
+  gsettings set org.gnome.gedit.preferences.ui toolbar-visible true
+  gsettings set org.gnome.gedit.state.window side-panel-size 150                    # Default: 200
 
-# ====[ Configure - Gedit ]==== #
-echo -e "${GREEN}[*]${RESET} Configuring Gedit gsettings"
-gsettings set org.gnome.gedit.preferences.editor display-line-numbers true
-gsettings set org.gnome.gedit.preferences.editor editor-font "'Monospace 10'"
-gsettings set org.gnome.gedit.preferences.editor insert-spaces true
-gsettings set org.gnome.gedit.preferences.editor right-margin-position 90
-gsettings set org.gnome.gedit.preferences.editor tabs-size 4                      # Default: uint32 8
-gsettings set org.gnome.gedit.preferences.editor create-backup-copy false
-gsettings set org.gnome.gedit.preferences.editor auto-save false
-gsettings set org.gnome.gedit.preferences.editor scheme 'classic'
-gsettings set org.gnome.gedit.preferences.editor ensure-trailing-newline true
-gsettings set org.gnome.gedit.preferences.editor auto-indent true                 # Default: false
-gsettings set org.gnome.gedit.preferences.editor syntax-highlighting true
-gsettings set org.gnome.gedit.preferences.ui bottom-panel-visible true            # Default: false
-gsettings set org.gnome.gedit.preferences.ui toolbar-visible true
-gsettings set org.gnome.gedit.state.window side-panel-size 150                    # Default: 200
-
-
-# Modify the default "favorite apps"
-gsettings set org.gnome.shell favorite-apps \
+  # Modify the default "favorite apps"
+  gsettings set org.gnome.shell favorite-apps \
     "['gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
 
+elif [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
+  echo -e "${YELLOW}[INFO]${RESET} Light Desktop Manager detected, skipping GNOME tweaks..."
+  dconf write /org/gnome/nautilus/preferences/show-hidden-files true
+  # Configure Thunar File Browser
+  xfconf-query -n -c thunar -p /last-details-view-column-widths -t string -s "50,133,50,50,178,50,50,73,70"
+  xfconf-query -n -c thunar -p /last-view -t string -s "ThunarDetailsView"
+fi
 
 # =============================[ Folder Structure ]================================ #
 # Count number of folders we are creating
 count=0
-while [ "x${CREATE_USER_DIRECTORIES[count]}" != "x" ]
-do
+while [ "x${CREATE_USER_DIRECTORIES[count]}" != "x" ]; do
     count=$(( $count + 1 ))
 done
 
@@ -131,8 +136,7 @@ done
 
 
 count=0
-while [ "x${CREATE_OPT_DIRECTORIES[count]}" != "x" ]
-do
+while [ "x${CREATE_OPT_DIRECTORIES[count]}" != "x" ]; do
     count=$(( $count + 1 ))
 done
 
@@ -144,11 +148,12 @@ done
 
 # =============================[ Dotfiles ]================================ #
 if [[ -d "${APP_BASE}../../dotfiles" ]]; then
-    read -n 5 -i "Y" -p "[+] Perform simple install of dotfiles? [Y,n] : " -e response
-    echo -e
-    if [[ $response == "Y" ]]; then
-        source "${APP_BASE}/../../install_simple.sh"
-
+  read -n 5 -i "Y" -p "[+] Perform simple install of dotfiles? [Y,n] : " -e response
+  echo -e
+  if [[ $response == "Y" ]]; then
+    source "${APP_BASE}/../../install_simple.sh"
+  fi
+fi
 
 # Configure /etc/skel shell dotfiles
 
@@ -220,6 +225,5 @@ trap finish EXIT
 
 
 # ==================[ BASH GUIDES ]====================== #
-
 # Using Exit Codes: http://bencane.com/2014/09/02/understanding-exit-codes-and-how-to-use-them-in-bash-scripts/
 # Writing Robust BASH Scripts: http://www.davidpashley.com/articles/writing-robust-shell-scripts/
