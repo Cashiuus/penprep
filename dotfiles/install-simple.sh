@@ -1,13 +1,13 @@
 #!/bin/bash
 ## =============================================================================
-# File:     install.sh
+# File:     install-simple.sh
 #
 # Author:   Cashiuus
-# Created:  02/20/2016  - (Revised: )
+# Created:  02/20/2016  - (Revised: 17-July-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
-# Purpose:
+# Purpose:  Simply copy existing dotfiles into ${HOME} dir w/o any fancy symlinking.
 #
 #
 ## =============================================================================
@@ -23,8 +23,7 @@ RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
-DOTFILES_DIR="${HOME}/.dotfiles"
-BACKUPS_DIR="${DOTFILES_DIR}/backup"
+BACKUPS_DIR="${HOME}/backup-dotfiles"
 
 
 # =============================[      ]================================ #
@@ -37,18 +36,8 @@ for file in .bashrc .bash_profile .profile; do
     mv "${HOME}/${file}" "${BACKUPS_DIR}/" 2>/dev/null || echo -e "${YELLOW}[NOTE] ${RESET}No original ${file} found."
 done
 
-cp -R .dotfiles/* "${DOTFILES_DIR}/"
+cp .bashrc "${HOME}/"
+cp .profile "${HOME}/"
+cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}/"
 
-echo -e "${GREEN}[*]${RESET} Creating symlinks..."
-for file in .bashrc .bash_profile .profile; do
-    echo -e "${GREEN}[*] ${RESET}Creating symlink for ${file} in Home directory"
-    ln -s "${APP_BASE}/${file}" "${HOME}/${file}"
-done
-
-function finish {
-    # TODO: This doesn't work for the current terminal because it's running in its own process
-    source ~/.bash_profile
-    source ~/.bashrc
-}
-# End of script
-trap finish EXIT
+exit 0

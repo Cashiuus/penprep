@@ -11,7 +11,7 @@
 #
 #
 ## ========================================================================== ##
-__version__="0.9"
+__version__="0.1"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -108,8 +108,8 @@ trap finish EXIT
 #   -i ""   Specify a default value. If user hits ENTER or doesn't respond, this value is saved
 #
 # Ask for a path with a default value
-#read -n 5 -p "Enter the path to the file: " -i "/usr/local/etc/" -e FILEPATH
-#echo -e ""
+#   read -n 5 -p "Enter the path to the file: " -i "/usr/local/etc/" -e FILEPATH
+#   echo -e ""
 
 # ====[ TOUCH ]==== #
 #touch

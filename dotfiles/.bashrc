@@ -1,9 +1,10 @@
 ### ~/.bashrc: executed by bash(1) for non-login shells.
 ### For Reference:
-### .bashrc     Executes for all non-login BASH shells
-###         (e.g. scripts with #!/bin/bash)
-### .bash_profile   Executes for all login BASH shells
-### .profile    Executes for all login shells, not just BASH
+###     .bashrc     Executes for all non-login BASH shells
+###                 (e.g. scripts with #!/bin/bash)
+###     .bash_profile   Executes for all login BASH shells
+###     .profile    Executes for all login shells, not just BASH
+###
 ### Ref: http://www.linuxfromscratch.org/blfs/view/stable/postlfs/profile.html
 ###
 
@@ -14,9 +15,11 @@ case $- in
 esac
 
 ### Load the shell dotfiles, and then some:
-### * ~/.path can be used to extend `$PATH`.
-### * ~/.extra can be used for other settings you don’t want to commit.
-[[ -f "$HOME/.bash_profile" ]] && source "$HOME/.bash_profile"
+if [[ -f "$HOME/.dotfiles/bash/.bash_profile" ]]; then
+    source "$HOME/.dotfiles/bash/.bash_profile"
+else
+    [[ -f "$HOME/.bash_profile" ]] && source "$HOME/.bash_profile"
+fi
 
 ############-[ HISTORY CONFIGS ]-#############
 ### Don't overwrite GNU Midnight Commander's setting of `ignorespace'.
@@ -101,8 +104,10 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# Add RVM to PATH for scripting
-[[ -d "${HOME}/.rvm" ]] && export PATH="${HOME}/.rvm/bin:$PATH"
+### Load RVM, even for scripts so our installers work
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
+# Kali style
+[[ -s "/etc/profile.d/rvm.sh" ]] && source "/etc/profile.d/rvm.sh"
 
 # Set a default editor
 export EDITOR=nano
