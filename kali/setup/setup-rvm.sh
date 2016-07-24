@@ -47,6 +47,7 @@ fi
 # ===============================[  BEGIN  ]================================== #
 
 # Get signing key for the RVM distribution
+apt-get -y install curl
 curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 # or: gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
 
@@ -63,7 +64,9 @@ source /etc/profile.d/rvm.sh
 #source ~/.rvm/scripts/rvm
 
 # Fix Gnome terminal to play nice with RVM and launch as a login shell
-gconftool-2 --set --type boolean /apps/gnome-terminal/profiles/Default/login_shell true
+if [[ $(which gnome-shell) ]]; then
+    gconftool-2 --set --type boolean /apps/gnome-terminal/profiles/Default/login_shell true
+fi
 
 # Install the latest stable version
 rvm install ruby-head
