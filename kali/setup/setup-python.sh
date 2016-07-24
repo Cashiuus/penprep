@@ -61,13 +61,15 @@ $SUDO apt-get -y install build-essential python python-pip python-dev virtualenv
 
 # Pillow depends
 $SUDO apt-get -y install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
-    liblcms2-dev libwebp-dev zlib1g-dev
+    liblcms2-dev libwebp-dev libffi-dev zlib1g-dev
 
 # lxml depends
 $SUDO apt-get -y install libxml2-dev libxslt1-dev zlib1g-dev
 
 # Postgresql and psycopg2 depends
 $SUDO apt-get -y install libpq-dev
+
+pip install pip --upgrade
 
 # Install base pip files
 file="/tmp/requirements.txt"
@@ -93,9 +95,7 @@ wheel
 EOF
 pip install -r /tmp/requirements.txt
 
-pip install pip --upgrade
 pip install lxml --upgrade
-
 #pip install argparse --upgrade
 
 # Figure out which outdated $(pip list --oudated) pip packages are apt pkgs and which are not

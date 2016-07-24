@@ -68,7 +68,14 @@ function finish {
 # End of script
 trap finish EXIT
 
-# ================[ Expression Cheat Sheet ]==================================
+## ========================================================================== ##
+## =====================[ Template File Syntax Help ]======================== ##
+
+# Run echo and cat commands through sudo (notice the single quotes)
+# sudo sh -c 'echo "strings here" >> /path/to/file'
+
+
+# =========[ Expression Cheat Sheet ]=========
 #
 #   -d      file exists and is a directory
 #   -e      file exists

@@ -208,8 +208,9 @@ fi
 
 # =============================[ Custom Scripts ]================================ #
 
-file="/usr/local/bin/conky-start"
 echo -e "${GREEN}[*] ${RESET}Adding conky-start script"
+file="/usr/local/bin/conky-start"
+[[ ! -d "/usr/local/bin" ]] && mkdir -p "/usr/local/bin"
 cat <<EOF > "${file}"
 #!/bin/bash
 
@@ -218,7 +219,6 @@ $(which sleep) 20s
 $(which conky) &
 EOF
 chmod -f 0500 "${file}"
-bash /usr/local/bin/conky-start >/dev/null 2>&1 &
 
 
 mkdir -p "${HOME}/.config/autostart"

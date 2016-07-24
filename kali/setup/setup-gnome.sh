@@ -3,7 +3,7 @@
 # File:     setup-gnome.sh
 #
 # Author:   Cashiuus
-# Created:  11/27/2015  - Revised:  9-APR-2016
+# Created:  11/27/2015  - Revised:  23-JUL-2016
 #
 # Purpose:  Configure GNOME settings on fresh Kali 2016.1 install
 #
@@ -23,6 +23,7 @@ RESET="\033[00m"       # Normal
 EXTENSION_PATH="/usr/share/gnome-shell/extensions"
 
 # =============================[      ]================================ #
+echo -e "${GREEN}[*] ${PURPLE}[penprep]${RESET} Beginning GNOME Setup, please wait..."
 apt-get -qq update
 apt-get -y install gconf-editor
 
@@ -33,8 +34,8 @@ gsettings set org.gnome.desktop.session idle-delay 0
 
 # ===[ RAM check ]=== #
 if [[ "$(free -m | grep -i Mem | awk '{print $2}')" < 2048 ]]; then
-  echo -e '\n '${RED}'[!]'${RESET}" ${RED}You have 2GB or less of RAM and using GNOME${RESET}" 1>&2
-  echo -e " ${YELLOW}[i]${RESET} ${YELLOW}Might want to use XFCE instead${RESET}..."
+  echo -e "\n${RED}[!] ${RED}You have 2GB or less RAM and you're using GNOME${RESET}"
+  echo -e "${YELLOW}[i]${RESET} ${YELLOW}Might want to use XFCE instead${RESET}..."
   sleep 15s
 fi
 
@@ -56,7 +57,10 @@ gsettings set org.gnome.nautilus.desktop home-icon-visible true                 
 gsettings set org.gnome.nautilus.desktop font "'Cantrell 9'"                      # Default: <blank>
 gsettings set org.gnome.nautilus.preferences show-hidden-files true               # Default: false
 gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'    # Default: icon-view
-gsettings set org.gnome.nautilus.preferences enable-recursive-search false        # Default: true
+
+# No such key as of July 23, 2016
+#gsettings set org.gnome.nautilus.preferences enable-recursive-search false        # Default: true
+
 #gsettings set org.gnome.nautilus.icon-view thumbnail-size                        # Default: 64
 gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'             # Default: 'standard'
 
@@ -170,7 +174,6 @@ function enable_ext_dropdown_terminal() {
 }
 
 
-
 function enable_ext_show_ip() {
   # Ext: https://extensions.gnome.org/extension/941/show-ip/
   echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Show-IP${RESET}"
@@ -181,8 +184,8 @@ function enable_ext_show_ip() {
   fi
 }
 
-function install_gnome_extension() {
 
+function install_gnome_extension() {
   # Usage: install_gnome_extension <ID>
 
   # Reference: http://bernaerts.dyndns.org/linux/76-gnome/283-gnome-shell-install-extension-command-line-script
@@ -217,7 +220,8 @@ function install_gnome_extension() {
       gsettings set org.gnome.shell enabled-extensions "[${EXTENSION_LIST},'${EXTENSION_UUID}']"
       echo "Extension with ID ${EXTENSION_ID} has been enabled. Restart Gnome Shell to take effect."
 
-      dconf write /org/gnome/shell/extensions/show-ip/last-device 'eth0'
+      # Not a valid dconf on first run
+      #dconf write /org/gnome/shell/extensions/show-ip/last-device 'eth0'
       dconf write /org/gnome/shell/extensions/show-ip/public false
     fi
   else

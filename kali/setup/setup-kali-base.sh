@@ -36,6 +36,17 @@ xset s 0 0
 xset s off
 gsettings set org.gnome.desktop.session idle-delay 0
 
+
+function print_banner() {
+    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2016 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
+    cat /etc/os-release
+    cat /proc/version
+    uname -a
+    lsb_release -a
+    echo -e "${BLUE}=======================<${RESET} version: ${__version__} ${BLUE}>=======================\n${RESET}"
+}
+print_banner
+
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
 echo "# kali-rolling" > /etc/apt/sources.list
@@ -46,17 +57,25 @@ apt-get update
 apt-get -y dist-upgrade
 apt-get -y install build-essential locate sudo gcc git make
 apt-get -y install htop sysv-rc-conf
-apt-get -y autoremove
 
+# TODO: Still need this?
 # Add dpkg for opposing architecture "dpkg --add-architecture amd64
-
 
 # =============================[ System Setup]================================ #
 
 # (Re-)configure hostname
+read -n 5 -p "[+] Enter new hostname or just press enter : " -e response
+echo -e
+if [[ $response != "" ]]; then
+    hostname $response
+fi
 
 # Configure Static IP
-
+#read -n 5 -p "[+] Enter static IP Address or just press enter for DHCP : " -e response
+#if [[ $response != "" ]]; then
+#    # do stuff
+#   ip addr add ${response}/24 dev eth0 2>/dev/null
+#fi
 
 
 # ====[ Configure - Nautilus ]==== #
@@ -105,22 +124,33 @@ do
 done
 
 # Create folders in ~
-echo -e "[*] Creating ${count} directories in HOME directory path..."
+echo -e "${GREEN}[*]${RESET} Creating ${count} directories in HOME directory path..."
 for dir in ${CREATE_USER_DIRECTORIES[@]}; do
     mkdir -p "${HOME}/${dir}"
 done
 
 
+count=0
+while [ "x${CREATE_OPT_DIRECTORIES[count]}" != "x" ]
+do
+    count=$(( $count + 1 ))
+done
+
 # Create folders in /opt
-echo -e "[*] Creating directories in /opt/ path..."
+echo -e "${GREEN}[*]${RESET} Creating ${count} directories in /opt/ path..."
 for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
-    mkdir -p "opt/${dir}"
+    mkdir -p "/opt/${dir}"
 done
 
 # =============================[ Dotfiles ]================================ #
+if [[ -d "${APP_BASE}../../dotfiles" ]]; then
+    read -n 5 -i "Y" -p "[+] Perform simple install of dotfiles? [Y,n] : " -e response
+    echo -e
+    if [[ $response == "Y" ]]; then
+        source "${APP_BASE}/../../install_simple.sh"
+
+
 # Configure /etc/skel shell dotfiles
-
-
 
 # =============================[ Configure - SSH ]================================ #
 # Configure SSH before Git in case we'd prefer to use SSH for git clones
@@ -135,19 +165,7 @@ done
 
 
 
-
-function print_banner() {
-    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2016 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
-    cat /etc/os-release
-    cat /proc/version
-    uname -a
-    lsb_release -a
-    echo -e "${BLUE}=======================<${RESET} version: ${__version__} ${BLUE}>=======================\n${RESET}"
-}
-print_banner
-
-
-
+# ===================================[ FINISH ]====================================== #
 function finish {
   echo -e "\n\n${GREEN}[+]${RESET} ${GREEN}Cleaning${RESET} the system"
   #--- Clean package manager
