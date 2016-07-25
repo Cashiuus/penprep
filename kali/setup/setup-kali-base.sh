@@ -55,7 +55,7 @@ echo "deb-src http://http.kali.org/kali kali-rolling main non-free contrib" >> /
 #export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get -y dist-upgrade
-apt-get -y install build-essential locate sudo gcc git make
+apt-get -y install build-essential curl locate sudo gcc git make
 apt-get -y install htop sysv-rc-conf
 
 # TODO: Still need this?

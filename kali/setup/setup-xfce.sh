@@ -3,7 +3,7 @@
 # File:     setup-xfce.sh
 #
 # Author:   Cashiuus
-# Created:  01/25/2016         (Synced with g0tmi1k's kali-rolling.sh: 09-APR-2016)
+# Created:  25-JAN-2016         (Synced with g0tmi1k's kali-rolling.sh: 09-APR-2016)
 #
 # Purpose:  Perform a baseline setup of the xfce window manager to replace Gnome
 #           This is a lightweight desktop designed to be low on resource use.
@@ -29,8 +29,8 @@ ENABLE_XFCE=true              # Thereby disabling Gnome as the default?
 BROWSER_SHORTCUT="iceweasel"  # Use "iceweasel" or "firefox"?
 EDITOR_SHORTCUT="geany"       # Use "geany" or "gedit" for panel shortcut icon?
 
-# =============================[  FUNCTIONS ]================================ #
 
+# =============================[  FUNCTIONS ]================================ #
 function configure_panel_applications {
   ln -sf /usr/share/applications/exo-terminal-emulator.desktop ~/.config/xfce4/panel/launcher-2/exo-terminal-emulator.desktop
   ln -sf /usr/share/applications/kali-wireshark.desktop    ~/.config/xfce4/panel/launcher-4/kali-wireshark.desktop
@@ -161,6 +161,20 @@ function configure_panel_applications {
 }
 
 
+function xfce_setup_thunar {
+  xfconf-query -n -c thunar -p /last-details-view-column-widths -t string -s "50,133,50,50,178,50,50,73,70"
+  xfconf-query -n -c thunar -p /last-view -t string -s "ThunarDetailsView"
+
+  #--- Configure Thunar - file browser (need to re-login for effect)
+  mkdir -p ~/.config/Thunar/
+  file=~/.config/Thunar/thunarrc
+  ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
+  sed -i 's/LastShowHidden=.*/LastShowHidden=TRUE/' "${file}" 2>/dev/null \
+    || echo -e "[Configuration]\nLastShowHidden=TRUE" > "${file}"
+}
+
+
+
 function xfce_fix_defaults {
   # ==============[ Menu Customization ]=========== #
   #--- Remove Mail Reader from menu
@@ -205,13 +219,6 @@ function xfce_fix_defaults {
     \( -name 'Documents' -o -name 'Music' -o -name 'Pictures' -o -name 'Public' -o -name 'Videos' \) -empty -delete
   apt-get -y -qq install xdg-user-dirs
   xdg-user-dirs-update
-
-  #--- Configure Thunar - file browser (need to re-login for effect)
-  mkdir -p ~/.config/Thunar/
-  file=~/.config/Thunar/thunarrc
-  ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
-  sed -i 's/LastShowHidden=.*/LastShowHidden=TRUE/' "${file}" 2>/dev/null \
-    || echo -e "[Configuration]\nLastShowHidden=TRUE" > "${file}"
 
   #--- XFCE fixes for Iceweasel
   file=~/.config/xfce4/helpers.rc
@@ -468,6 +475,7 @@ mkdir -p ~/.config/xfce4/xfconf/xfce-perchannel-xml/
 echo -e "${GREEN}[*]${RESET} Beginning XFCE4 Setup..."
 setup_shortcuts
 configure_panel_applications
+xfce_setup_thunar
 xfce_fix_defaults
 
 # If true, run function to enable xfce as the new default window manager

@@ -95,7 +95,7 @@ function new_pki {
 # ===============================[ Initialize PKI Infra ]============================== #
 if [[ -f "${VPN_PREP_DIR}/pki/ca.crt" ]]; then
     echo -e "\n${YELLOW} [*] PKI Structure already exists!${RESET}"
-    read -n 1 -p " [+] Purge PKI and start fresh? [y,N]: " -e response
+    read -n 5 -i "N" -p " [+] Purge PKI and start fresh? [y,N]: " -e response
     echo -e
     case $response in
         [Yy]* ) new_pki;;

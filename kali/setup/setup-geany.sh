@@ -24,7 +24,7 @@ BACKUPS_DIR="${HOME}/Backups/geany"
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
 # =============================[ BEGIN ]================================ #
-apt-get -y install geany python-pip
+apt-get -y install python-pip geany
 pip install flake8 pep8-naming
 
 if [[ $(which gnome-shell) ]]; then
@@ -46,8 +46,8 @@ fi
 filedir="${HOME}/.config/geany"
 [[ ! -d "${filedir}" ]] && mkdir -p "${filedir}"
 file="${HOME}/.config/geany/geany.conf"
-# Geany now only writes its config after a 'clean' quit.
-if [ -e "${file}" ]; then
+# Geany now only writes its config after a 'clean' quit, so need to handl this condition.
+if [[ -e "${file}" ]]; then
     cp -n $file{,.bkup}
     sed -i 's/^.*editor_font=.*/editor_font=Monospace\ 10/' "${file}"
     sed -i 's/^.*sidebar_pos=.*/sidebar_pos=1/' "${file}"
@@ -233,7 +233,7 @@ function geany_templates {
     if [[ -d "${APP_BASE}/../templates" ]]; then
         templates_dir="${HOME}/.config/geany/templates/files"
         [[ ! -d "${templates_dir}" ]] && mkdir -p "${templates_dir}"
-        cp -r "${APP_BASE}"/../templates/* "${templates_dir}/"
+        cp -ur "${APP_BASE}"/../templates/* "${templates_dir}/"
         echo -e "${GREEN}[*]${RESET} Geany File Templates have been copied over, enjoy!"
     fi
 }

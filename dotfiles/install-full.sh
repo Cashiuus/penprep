@@ -3,7 +3,7 @@
 # File:     install-full.sh
 #
 # Author:   Cashiuus
-# Created:  20-FEB-2016  - (Revised: 17-JUL-2016)
+# Created:  20-FEB-2016  - (Revised: 24-JUL-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #
 #
 ## =============================================================================
-__version__="0.9"
+__version__="1.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 GREEN="\033[01;32m"    # Success
@@ -43,11 +43,3 @@ for file in .bashrc .bash_profile .profile; do
     echo -e "${GREEN}[*] ${RESET}Creating symlink for ${file} in Home directory"
     ln -s "${APP_BASE}/${file}" "${HOME}/${file}"
 done
-
-function finish {
-    # TODO: This doesn't work for the current terminal because it's running in its own process
-    source ~/.bash_profile
-    source ~/.bashrc
-}
-# End of script
-trap finish EXIT

@@ -34,8 +34,8 @@ gsettings set org.gnome.desktop.session idle-delay 0
 
 # ===[ RAM check ]=== #
 if [[ "$(free -m | grep -i Mem | awk '{print $2}')" < 2048 ]]; then
-  echo -e "\n${RED}[!] ${RED}You have 2GB or less RAM and you're using GNOME${RESET}"
-  echo -e "${YELLOW}[i]${RESET} ${YELLOW}Might want to use XFCE instead${RESET}..."
+  echo -e "\n${RED}[WARN]${RED} You have 2GB or less RAM and you're using GNOME${RESET}"
+  echo -e "${YELLOW}[INFO] You might want to use XFCE instead${RESET}..."
   sleep 15s
 fi
 
@@ -59,7 +59,7 @@ gsettings set org.gnome.nautilus.preferences show-hidden-files true             
 gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'    # Default: icon-view
 
 # No such key as of July 23, 2016
-#gsettings set org.gnome.nautilus.preferences enable-recursive-search false        # Default: true
+#gsettings set org.gnome.nautilus.preferences enable-recursive-search false       # Default: true
 
 #gsettings set org.gnome.nautilus.icon-view thumbnail-size                        # Default: 64
 gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'             # Default: 'standard'
@@ -92,8 +92,7 @@ gsettings set org.gnome.gedit.state.window side-panel-size 150                  
 
 # ====[ Configure - Default GNOME Terminal ]==== #
 gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_type transparent
-gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_darkness 0.97
-
+gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_darkness 0.95
 
 
 # ==============================[ GNOME Core Settings ]====================================== #
