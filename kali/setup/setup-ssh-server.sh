@@ -45,16 +45,18 @@ if [[ -f "${APP_BASE}/../../config/settings.conf" ]]; then
 else
     echo -e "${YELLOW}[-] ERROR: ${RESET} settings.conf file is missing."
     echo -e -n "${GREEN}[+] ${RESET}"
-    read -p "Enter SSH Server IP (If unsure, just press enter): " -i "0.0.0.0" -e SSH_SERVER_IP
+    read -p "Enter SSH Server IP (If unsure, just press enter): " -i "0.0.0.0" -e SSH_SERVER_ADDRESS
     echo -e
     echo -e -n "${GREEN}[+] ${RESET}"
     read -p "Enter SSH Server Port (Default: 22): " -i "22" -p SSH_SERVER_PORT
     echo -e
 fi
 
-echo -e "${GREEN}[*] ${RESET}Running apt-get update & installing openssh-server..."
+echo -e "${GREEN}[*]${RESET} Running apt-get update & installing openssh-server..."
 apt-get -qq update
 apt-get -y -qq install openssh-server openssl
+
+echo -e "${GREEN}[*]${RESET} Disabling SSH service while we reconfigure..."
 update-rc.d -f ssh remove
 update-rc.d -f ssh defaults
 
@@ -170,12 +172,10 @@ fi
 # ===========================[ SSHD CONFIG TWEAKS ] =============================== #
 file=/etc/ssh/sshd_config; [[ -e $file ]] && cp -n $file{,.bkup}
 
-# Find "Banner" in file and change to motd if not already
-# Orig: #Banner /etc/issue.net
-# *NOTE: When using '/' for paths in sed, use a different delimiter, such as # or |
-sed -i 's|^#\?Banner /etc/issue.*|Banner /etc/motd|' "${file}"
+# ==[ Server IP Address
+sed -i "s/^#\?ListenAddress 0\.0\.0\.0/ListenAddress ${SSH_SERVER_ADDRESS}/" "${file}"
 
-# Change SSH port to non-default
+# ==[ SSH Server Port to non-default
 sed -i "s/^#\?Port.*/Port ${SSH_SERVER_PORT}/" "${file}"
 
 # Enable RootLogin
@@ -203,10 +203,15 @@ sed -i 's|^#AuthorizedKeysFile.*|AuthorizedKeysFile  %h/.ssh/authorized_keys|' "
 #sed -i 's/X11Forwarding.*/X11Forwarding no/' >> "${file}"
 sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 15/' "${file}"
 
+# Find "Banner" in file and change to motd if not already
+# Orig: #Banner /etc/issue.net
+# *NOTE: When using '/' for paths in sed, use a different delimiter, such as # or |
+sed -i 's|^#\?Banner /etc/issue.*|Banner /etc/motd|' "${file}"
+
 # ==[ Ciphers - https://cipherli.st/
 # -- https://stribika.github.io/2015/01/04/secure-secure-shell.html
 grep -q '^KexAlgorithms ' "${file}" 2>/dev/null \
-    || echo "\n### Ciphers\nKexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256" >> "${file}"
+    || echo "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256" >> "${file}"
 
 grep -q '^Ciphers ' "${file}" 2>/dev/null \
     || echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" >> "${file}"
@@ -267,12 +272,13 @@ function restrict_login_geoip() {
     apt-get -y install geoip-bin geoip-database
     # Test it out
     geoiplookup 8.8.8.8
-    echo -e "${GREEN} [*] Testing Geoip${RESET}; Did it work? Press any key to continue"
+    echo -e "${YELLOW} [INFO] Testing Geoip${RESET}; Did it work? Press any key to continue..."
     read
 
     # Create script that will check IPs and return True or False
+    [[ ! -d "/usr/local/bin" ]] && mkdir -p "/usr/local/bin"
     file="/usr/local/bin/sshfilter.sh"
-    cat << EOF > "${file}"
+    cat <<EOF > "${file}"
 #!/bin/bash
 # Credit to: http://www.axllent.org/docs/view/ssh-geoip/
 # UPPERCASE space-separated country codes to ACCEPT
@@ -305,6 +311,7 @@ EOF
         || echo "sshd: ALL: aclexec /usr/local/bin/sshfilter.sh %a" >> /etc/hosts.allow
 
     # Test it out
+    echo -e "${YELLOW}[INFO] Testing sshfilter.ssh - Response show Geo location?${RESET}"
     /usr/local/bin/sshfilter.sh 8.8.8.8
     sleep 2
     tail /var/log/messages
@@ -325,7 +332,8 @@ fi
 EOF
 chmod +x "${file}"
 # Setup a monthly cron job to keep your Geo-IP Database updated - 1st of month at Noon.
-(crontab -l ; echo "00 12 1 * * ${file}") | crontab
+# TODO: This method doesn't work for 'root' user
+#(crontab -l ; echo "00 12 1 * * ${file}") | crontab
 }
 
 restrict_login_geoip
