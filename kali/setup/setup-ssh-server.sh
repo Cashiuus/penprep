@@ -309,6 +309,23 @@ EOF
     sleep 2
     tail /var/log/messages
 
+    file=/usr/local/bin/geoip-updater.sh
+    cat <<EOF > "${file}"
+#!/bin/bash
+
+cd /tmp
+wget -q https://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz
+if [[ -f GeoIP.dat.gz ]]; then
+    gzip -d GeoIP.dat.gz
+    rm -f /usr/share/GeoIP/GeoIP.dat
+    mv -f GeoIP.dat /usr/share/GeoIP/GeoIP.dat
+else
+    echo -e "[ERROR] The GeoIP library could not be downloaded and updated"
+fi
+EOF
+chmod +x "${file}"
+# Setup a monthly cron job to keep your Geo-IP Database updated - 1st of month at Noon.
+(crontab -l ; echo "00 12 1 * * ${file}") | crontab
 }
 
 restrict_login_geoip
