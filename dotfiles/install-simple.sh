@@ -40,4 +40,9 @@ cp .bashrc "${HOME}/"
 cp .profile "${HOME}/"
 cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}/"
 
+for file in .bash_aliases .bash_profile .bash_prompt .bash_sshagent; do
+    cp "${APP_BASE}/.dotfiles/bash/${file}" "${HOME}/"
+    echo -e "${GREEN}[*] ${file} copied to HOME"
+done
+
 exit 0
