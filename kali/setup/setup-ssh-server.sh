@@ -173,8 +173,9 @@ fi
 file=/etc/ssh/sshd_config; [[ -e $file ]] && cp -n $file{,.bkup}
 
 # ==[ Server IP Address
-sed -i "s/^#\?ListenAddress 0\.0\.0\.0/ListenAddress ${SSH_SERVER_ADDRESS}/" "${file}"
-
+if [[ "${SSH_SERVER_ADDRESS}" ]]; then
+    sed -i "s/^#\?ListenAddress 0\.0\.0\.0/ListenAddress ${SSH_SERVER_ADDRESS}/" "${file}"
+fi
 # ==[ SSH Server Port to non-default
 sed -i "s/^#\?Port.*/Port ${SSH_SERVER_PORT}/" "${file}"
 
@@ -276,7 +277,7 @@ function restrict_login_geoip() {
     read
 
     # Create script that will check IPs and return True or False
-    [[ ! -d "/usr/local/bin" ]] && mkdir -p "/usr/local/bin"
+    [[ ! -d "/usr/local/bin" ]] && mkdir -vp "/usr/local/bin"
     file="/usr/local/bin/sshfilter.sh"
     cat <<EOF > "${file}"
 #!/bin/bash
@@ -314,6 +315,7 @@ EOF
     echo -e "${YELLOW}[INFO] Testing sshfilter.ssh - Response show Geo location?${RESET}"
     /usr/local/bin/sshfilter.sh 8.8.8.8
     sleep 2
+    echo -e "${YELLOW[INFO] Outputting last few lines of /var/log/messages below...${RESET}"
     tail /var/log/messages
 
     file=/usr/local/bin/geoip-updater.sh
