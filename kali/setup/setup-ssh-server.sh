@@ -148,7 +148,7 @@ if [[ -f "${APP_BASE}/../../config/motd" ]]; then
     echo -e "[*] Found 'motd' file in penprep/config/motd, using that!"
     cp "${APP_BASE}/../../config/motd" /etc/motd
 else
-    cat << EOF> /etc/motd
+    cat <<EOF > /etc/motd
 ###########################++++++++++###########################
 #             Welcome to the Secure Shell Server               #
 #               All Connections are Monitored                  #
@@ -273,7 +273,7 @@ function restrict_login_geoip() {
     apt-get -y install geoip-bin geoip-database
     # Test it out
     geoiplookup 8.8.8.8
-    echo -e "${YELLOW} [INFO] Testing Geoip${RESET}; Did it work? Press any key to continue..."
+    echo -e "${YELLOW}[INFO] Testing Geoip${RESET}; Did it work? Press any key to continue..."
     read
 
     # Create script that will check IPs and return True or False
@@ -285,21 +285,21 @@ function restrict_login_geoip() {
 # UPPERCASE space-separated country codes to ACCEPT
 ALLOW_COUNTRIES="US AU"
 
-if [[ $# -ne 1 ]]; then
-    echo "Usage: `basename $0` <ip>" 1>&2
+if [[ \$# -ne 1 ]]; then
+    echo "Usage: \`basename \$0\` <ip>" 1>&2
     # Return 0 (True) in case of config issue
     exit 0
 fi
 
-COUNTRY=`/usr/bin/geoiplookup $1 | awk -F ": " '{ print $2 }' | awk -F "," '{ print $1 }' | head -n 1`
+COUNTRY=\`/usr/bin/geoiplookup \$1 | awk -F ": " '{ print \$2 }' | awk -F "," '{ print \$1 }' | head -n 1\`
 
 # Not Found can occur if the IP address is RFC1918
-[[ $COUNTRY = "IP Address not found" || $ALLOW_COUNTRIES =~ $COUNTRY ]] && RESPONSE="ALLOW" || RESPONSE="DENY"
+[[ \$COUNTRY = "IP Address not found" || \$ALLOW_COUNTRIES =~ \$COUNTRY ]] && RESPONSE="ALLOW" || RESPONSE="DENY"
 
-if [[ $RESPONSE = "ALLOW" ]]; then
+if [[ \$RESPONSE = "ALLOW" ]]; then
     exit 0
 else
-    logger "$RESPONSE sshd connection from $1 ($COUNTRY)"
+    logger "\$RESPONSE sshd connection from \$1 (\$COUNTRY)"
     exit 1
 fi
 EOF
@@ -313,9 +313,9 @@ EOF
 
     # Test it out
     echo -e "${YELLOW}[INFO] Testing sshfilter.ssh - Response show Geo location?${RESET}"
-    /usr/local/bin/sshfilter.sh 8.8.8.8
+    /usr/local/bin/sshfilter.sh "8.8.8.8"
     sleep 2
-    echo -e "${YELLOW[INFO] Outputting last few lines of /var/log/messages below...${RESET}"
+    echo -e "${YELLOW}[INFO] Outputting last few lines of /var/log/messages below...${RESET}"
     tail /var/log/messages
 
     file=/usr/local/bin/geoip-updater.sh
