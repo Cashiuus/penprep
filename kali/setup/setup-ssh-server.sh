@@ -3,7 +3,7 @@
 # Filename: setup-ssh-server.sh
 #
 # Author:   Cashiuus
-# Created:  01-Dec-2015 - (Revised: 13-May-2016)
+# Created:  01-Dec-2015 - (Revised: 26-JUL-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -12,31 +12,43 @@
 #           and also replacing original keys with new ones
 #
 # Thanks to: https://www.lisenet.com/2013/openssh-server-installation-and-configuration-on-debian/
+#           https://wiki.archlinux.org/index.php/SSH_keys
 #
+# NOTES:    - As of July 10, 2015, GNOME keyring cannot handle ECDSA and Ed25519 keys.
+#             You must use another SSH agents or stick to RSA keys.
+#           - Windows SSH PuTTY does not support ECDSA as of March, 2016.
 ## =============================================================================
 __version__="1.0"
 __author__='Cashiuus'
-SCRIPT_DIR=$(readlink -f $0)
-APP_BASE=$(dirname ${SCRIPT_DIR})
-## ===============[ Text Colors ]================ ##
+## ========[ TEXT COLORS ]=============== ##
+# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
+# [https://en.wikipedia.org/wiki/ANSI_escape_code]
 GREEN="\033[01;32m"    # Success
 YELLOW="\033[01;33m"   # Warnings/Information
 RED="\033[01;31m"      # Issues/Errors
 BLUE="\033[01;34m"     # Heading
+PURPLE="\033[01;35m"   # Other
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
+## =========[ CONSTANTS ]================ ##
+APP_PATH=$(readlink -f $0)
+APP_BASE=$(dirname "${APP_PATH}")
+LINES=$(tput lines)
+COLS=$(tput cols)
+
+ALLOW_ROOT_LOGIN=true
 ## ========================================================================== ##
 # ===============================[  BEGIN  ]================================== #
 
-if [[ -f "${APP_BASE}/../config/settings.conf" ]]; then
-    source "${APP_BASE}/../config/settings.conf"
+if [[ -f "${APP_BASE}/../../config/settings.conf" ]]; then
+    source "${APP_BASE}/../../config/settings.conf"
 else
     echo -e "${YELLOW}[-] ERROR: ${RESET} settings.conf file is missing."
     echo -e -n "${GREEN}[+] ${RESET}"
-    read -p "Enter SSH Server IP (If unsure, enter 0.0.0.0): " -e SSH_SERVER_IP
+    read -p "Enter SSH Server IP (If unsure, just press enter): " -i "0.0.0.0" -e SSH_SERVER_IP
     echo -e
-    echo -e -n "${GREEN}[+] ${RESET} Enter SSH Server Port: "
-    read SSH_SERVER_PORT
+    echo -e -n "${GREEN}[+] ${RESET}"
+    read -p "Enter SSH Server Port (Default: 22): " -i "22" -p SSH_SERVER_PORT
     echo -e
 fi
 
@@ -92,13 +104,15 @@ if [ $? == 0 ]; then
     ssh-keygen -b 4096 -t rsa -o -f /etc/ssh/ssh_host_rsa_key -P "" >/dev/null
     ssh-keygen -b 1024 -t dsa -o -f /etc/ssh/ssh_host_dsa_key -P "" >/dev/null
     ssh-keygen -b 521 -t ecdsa -o -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
+    ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -P "" >/dev/null
 else
     echo -e "[-] OpenSSH Version is older than v6.5, Proceeding with PEM key format"
-    ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P "" >/dev/null
+    #ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P "" >/dev/null
     ssh-keygen -b 4096 -t rsa -f /etc/ssh/ssh_host_rsa_key -P "" >/dev/null
     ssh-keygen -b 1024 -t dsa -f /etc/ssh/ssh_host_dsa_key -P "" >/dev/null
     ssh-keygen -b 521 -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
 fi
+
 # Generate personal key pair
 ssh-keygen -b 4096 -t rsa -f "${HOME}/.ssh/id_rsa" -P "" >/dev/null
 
@@ -128,10 +142,11 @@ chmod 644 "${file}"
 
 # Configure the MOTD banner message remote users see, 2 versions below
 # Create ASCII Art: http://patorjk.com/software/taag/
-if [[ -f "${SCRIPT_DIR}/config/motd" ]]; then
-    cp "${SCRIPT_DIR}/config/motd" /etc/motd
+if [[ -f "${APP_BASE}/../../config/motd" ]]; then
+    echo -e "[*] Found 'motd' file in penprep/config/motd, using that!"
+    cp "${APP_BASE}/../../config/motd" /etc/motd
 else
-    cat << EOF > /etc/motd
+    cat << EOF> /etc/motd
 ###########################++++++++++###########################
 #             Welcome to the Secure Shell Server               #
 #               All Connections are Monitored                  #
@@ -158,17 +173,18 @@ file=/etc/ssh/sshd_config; [[ -e $file ]] && cp -n $file{,.bkup}
 # Find "Banner" in file and change to motd if not already
 # Orig: #Banner /etc/issue.net
 # *NOTE: When using '/' for paths in sed, use a different delimiter, such as # or |
-sed -i 's|^[#B]anner /etc/issue.*|Banner /etc/motd|' "${file}"
+sed -i 's|^#\?Banner /etc/issue.*|Banner /etc/motd|' "${file}"
 
 # Change SSH port to non-default
-sed -i 's/^[#P]ort.*/Port ${SSH_SERVER_PORT}/' "${file}"
+sed -i "s/^#\?Port.*/Port ${SSH_SERVER_PORT}/" "${file}"
 
 # Enable RootLogin
-sed -i 's/^PermitRootLogin .*/PermitRootLogin yes/g' "${file}"
+[[ $ALLOW_ROOT_LOGIN == 'true' ]] \
+    && sed -i 's/^PermitRootLogin .*/PermitRootLogin yes/g' "${file}"
 
 # Host Keys
 # -- All are same, but put a '#' in front of: HostKey /etc/ssh/ssh_host_ed25519_key
-sed -i 's|^HostKey /etc/ssh/ssh_host_ed25519_key|#HostKey /etc/ssh/ssh_host_ed25519_key|' "${file}"
+#sed -i 's|^HostKey /etc/ssh/ssh_host_ed25519_key|#HostKey /etc/ssh/ssh_host_ed25519_key|' "${file}"
 
 # -- Server Key Bits (Default: 1024)
 sed -i -e 's|\(ServerKeyBits\) 1024|\1 2048|' "${file}"
@@ -183,32 +199,57 @@ sed -i 's|^#AuthorizedKeysFile.*|AuthorizedKeysFile  %h/.ssh/authorized_keys|' "
 #sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' "${file}"
 #sed -i -e 's|\(PasswordAuthentication\) no|\1 yes|' "${file}"
 
-# -- X11 Forwarding
+# ==[ X11 Forwarding
 #sed -i 's/X11Forwarding.*/X11Forwarding no/' >> "${file}"
 sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 15/' "${file}"
 
-# -- Ciphers - https://cipherli.st/
+# ==[ Ciphers - https://cipherli.st/
+# -- https://stribika.github.io/2015/01/04/secure-secure-shell.html
+grep -q '^KexAlgorithms ' "${file}" 2>/dev/null \
+    || echo "\n### Ciphers\nKexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256" >> "${file}"
+
 grep -q '^Ciphers ' "${file}" 2>/dev/null \
     || echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" >> "${file}"
 
 grep -q '^MACs ' "${file}" 2>/dev/null \
     || echo "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com" >> "${file}"
 
-grep -q '^KexAlgorithms ' "${file}" 2>/dev/null \
-    || echo "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256" >> "${file}"
 
-
-# -- Add Inactivty Timeouts
+# ==[ Add Inactivty Timeouts
 #echo "\nClientAliveInterval 600\nClientAliveCountMax 3" >> "${file}"
 #sed -i 's|^ClientAliveInterval.*|ClientAliveInterval 600|' "${file}"
 sed -i 's|^ClientAliveCountMax.*|ClientAliveCountMax 3|' "${file}"
 
-# -- Add Whitelist and Blacklist of Users
+# ==[ Add Whitelist and Blacklist of Users
 #grep -q '^AllowUsers ' "${file}" 2>/dev/null || echo "\nAllowUsers newuser newuser2" >> "${file}"
 #grep -q '^DenyUsers ' "${file}" 2>/dev/null || echo "\nDenyUsers root" >> "${file}"
 #grep -q '^DenyGroups ' "${file}" 2>/dev/null || echo "\nDenyGroups root" >> "${file}"
 #grep -q '^PrintLastLog ' "${file}" 2>/dev/null || echo "\nPrintLastLog yes" >> "${file}"
 ## ========================================================================== ##
+
+
+
+
+# ==[ OpenSSH Client Hardened Template
+file=/etc/ssh/openssh_client.template
+cat <<EOF > "${file}"
+### OpenSSH Hardened Client Template
+# https://cipherli.st/
+# https://stribika.github.io/2015/01/04/secure-secure-shell.html
+HashKnownHosts yes
+Host github.com
+    MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-128-etm@openssh.com,hmac-sha2-512
+Host *
+  ConnectTimeout 30
+  KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
+  MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com
+  Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+  ServerAliveInterval 10
+  ControlMaster auto
+  ControlPersist yes
+  ControlPath ~/.ssh/socket-%r@%h:%p
+EOF
+
 
 
 # ============[ IPTABLES ]============== #
@@ -221,11 +262,6 @@ systemctl start ssh
 systemctl enable ssh
 
 
-# Connect to SSH Server
-#ssh -24x -i "${HOME}/.ssh/my_key" root@$SSH_SERVER_IP -p $SSH_SERVER_PORT
-
-# Check for any Invalid User Login Attempts
-#cat /var/log/auth.log | grep "Invalid user" | cut -d " " -f 1-3,6-11 | uniq | sort
 
 function restrict_login_geoip() {
     apt-get -y install geoip-bin geoip-database
@@ -240,7 +276,7 @@ function restrict_login_geoip() {
 #!/bin/bash
 # Credit to: http://www.axllent.org/docs/view/ssh-geoip/
 # UPPERCASE space-separated country codes to ACCEPT
-ALLOW_COUNTRIES="US"
+ALLOW_COUNTRIES="US AU"
 
 if [[ $# -ne 1 ]]; then
     echo "Usage: `basename $0` <ip>" 1>&2
@@ -260,12 +296,13 @@ else
     exit 1
 fi
 EOF
-    chmod +x "${file}"
+    chmod 775 "${file}"
 
     # Set the default to deny all
-    echo "sshd: ALL" >> /etc/hosts.deny
+    grep -q "sshd: ALL" "${file}" 2>/dev/null || echo "sshd: ALL" >> /etc/hosts.deny
     # Set the filter script to determine which hosts are allowed
-    echo "sshd: ALL: aclexec /usr/local/bin/sshfilter.sh %a" >> /etc/hosts.allow
+    grep -q "sshd: ALL: aclexec .*" "${file}" 2>/dev/null \
+        || echo "sshd: ALL: aclexec /usr/local/bin/sshfilter.sh %a" >> /etc/hosts.allow
 
     # Test it out
     /usr/local/bin/sshfilter.sh 8.8.8.8
@@ -273,6 +310,9 @@ EOF
     tail /var/log/messages
 
 }
+
+restrict_login_geoip
+
 
 # ==================[ NOTES ]===================
 
@@ -296,5 +336,11 @@ EOF
 # Also, it will not hash already-hashed entries, so it's safe to run this over and over.
 #   ssh-keygen -H -f <known_hosts_file>
 
+# Generate with user information based on environment variables
+#ssh-keygen -C "$(whoami)@$(hostname)-$(date -I)"
 
+# Connect to SSH Server
+#ssh -24x -i "${HOME}/.ssh/my_key" root@$SSH_SERVER_IP -p $SSH_SERVER_PORT
 
+# Check for any Invalid User Login Attempts
+#cat /var/log/auth.log | grep "Invalid user" | cut -d " " -f 1-3,6-11 | uniq | sort
