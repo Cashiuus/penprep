@@ -83,6 +83,7 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   dconf write /org/gnome/nautilus/preferences/show-hidden-files true
   gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
   gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'
+  #gsettings set org.gnome.nautilus.icon-view thumbnail-size 64
   gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'type', 'date_modified']"
   gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
   gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'small'
@@ -170,12 +171,22 @@ fi
 
 
 
+# =====[ Fix an error with Fonts ]=======
+# For some reason, mscorettfonts can be upgrade or installed with incorrect permissions
+# Then, you will see errors in your /var/log/messages output indicating errors rendering fonts.
+# This was noticed because after an updated on 01-Aug-2016, all window titles were hollow boxes
+# indicating invalid characters after the update completed, and after reboot as well.
+folder=/usr/share/fonts
+chmod -R +rw $folder
+
+
 # ===================================[ FINISH ]====================================== #
 function finish {
   echo -e "\n\n${GREEN}[+]${RESET} ${GREEN}Cleaning${RESET} the system"
   #--- Clean package manager
   for FILE in clean autoremove; do apt -y -qq "${FILE}"; done
-  apt -y -qq purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')   # Purged packages
+  # Removed -y -qq from this for testing, believe important dependencies are being removed here.
+  apt purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')   # Purged packages
   #--- Update locate database
   updatedb
   #--- Reset folder location
