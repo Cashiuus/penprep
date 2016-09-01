@@ -7,9 +7,12 @@
 #
 # Purpose:  Setup conky monitor dashboard on desktop with pre-configured style
 #
-#
+## ==========[ Extra ]==========================================================
 # Source Code of Conky Variables: https://github.com/brndnmtthws/conky/blob/master/doc/variables.xml
 # Ref: http://forums.opensuse.org/english/get-technical-help-here/how-faq-forums/unreviewed-how-faq/464737-easy-configuring-conky-conkyconf.html
+#
+#   Conky Colors:   https://en.wikipedia.org/wiki/X11_color_names
+#                   http://www.graphviz.org/doc/info/colors.html
 ## =============================================================================
 __version__="1.0"
 __author__="Cashiuus"
@@ -38,8 +41,8 @@ if [[ ${USE_OLD_CONKY} -eq 1 ]]; then
   if [[ ! -e "${OLD_CONKY_CONF}" ]]; then
     cat <<EOF > "${OLD_CONKY_CONF}"
 background yes
-gap_x 12
-gap_y 35
+gap_x 5
+gap_y 30
 
 # -----[ Window Size & Position ]----- #
 alignment bottom_right
@@ -126,8 +129,11 @@ else
   cat <<EOF > "${NEW_CONKY_CONF}"
 conky.config = {
     background = false,
-    gap_x = 12,
-    gap_y = 35,
+
+    font = 'monospace:size=8',
+
+    gap_x = 5,
+    gap_y = 30,
     alignment = 'bottom_right',
 
     default_color = 'white',
@@ -139,26 +145,22 @@ conky.config = {
 
     use_xft = true,
     xftalpha = 0.9,
-    font = 'DejaVu Sans Mono:size=8',
     override_utf8_locale = false,
-    uppercase = false,
 
     own_window = true,
     own_window_type = 'normal',
-    own_window_transparent = false,
-    own_window_colour = 'black',
-    own_window_argb_visual = true,
-    own_window_argb_value = 50,
+    own_window_transparent = true,
+    own_window_class = 'conky-semi',
     own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
 
     double_buffer = true,
-    no_buffers = true,
 
     out_to_console = false,
     out_to_stderr = false,
     extra_newline = false,
 
-    use_spacer = 'none',
+    uppercase = false,
+    use_spacer = 'right',
     show_graph_scale = false,
     show_graph_range = false,
 
@@ -181,9 +183,11 @@ Swap \${alignr}\$swap / \$swapmax (\$swapperc%)
 \${swapbar 4}
 Highest CPU \${alignr} CPU% MEM%
 \${top name 1}\$alignr\${top cpu 1}\${top mem 1}
+\${top name 2}\$alignr\${top cpu 2}\${top mem 2}
 
 Highest MEM \${alignr} CPU% MEM%
 \${top_mem name 1}\${alignr}\${top_mem cpu 1}\${top_mem mem 1}
+\${top_mem name 2}\${alignr}\${top_mem cpu 2}\${top_mem mem 2}
 
 \${color green}FILESYSTEMS\${hr 1}\${color}
 Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
@@ -191,10 +195,13 @@ Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
 
 \${color yellow}NETWORK \${hr 1}\${color}
 \${if_up eth0}\${color white}LAN: eth0 (\${addr eth0})
-Down\${color}: \${downspeed eth0}KB/s \${color white}Up\${color}: \${upspeed eth0}KB/s
 \${downspeedgraph eth0 10,80 99cc33 006600} \${alignr}\${upspeedgraph eth0 10,80 ffcc00 ff0000}
+Down\${color}: \${downspeed eth0}KB/s \${alignr}\${color white}Up\${color}: \${upspeed eth0}KB/s
 \${endif}
-
+\${if_up wlan0}\${color white}LAN: wlan0 (\${addr wlan0})
+\${downspeedgraph wlan0 10,80 99cc33 006600} \${alignr}\${upspeedgraph wlan0 10,80 ffcc00 ff0000}
+Down\${color}: \${downspeed wlan0}KB/s \${alignr}\${color white}Up\${color}: \${upspeed wlan0}KB/s
+\${endif}
 \${color green}CUSTOM ALIASES \${hr 1}\${color}
 bashload \${alignr}update-kali
 myip \${alignr}timer

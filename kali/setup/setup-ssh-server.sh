@@ -11,8 +11,9 @@
 # Purpose:  Setup SSH Server on Kali Linux to non-default port
 #           and also replacing original keys with new ones
 #
-# Thanks to: https://www.lisenet.com/2013/openssh-server-installation-and-configuration-on-debian/
-#           https://wiki.archlinux.org/index.php/SSH_keys
+# Thanks to:    https://www.lisenet.com/2013/openssh-server-installation-and-configuration-on-debian/
+#               https://wiki.archlinux.org/index.php/SSH_keys
+#               https://help.ubuntu.com/community/SSH/OpenSSH/Configuring
 #
 # NOTES:    - As of July 10, 2015, GNOME keyring cannot handle ECDSA and Ed25519 keys.
 #             You must use another SSH agents or stick to RSA keys.
@@ -115,6 +116,13 @@ else
     ssh-keygen -b 521 -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
 fi
 
+# Change/Protect server file permissions?
+# chmod 0755 /etc/ssh
+# chmod 0644 /etc/ssh/*.pub
+# chmod 0644 /etc/ssh/ssh_config
+# chmod 0644 /etc/ssh/sshd_config
+# chmod 0600 /etc/ssh/id_rsa based on how openssh-server installs them by default in /etc/ssh/
+
 # Generate personal key pair
 ssh-keygen -b 4096 -t rsa -f "${HOME}/.ssh/id_rsa" -P "" >/dev/null
 
@@ -196,17 +204,19 @@ sed -i 's/^LoginGraceTime.*/LoginGraceTime 60/' "${file}"
 # -- Enable Public Key Logins
 sed -i 's|^#AuthorizedKeysFile.*|AuthorizedKeysFile  %h/.ssh/authorized_keys|' "${file}"
 
-# -- Disable Password Logins if using Pub Key Auth
+# -- Disable Password Logins if using Pub Key Auth - default is commented yes
 #sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' "${file}"
 #sed -i -e 's|\(PasswordAuthentication\) no|\1 yes|' "${file}"
 
-# ==[ X11 Forwarding
+# ==[ X11 Forwarding - not changing this from its default of 10 for now
 #sed -i 's/X11Forwarding.*/X11Forwarding no/' >> "${file}"
-sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 15/' "${file}"
+#sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 15/' "${file}"
+
 
 # Find "Banner" in file and change to motd if not already
 # Orig: #Banner /etc/issue.net
 # *NOTE: When using '/' for paths in sed, use a different delimiter, such as # or |
+# *NOTE: You can specify 'none' here to have it not print anything on login - Banner "none"
 sed -i 's|^#\?Banner /etc/issue.*|Banner /etc/motd|' "${file}"
 
 # ==[ Ciphers - https://cipherli.st/
@@ -257,15 +267,8 @@ Host *
 EOF
 
 
-
 # ============[ IPTABLES ]============== #
 #iptables -A INPUT -p tcp --dport $SSH_SERVER_PORT -j ACCEPT
-
-# ===[ Restart SSH / Enable Autostart ]=== #
-#service ssh restart
-#update-rc.d -f ssh enable
-systemctl start ssh
-systemctl enable ssh
 
 
 
@@ -312,11 +315,8 @@ EOF
         || echo "sshd: ALL: aclexec /usr/local/bin/sshfilter.sh %a" >> /etc/hosts.allow
 
     # Test it out
-    echo -e "${YELLOW}[INFO] Testing sshfilter.ssh - Response show Geo location?${RESET}"
+    echo -e "${YELLOW}[INFO] Testing sshfilter.ssh - DENY's should show in /var/log/messages${RESET}"
     /usr/local/bin/sshfilter.sh "8.8.8.8"
-    sleep 2
-    echo -e "${YELLOW}[INFO] Outputting last few lines of /var/log/messages below...${RESET}"
-    tail /var/log/messages
 
     file=/usr/local/bin/geoip-updater.sh
     cat <<EOF > "${file}"
@@ -341,8 +341,16 @@ chmod +x "${file}"
 restrict_login_geoip
 
 
-# ==================[ NOTES ]===================
 
+# ===[ Restart SSH / Enable Autostart ]=== #
+#service ssh restart
+#update-rc.d -f ssh enable
+systemctl start ssh
+systemctl enable ssh
+
+
+
+# ================================[ NOTES ]===================================
 # ssh-keygen
 #   -q                      Quiet mode
 #   -b #                    No. of bits; RSA keys - min 1024, default is 2048
@@ -355,7 +363,7 @@ restrict_login_geoip
 #   -P "<pw>"               Password for the key, -P "" makes it blank
 
 
-# Generate default, unattended host keys for use in scripts
+# Generate default, unattended host keys for use in scripts by administrators
 #   ssh-keygen -A
 
 # Hash a "known_hosts" file. This replaces all hosts with hashed representations,

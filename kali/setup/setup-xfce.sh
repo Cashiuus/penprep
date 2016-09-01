@@ -31,7 +31,10 @@ EDITOR_SHORTCUT="geany"       # Use "geany" or "gedit" for panel shortcut icon?
 
 
 # =============================[  FUNCTIONS ]================================ #
+
 function configure_panel_applications {
+  apt-get -y install burpsuite metasploit-framework wireshark
+
   ln -sf /usr/share/applications/exo-terminal-emulator.desktop ~/.config/xfce4/panel/launcher-2/exo-terminal-emulator.desktop
   ln -sf /usr/share/applications/kali-wireshark.desktop    ~/.config/xfce4/panel/launcher-4/kali-wireshark.desktop
   if [[ "$BROWSER_SHORTCUT}" == "firefox" ]]; then
@@ -344,8 +347,10 @@ function setup_themes {
   echo -e "${GREEN}[*]${RESET} Setting up Themes and Wallpapers..."
   #--- axiom / axiomd (May 18 2010) XFCE4 theme ~ http://xfce-look.org/content/show.php/axiom+xfwm?content=90145
   mkdir -p ~/.themes/
-  timeout 300 curl --progress -k -L -f "http://xfce-look.org/CONTENT/content-files/90145-axiom.tar.gz" > /tmp/axiom.tar.gz \
+  #timeout 300 curl --progress -k -L -f "http://xfce-look.org/CONTENT/content-files/90145-axiom.tar.gz" > /tmp/axiom.tar.gz \
     || echo -e ' '${RED}'[!]'${RESET}" Issue downloading axiom.tar.gz" 1>&2    #***!!! hardcoded path!
+  timeout 300 curl --progress -k -L -f "https://dl.opendesktop.org/api/files/download/id/1461767736/90145-axiom.tar.gz" > /tmp/axiom.tar.gz \
+    || echo -e "${RED}[WARN]${RESET} Issue downloading axiom.tar.gz from xfce-look.org" 1>&2
   tar -zxf /tmp/axiom.tar.gz -C ~/.themes/
   xfconf-query -n -c xsettings -p /Net/ThemeName -s "axiomd"
   xfconf-query -n -c xsettings -p /Net/IconThemeName -s "Vibrancy-Kali-Dark"
@@ -363,7 +368,7 @@ function setup_themes {
     || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali-linux_wallpapers_39530.png" 1>&2
   echo -n '[6/10]'; timeout 30 curl --progress -k -L -f "http://em3rgency.com/wp-content/uploads/2012/12/Kali-Linux-faded-no-Dragon-small-text.png" > /usr/share/wallpapers/kali_black_clean.png \
     || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali_black_clean.png" 1>&2
-  echo -n '[7/10]'; timeout 30 curl --progress -k -L -f "http://www.hdwallpapers.im/download/kali_linux-wallpaper.jpg" > /usr/share/wallpapers/kali_black_stripes.jpg \
+  #echo -n '[7/10]'; timeout 30 curl --progress -k -L -f "http://www.hdwallpapers.im/download/kali_linux-wallpaper.jpg" > /usr/share/wallpapers/kali_black_stripes.jpg \
     || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali_black_stripes.jpg" 1>&2
   echo -n '[8/10]'; timeout 30 curl --progress -k -L -f "http://fc01.deviantart.net/fs71/f/2011/118/e/3/bt___edb_wallpaper_by_xxdigipxx-d3f4nxv.png" > /usr/share/wallpapers/kali_bt_edb.jpg \
     || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali_bt_edb.jpg" 1>&2
@@ -455,9 +460,6 @@ EOF
       || echo -e 'TerminalEmulator=debian-x-terminal-emulator' >> "${file}"
   fi
 }
-
-
-
 
 
 ## =============================[ MAIN ]================================== ##

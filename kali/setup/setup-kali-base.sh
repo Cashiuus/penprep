@@ -171,13 +171,7 @@ fi
 
 
 
-# =====[ Fix an error with Fonts ]=======
-# For some reason, mscorettfonts can be upgrade or installed with incorrect permissions
-# Then, you will see errors in your /var/log/messages output indicating errors rendering fonts.
-# This was noticed because after an updated on 01-Aug-2016, all window titles were hollow boxes
-# indicating invalid characters after the update completed, and after reboot as well.
-folder=/usr/share/fonts
-chmod -R +rw $folder
+
 
 
 # ===================================[ FINISH ]====================================== #
@@ -198,6 +192,7 @@ function finish {
   done
   FINISH_TIME=$(date +%s)
   echo -e "${GREEN} [*] Kali Base Setup Completed Successfully ${YELLOW} --( Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes )--\n${RESET}"
+  echo -e "[*} NOTE: If you have font errors after update, run: apt --reinstall install fonts-cantarell"
 }
 # End of script
 trap finish EXIT

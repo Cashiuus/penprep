@@ -157,8 +157,8 @@ echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET}  Updating Shell Startup - ${GR
 file=$SHELL_FILE
 grep -q '^### Load Python Virtualenvwrapper' "${file}" 2>/dev/null \
     || echo '### Load Python Virtualenvwrapper Script helper' >> "${file}"
-grep -q '^[[ -s "/usr/local/bin/virtualenvwrapper.sh"' "${file}" 2>/dev/null \
-    || echo '[[ -s /usr/local/bin/virtualenvwrapper.sh ]] && source "/usr/local/bin/virtualenvwrapper.sh"' >> "${file}"
+grep -q '^[[ -s "/usr/local/bin/virtualenvwrapper.sh".*' "${file}" 2>/dev/null \
+    || echo '[[ -s "/usr/local/bin/virtualenvwrapper.sh" ]] && source "/usr/local/bin/virtualenvwrapper.sh"' >> "${file}"
 grep -q 'export WORKON_HOME=' "${file}" 2>/dev/null \
     || echo 'export WORKON_HOME=$HOME/.virtualenvs' >> "${file}"
 

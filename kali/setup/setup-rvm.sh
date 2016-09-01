@@ -3,7 +3,7 @@
 # File:     setup-rvm.sh
 #
 # Author:   Cashiuus
-# Created:  23-JUN-2016 - - - - - - (Revised: 22-JUL-2016)
+# Created:  23-JUN-2016 - - - - - - (Revised: 03-AUG-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -78,6 +78,13 @@ echo -e "\n\n[*] Type: rvm install <version> - and install Ruby versions you nee
 echo -e "[*] Type: rvm use <version> - to start using one now"
 echo -e "[*] Set a default: rvm use <version> --default\n\n"
 
+# Kali-style -- add source line to .bashrc
+file=$HOME/.bashrc
+grep -q '^[[ -s "/etc/profile.d/rvm.sh" ]].*' "${file}" 2>/dev/null \
+    || echo '[[ -s "/etc/profile.d/rvm.sh" ]] && source "/etc/profile.d/rvm.sh"' >> "${file}"
+
+source ~/.bashrc
+exit 0
 
 ### Clean out all traces of RVM
 # https://rvm.io/support/troubleshooting

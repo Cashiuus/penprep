@@ -1,0 +1,135 @@
+# Pentesting
+https://github.com/Arachni/arachni
+https://github.com/BinaryDefense/artillery
+https://github.com/chokepoint/azazel.git
+https://github.com/b374k/b374k.git
+https://github.com/jseidl/Babadook.git
+# Post-Exploitation Scripts
+https://github.com/attackdebris/babel-sf.git
+# Backdoor Factory Proxy - file patching during MiTM
+https://github.com/secretsquirrel/BDFProxy.git
+# MiTM Framework based on ettercap
+https://github.com/evilsocket/bettercap.git
+https://github.com/luxcupitor/burpsuite-extensions
+# ASPX Web Shell
+https://github.com/NetSPI/cmdsql
+# CMS security flaw detection toolkit
+https://github.com/Dionach/CMSmap
+# OS Command Injection Tool
+https://github.com/stasinopoulos/commix
+# Swiss Army Knife for pentesting Windows/AD environments
+https://github.com/byt3bl33d3r/CrackMapExec
+# Cred harvester for Samba
+https://github.com/gojhonny/CredCrack
+https://github.com/DanMcInerney/creds.py
+https://github.com/ilektrojohn/creepy
+# Brute Force tool for protocols not supported by Hydra
+https://github.com/galkan/crowbar
+https://github.com/zardus/ctf-tools
+https://github.com/gitdurandal/dbd
+https://github.com/leebaird/discover
+# DNS File Transfer Tool
+https://github.com/breenmachine/dnsftp
+# 802.11 WEP/WPA2 Decryptor
+https://github.com/mfontanini/dot11decrypt
+https://github.com/dradis/dradisframework
+# Drupal CMS scanner - Also does Silverstripe & Wordpress
+https://github.com/droope/droopescan
+https://github.com/commonexploits/dtpscan
+https://github.com/PowerShellEmpire/Empire
+# Web screenshot and recon (headers, default creds) toolkit
+https://github.com/ChrisTruncer/EyeWitness
+https://github.com/byt3bl33d3r/gcat
+https://github.com/nullmode/gnmap-parser
+https://github.com/OJ/gobuster
+https://github.com/wireghoul/graudit
+# Rogue AP for WPA-Enterprise
+https://github.com/NerdyProjects/hostapd-wpe-extended
+# ICMP Reverse Shell
+https://github.com/inquisb/icmpsh
+https://github.com/fgont/ipv6toolkit
+https://github.com/joaomatosf/jexboss
+#https://github.com/lair-framework/lair
+# Lanmap2 creates visualizations of a LAN based on passively sifted information
+https://github.com/rflynn/lanmap2
+# Lynis - Linux/OSX/Unix Security Auditing Tool
+https://github.com/CISOfy/lynis
+https://github.com/rapid7/metasploit-framework
+https://github.com/xillwillx/MiniReverse_Shell_With_Parameters
+https://github.com/attactics/NMAPgrapher
+https://github.com/SpiderLabs/Nmap-Tools
+https://github.com/torque59/Nosql-Exploitation-Framework
+# Active Directory forensic framework
+https://github.com/csababarta/ntdsxtract
+https://github.com/superkojiman/onetwopunch
+# Multi-purpose Brute Force (Python) designed to be more reliable than other pw crackers
+https://github.com/lanjelot/patator
+# Python Exploit Development Assistance (PEDA) for GDB
+https://github.com/longld/peda
+# Port-Forwarding Interceptor
+https://github.com/s7ephen/pfi
+https://github.com/secabstraction/PowerCat
+https://github.com/PowerShellMafia/PowerSploit
+https://github.com/rofl0r/proxychains-ng
+https://github.com/n1nj4sec/pupy
+# CTF Toolkit
+https://github.com/Gallopsled/pwntools
+https://github.com/infodox/python-pty-shells
+https://github.com/sensepost/reGeorg
+https://github.com/SpiderLabs/Responder
+# One-liner PHP Reverse shell
+https://github.com/thezawad/rev-door
+https://github.com/ripsscanner/rips
+https://github.com/danielmiessler/robotsdisallowed
+# Generate ROP gadgets and payloads
+https://github.com/packz/ropeme
+https://github.com/sashs/Ropper
+https://github.com/danielmiessler/SecLists
+# Shellcode Disassembler
+https://github.com/hasherezade/shellconv
+https://github.com/brav0hax/smbexec
+https://github.com/T-S-A/smbspider
+https://github.com/mandatoryprogrammer/sonar.js
+https://github.com/smicallef/spiderfoot
+https://github.com/sqlmapproject/sqlmap
+https://github.com/drwetter/testssl.sh
+# Nullsecurity Tool Collection
+https://github.com/nullsecuritynet/tools
+https://github.com/Vozzie/uacscript
+https://github.com/Veil-Framework/Veil
+https://github.com/toolswatch/vFeed
+https://github.com/commonexploits/vlan-hopping
+https://github.com/sandrogauci/wafw00f
+https://github.com/anestisb/WeBaCoo
+https://github.com/derv82/werdy
+https://github.com/urbanadventurer/WhatWeb
+https://github.com/sophron/wifiphisher
+# WebApp Information Gatherer
+https://github.com/jekyc/wig
+https://github.com/dxa4481/WPA2-HalfHandshake-Crack
+# WPS Auto Breaker Tool
+https://github.com/SilentGhostX/HT-WPS-Breaker
+https://github.com/wpscanteam/wpscan
+
+#[Phishing]
+#PhishPoll hasn't been updated since 2013, but good reference
+https://github.com/connection/phishpoll
+https://github.com/gophish/gophish
+https://github.com/sophron/wifiphisher
+https://github.com/pentestgeek/phishing-frenzy
+# templates - TODO: Scrape github for phishing templates
+https://github.com/averagesecurityguy/Phishing
+https://github.com/pentestgeek/phishing-frenzy-templates
+
+
+# Miscellaneous
+https://github.com/vrana/adminer
+https://github.com/GNOME/gnome-shell-extensions
+https://github.com/ikalnitsky/gnome-shell-extension-icon-hider
+https://github.com/zpydr/gnome-shell-extension-taskbar
+# Share terminal as web application
+#https://github.com/yudai/gotty
+https://github.com/rasa/vmware-tools-patches
+
+# Personal Cloud self-hosted framework
+https://github.com/welcomer/framework

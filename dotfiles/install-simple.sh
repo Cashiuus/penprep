@@ -26,7 +26,8 @@ APP_BASE=$(dirname ${SCRIPT_DIR})
 BACKUPS_DIR="${HOME}/backup-dotfiles"
 
 
-# =============================[      ]================================ #
+# =============================[ BEGIN ]================================ #
+cd "${APP_BASE}"
 
 # Backup core existing dotfiles first
 mkdir -p "${BACKUPS_DIR}"

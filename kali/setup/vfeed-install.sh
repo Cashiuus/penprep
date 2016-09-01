@@ -1,7 +1,18 @@
 #!/bin/bash
+#
+#
+# Credit to:
+#   http://blog.devalias.net/post/67532513020/vfeed-wrapper-helper-scripts-for-speed-and-efficiency
+#   https://gist.github.com/alias1/7554985#file-vfeed-sh
+#
+#
 
 
 # ===[ vFeed ]=== #
+apt-get -y install vfeed
+
+
+
 
 function vfeed_helper_update(INSTALL_PATH) {
     if [[ ! -x /usr/local/bin/vfeed_update ]]; then
@@ -11,9 +22,10 @@ function vfeed_helper_update(INSTALL_PATH) {
 
 cd ${INSTALL_PATH}
 if [[ -d '.git' ]]; then
-    echo -e '[*] vFeed appears installed. Now updating to latest..."
+    echo -e "[*] vFeed appears installed. Now updating to latest..."
     git checkout master && git pull origin master
 fi
+echo -e "[*] Now running vFeed self-update..."
 python vfeedcli.py --update
 EOF
         chmod +x "${file}"
@@ -56,3 +68,4 @@ function vfeed_install(INSTALL_PATH) {
     fi
 }
 
+vfeed_install "${GIT_BASE_DIR}" || echo -e "${RED}[-]${RESET} Error installing vfeed"
