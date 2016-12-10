@@ -46,6 +46,16 @@ function print_banner() {
     echo -e "${BLUE}=======================<${RESET} version: ${__version__} ${BLUE}>=======================\n${RESET}"
 }
 print_banner
+sleep 4
+
+# =============================[ Setup VM Tools ]================================ #
+# https://github.com/vmware/open-vm-tools
+if [[ ! $(which vmware-toolbox-cmd) ]]; then
+  echo -e "${YELLOW}[-] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
+  sleep 4
+  apt-get -y install open-vm-tools-desktop fuse
+  reboot
+fi
 
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
@@ -55,7 +65,7 @@ echo "deb-src http://http.kali.org/kali kali-rolling main non-free contrib" >> /
 #export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get -y dist-upgrade
-apt-get -y install build-essential curl locate sudo gcc git make
+apt-get -y install build-essential curl locate sudo gcc git git-core make
 apt-get -y install htop sysv-rc-conf
 
 # TODO: Still need this?
@@ -156,21 +166,21 @@ if [[ -d "${APP_BASE}../../dotfiles" ]]; then
   fi
 fi
 
-# Configure /etc/skel shell dotfiles
-
-# =============================[ Configure - SSH ]================================ #
-# Configure SSH before Git in case we'd prefer to use SSH for git clones
-
-# Configure SSH but don't necessarily make it autostart
 
 
-
-# =============================[ Github/Git Repositories ]================================ #
-
-
-
+# =====[ Metasploit ]===== #
+msfdb init
+mv /usr/share/metasploit-framework/config/database.yml ~/.msf4/database.yml
 
 
+cat << EOF > ~/.msf4/msfconsole.rc
+db_connect -y /root/.msf4/database.yml
+spool /root/.msf4/logs/console.log
+setg TimestampOutput true
+setg VERBOSE true
+setg LHOST 0.0.0.0
+setg LPORT 443
+EOF
 
 
 
@@ -191,8 +201,8 @@ function finish {
     [ -e "${i}" ] && find "${i}" -type f -name '.*_history' -delete
   done
   FINISH_TIME=$(date +%s)
-  echo -e "${GREEN} [*] Kali Base Setup Completed Successfully ${YELLOW} --( Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes )--\n${RESET}"
-  echo -e "[*} NOTE: If you have font errors after update, run: apt --reinstall install fonts-cantarell"
+  echo -e "${GREEN}[*] Kali Base Setup Completed Successfully ${YELLOW} --( Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes )--\n${RESET}"
+  echo -e "${YELLOW}[*] NOTE: ${RESET}If you have font errors after update, run: apt --reinstall install fonts-cantarell"
 }
 # End of script
 trap finish EXIT
