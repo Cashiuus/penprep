@@ -8,3 +8,5 @@
 *.cap
 *.local
 motd
+
+config/settings.conf
