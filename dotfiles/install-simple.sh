@@ -30,16 +30,18 @@ BACKUPS_DIR="${HOME}/backup-dotfiles"
 cd "${APP_BASE}"
 
 # Backup core existing dotfiles first
-mkdir -p "${BACKUPS_DIR}"
-
 for file in .bashrc .bash_profile .profile; do
-    echo -e "${GREEN}[*] ${RESET}Moving original files to backup folder"
-    mv "${HOME}/${file}" "${BACKUPS_DIR}/" 2>/dev/null || echo -e "${YELLOW}[NOTE] ${RESET}No original ${file} found."
+    if [[ -e ${file} ]]; then
+        echo -e "${GREEN}[*] ${RESET}Moving original ${file} to backup folder"
+        [[ ! -d "${BACKUPS_DIR}" ]] && mkdir -p "${BACKUPS_DIR}"
+        mv "${HOME}/${file}" "${BACKUPS_DIR}/"
+    fi
 done
 
 cp .bashrc "${HOME}/"
 cp .profile "${HOME}/"
-cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}/"
+# TODO: Why isn't this command working?
+cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}"
 
 for file in .bash_aliases .bash_profile .bash_prompt .bash_sshagent; do
     cp "${APP_BASE}/.dotfiles/bash/${file}" "${HOME}/"
