@@ -128,29 +128,31 @@ else
   [[ ! -d "${filedir}" ]] && mkdir -p "${filedir}"
   cat <<EOF > "${NEW_CONKY_CONF}"
 conky.config = {
-    background = false,
-
-    font = 'monospace:size=8',
-
-    gap_x = 5,
-    gap_y = 30,
+    -- Ref: https://wiki.archlinux.org/index.php/conky
+    gap_x = 12,
+    gap_y = 35,
     alignment = 'bottom_right',
 
+    font = 'monospace:size=8',
     default_color = 'white',
+    use_xft = true,
+    xftalpha = 0.9,
+    override_utf8_locale = false,
+
     border_width = 1,
     draw_borders = false,
     draw_outline = false,
     draw_graph_borders = true,
     draw_shades = true,
 
-    use_xft = true,
-    xftalpha = 0.9,
-    override_utf8_locale = false,
-
+    background = false,
     own_window = true,
     own_window_type = 'normal',
-    own_window_transparent = true,
+    own_window_transparent = false,
     own_window_class = 'conky-semi',
+    own_window_colour = 'black',
+    own_window_argb_visual = true,
+    own_window_argb_value = 50,
     own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
 
     double_buffer = true,
@@ -158,7 +160,6 @@ conky.config = {
     out_to_console = false,
     out_to_stderr = false,
     extra_newline = false,
-
     uppercase = false,
     use_spacer = 'right',
     show_graph_scale = false,
