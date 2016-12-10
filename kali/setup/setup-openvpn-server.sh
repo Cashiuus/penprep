@@ -3,7 +3,7 @@
 # Filename: setup-openvpn-server.sh
 #
 # Author:   Cashiuus
-# Created:  12-NOV-2015   -   (Revised: 13-MAY-2016)
+# Created:  12-NOV-2015   -   (Revised: 13-DEC-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -16,19 +16,24 @@
 #
 # OpenVPN Hardening Cheat Sheet: http://darizotas.blogspot.com/2014/04/openvpn-hardening-cheat-sheet.html
 ## =============================================================================
-__version__="1.1"
+__version__="1.2"
 __author__="Cashiuus"
-## ========[ TEXT COLORS ]================= ##
+## ========[ TEXT COLORS ]=============== ##
+# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
+# [https://en.wikipedia.org/wiki/ANSI_escape_code]
 GREEN="\033[01;32m"    # Success
 YELLOW="\033[01;33m"   # Warnings/Information
 RED="\033[01;31m"      # Issues/Errors
 BLUE="\033[01;34m"     # Heading
+PURPLE="\033[01;35m"   # Other
+ORANGE="\033[38;5;208m" # Debugging
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
+DEBUG=1
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
-APP_SETTINGS="${APP_BASE}/../config/settings.conf"
+APP_SETTINGS="${APP_BASE}/../../config/settings.conf"
 VPN_PREP_DIR="${HOME}/vpn-setup"
 VPN_PORT='1194'
 VPN_PROTOCOL='udp'
@@ -46,23 +51,24 @@ sudo apt-get install openvpn openssl -y
 if [[ $(which openvpn) ]]; then
     #service openvpn stop
     systemctl stop openvpn
-    openvpn --version
+    #openvpn --version
     sleep 2
 fi
 
 if [[ -f "${APP_SETTINGS}" ]]; then
     # If custom config is present, use it for VPN server specs
     source "${APP_SETTINGS}"
+    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
 else
         cat <<EOF > "${APP_SETTINGS}"
 ### PERSONAL BUILD SETTINGS
 # VPN Custom Configuration
 
 EOF
-
 fi
+
 if [[ $VPN_SERVER == '' ]]; then
-    echo -e "${YELLOW}[ERROR] << Invalid VPN Server >> Missing VPN Server variable"
+    echo -e "\n${YELLOW}[ERROR] << Invalid VPN Server >> Missing VPN Server variable"
     echo -e -n "${GREEN}[+] ${RESET}"
     read -p "Enter OpenVPN Server IP: " -e VPN_SERVER
     echo -e
@@ -77,7 +83,7 @@ if [[ ! -d "${filedir}" ]]; then
 fi
 
 [[ ! -d "${VPN_PREP_DIR}" ]] && mkdir -p "${VPN_PREP_DIR}"
-# Copy Easy-Rsa3 directly into the setup folder
+# Copy Easy-rsa3 directly into the setup folder
 # Cannot use "*" within quotes, because inside quotes, special chars do not expand
 cp -R "${filedir}"/easy-rsa/easyrsa3/* "${VPN_PREP_DIR}"
 cd "${VPN_PREP_DIR}"
@@ -92,12 +98,15 @@ function new_pki {
     cd "${VPN_PREP_DIR}"
     ./easyrsa init-pki
     # Result:
-        # New PKI Dir: ${VPN_PREP_DIR}/pki
+        # [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] New PKI Dir: ${VPN_PREP_DIR}/pki
 
     # Build CA
     ./easyrsa build-ca
     # Result:
-        # CA Cert now at: ${VPN_PREP_DIR}/pki/ca.crt
+        # [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] CA Cert now at: ${VPN_PREP_DIR}/pki/ca.crt
+
+    # If CA not successfully built, halt setup
+    [[ $? -ne 0 ]] && echo -e "${YELLOW}[-] ERROR: CA not successfully built, check and try again${RESET}" && exit 1
 }
 
 # ===============================[ Initialize PKI Infra ]============================== #
@@ -111,6 +120,17 @@ if [[ -f "${VPN_PREP_DIR}/pki/ca.crt" ]]; then
 else
     [[ ! -d "${VPN_PREP_DIR}/pki" ]] && new_pki
 fi
+
+
+if [[ ${CLIENT_NAME} == "client1" ]]; then
+    echo -e "\n${YELLOW}[+] Default Client Cert Detected!${RESET}\n"
+    echo -e "${YELLOW}[+] ${RESET}"
+    read -t 10 -p "Keep this or specify a custom name [client1]:" -i "client1" -e CLIENT_NAME
+    echo -e
+fi
+
+
+
 
 # Build Server Key, if one of the key/crt is missing (in case you accidentally forgot to confirm the crt)
 if [[ ! -f "${VPN_PREP_DIR}/pki/private/server.key" || ! -f "${VPN_PREP_DIR}/pki/issued/server.crt" ]]; then
@@ -145,13 +165,6 @@ fi
 
 
 # ===[ CLIENT KEY PAIR ]===
-if [[ ${CLIENT_NAME} == "client1" ]]; then
-    echo -e "\n${YELLOW}[+] Default Client Cert Detected!${RESET}\n"
-    echo -e "${YELLOW}[+] ${RESET}"
-    read -t 10 -p "Keep this or specify a custom name [client1]:" -i "client1" -e CLIENT_NAME
-    echo -e
-fi
-
 
 # Build Client Key, if it doesn't already exist (*Noticing a trend?!?)
 if [[ ! -f "${VPN_PREP_DIR}/pki/private/${CLIENT_NAME}.key" ]]; then
