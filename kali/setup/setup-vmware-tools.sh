@@ -18,7 +18,7 @@
 GREEN="\033[01;32m"    # Success
 RESET="\033[00m"       # Normal
 
-
+echo -e "${GREEN}[*] ${RESET}Updating system..."
 apt-get -qq update
 # Increase idle delay which locks the screen (default is 300s)
 gsettings set org.gnome.desktop.session idle-delay 0
@@ -29,13 +29,13 @@ gsettings set org.gnome.desktop.session idle-delay 0
 # apt-get install -y kali-archive-keyring
 
 
-if [ -e "/etc/vmware-tools" ]; then
-	echo -e '[*] VMware Tools is already installed'
+if [[ -e "/etc/vmware-tools" ]]; then
+        echo -e '[*] VMware Tools is already installed'
 elif $(dmidecode | grep -iq vmware); then
     echo -e "\n${GREEN}-----------${RESET}[ Installing Open VM Desktop Tools ]${GREEN}-----------${RESET}"
-	apt-get -y install make
-	apt-get -y install open-vm-tools-desktop fuse
-elif $(dmidecode | grep -iq virtualbox): then
+        apt-get -y install make
+        apt-get -y install open-vm-tools-desktop fuse
+elif $(dmidecode | grep -iq virtualbox); then
     echo -e "\n${GREEN}-----------${RESET}[ Installing VirtualBox VM Tools ]${GREEN}-----------${RESET}"
     apt-get -y install virtualbox-guest-x11
 fi
