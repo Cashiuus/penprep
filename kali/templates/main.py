@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ==============================================================================
-# Created:      01-May-2016         -           Revised:
-# File:
+# Created:      05-Dec-2016         -           Revised:
+# File:         file.py
 # Depends:      n/a
 # Compat:       2.7+
 # Author:       Cashiuus - Cashiuus{at}gmail
