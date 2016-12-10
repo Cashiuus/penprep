@@ -28,8 +28,8 @@ RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
+APP_SETTINGS="${APP_BASE}/../config/settings.conf"
 VPN_PREP_DIR="${HOME}/vpn-setup"
-VPN_SERVER=''
 VPN_PORT='1194'
 VPN_PROTOCOL='udp'
 VPN_SUBNET="10.9.8.0"
@@ -50,15 +50,23 @@ if [[ $(which openvpn) ]]; then
     sleep 2
 fi
 
-if [[ -f "${APP_BASE}/../config/settings.conf" ]]; then
+if [[ -f "${APP_SETTINGS}" ]]; then
     # If custom config is present, use it for VPN server specs
-    source "${APP_BASE}/../config/settings.conf"
+    source "${APP_SETTINGS}"
+else
+        cat <<EOF > "${APP_SETTINGS}"
+### PERSONAL BUILD SETTINGS
+# VPN Custom Configuration
+
+EOF
+
 fi
 if [[ $VPN_SERVER == '' ]]; then
     echo -e "${YELLOW}[ERROR] << Invalid VPN Server >> Missing VPN Server variable"
     echo -e -n "${GREEN}[+] ${RESET}"
     read -p "Enter OpenVPN Server IP: " -e VPN_SERVER
     echo -e
+    echo "VPN_SERVER=${VPN_SERVER}" >> "${APP_SETTINGS}"
 fi
 
 filedir="${HOME}/git/easy-rsa"
