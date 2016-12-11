@@ -23,7 +23,7 @@ RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
-BACKUPS_DIR="${HOME}/backup-dotfiles"
+BACKUPS_DIR="${HOME}/Backups/dotfiles"
 
 
 # =============================[ BEGIN ]================================ #
@@ -38,14 +38,17 @@ for file in .bashrc .bash_profile .profile; do
     fi
 done
 
+# Enable copying of hidden files
+shopt -s dotglob
+
 cp .bashrc "${HOME}/"
 cp .profile "${HOME}/"
 # TODO: Why isn't this command working?
 cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}"
 
-for file in .bash_aliases .bash_profile .bash_prompt .bash_sshagent; do
-    cp "${APP_BASE}/.dotfiles/bash/${file}" "${HOME}/"
-    echo -e "${GREEN}[*] ${file} copied to HOME"
-done
+#for file in .bash_aliases .bash_profile .bash_prompt .bash_sshagent; do
+#    cp "${APP_BASE}/.dotfiles/bash/${file}" "${HOME}/"
+#    echo -e "${GREEN}[*] ${file} copied to HOME"
+#done
 
 exit 0
