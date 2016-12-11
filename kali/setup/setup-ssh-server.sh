@@ -406,8 +406,16 @@ chmod +x "${file}"
 # ===[ Restart SSH / Enable Autostart ]=== #
 #service ssh restart
 #update-rc.d -f ssh enable
-systemctl start ssh
-systemctl enable ssh
+systemctl start ssh >/dev/null 2>&1
+systemctl enable ssh >/dev/null 2>&1
+
+
+echo -e "\n${GREEN}============================================================${RESET}"
+echo -e "\tSSH SERVER IP:\t${SSH_SERVER_ADDRESS}"
+echo -e "\tSSH Port:\t${SSH_SERVER_PORT}"
+echo -e "\tAutostart:\tEnabled"
+echo -e "${GREEN}============================================================${RESET}"
+
 
 function finish {
     # Any script-termination routines go here, but function cannot be empty
