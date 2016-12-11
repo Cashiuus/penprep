@@ -109,7 +109,7 @@ grep -q '^ALLOW_ROOT_LOGIN=' "${APP_SETTINGS}" 2>/dev/null \
     || echo "ALLOW_ROOT_LOGIN=${ALLOW_ROOT_LOGIN}" >> "${APP_SETTINGS}"
 
 [[ "$ALLOW_ROOT_LOGIN" = false ]] \
-    && echo -e "${YELLOW}[*] ${RESET}Root SSH Login set to disabled; Change sshd_config to enable."
+    && echo -e "${YELLOW}[INFO] Root SSH Login set to disabled; Change sshd_config to enable.${RESET}"
 
 # ===============================[  BEGIN  ]================================== #
 
@@ -335,10 +335,10 @@ EOF
 function restrict_login_geoip() {
     apt-get -y install geoip-bin geoip-database
     # Test it out
-    [[ "$DEBUG" = true]] && echo -e "${ORANGE}[DEBUG] Performing a test lookup with command 'geoiplookup 8.8.8.8' now...${RESET}"
-    [[ "$DEBUG" = true]] && geoiplookup 8.8.8.8
-    [[ "$DEBUG" = true]] && echo -e "${ORANGE}[DEBUG] Did it work? Press any key to continue...${RESET}"
-    [[ "$DEBUG" = true]] && read
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Performing a test lookup with command 'geoiplookup 8.8.8.8' now...${RESET}"
+    [[ "$DEBUG" = true ]] && geoiplookup 8.8.8.8
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Did it work? Press any key to continue...${RESET}"
+    [[ "$DEBUG" = true ]] && read
 
     # Create script that will check IPs and return True or False
     [[ ! -d "/usr/local/bin" ]] && mkdir -vp "/usr/local/bin" >/dev/null 2>&1
@@ -393,10 +393,10 @@ else
     echo -e "[ERROR] The GeoIP library could not be downloaded and updated"
 fi
 EOF
-chmod +x "${file}"
-# Setup a monthly cron job to keep your Geo-IP Database updated - 1st of month at Noon.
-# TODO: This method doesn't work for 'root' user
-#(crontab -l ; echo "00 12 1 * * ${file}") | crontab
+    chmod +x "${file}"
+    # Setup a monthly cron job to keep your Geo-IP Database updated - 1st of month at Noon.
+    # TODO: This method doesn't work for 'root' user
+    #(crontab -l ; echo "00 12 1 * * ${file}") | crontab
 }
 
 [[ "$DO_GEOIP" = true ]] && restrict_login_geoip
