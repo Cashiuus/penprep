@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ## =============================================================================
 # File:     install-simple.sh
 #
 # Author:   Cashiuus
-# Created:  02/20/2016  - (Revised: 17-July-2016)
+# Created:  02/20/2016  - (Revised: 11-Dec-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #
 #
 ## =============================================================================
-__version__="0.1"
+__version__="1.2"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 GREEN="\033[01;32m"    # Success
@@ -29,6 +29,9 @@ BACKUPS_DIR="${HOME}/Backups/dotfiles"
 # =============================[ BEGIN ]================================ #
 cd "${APP_BASE}"
 
+# Enable copying/moving of hidden files
+shopt -s dotglob
+
 # Backup core existing dotfiles first
 for file in .bashrc .bash_profile .profile; do
     if [[ -e ${file} ]]; then
@@ -38,17 +41,15 @@ for file in .bashrc .bash_profile .profile; do
     fi
 done
 
-# Enable copying of hidden files
-shopt -s dotglob
 
+echo -e "${GREEN}[*] ${RESET}Copying dotfiles to HOME directory..."
 cp .bashrc "${HOME}/"
 cp .profile "${HOME}/"
-# TODO: Why isn't this command working?
 cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}"
 
 #for file in .bash_aliases .bash_profile .bash_prompt .bash_sshagent; do
 #    cp "${APP_BASE}/.dotfiles/bash/${file}" "${HOME}/"
 #    echo -e "${GREEN}[*] ${file} copied to HOME"
 #done
-
+echo -e "${GREEN}[*] ${RESET}Finished simple dotfiles install, goodbye!"
 exit 0
