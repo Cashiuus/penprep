@@ -94,6 +94,9 @@ ALLOW_ROOT_LOGIN=false
 DO_PW_AUTH=true
 DO_PUBKEY_AUTH=true
 DO_GEOIP=true
+# This just means script will backup old ssh keys, generate new, and show
+# you an MD5 file comparison to verify the new keys are in fact, different keys.
+DO_COMPARISON_MD5=true
 EOF
     sleep 1s
     source "${APP_SETTINGS}"
@@ -104,7 +107,6 @@ EOF
 # Initialize configuration directory and settings file
 init_settings
 [[ ! ${SSH_SERVER_ADDRESS} ]] && init_settings_ssh
-
 
 
 # Add our root login preference to our custom settings file if not already there
@@ -129,15 +131,13 @@ cd /etc/ssh
 if [[ ! -d insecure_original_kali_keys ]]; then
     mkdir insecure_original_kali_keys
     mv ssh_host_* insecure_original_kali_keys/
-    DO_MD5='yes'
-    #find ~/.ssh/ -type f ! -name authorized_keys -delete 2>/dev/null
 fi
 
 # Wipe clean any ssh keys in root profile, leaving authorized_keys file intact
 [[ ! -d "${HOME}/.ssh" ]] && mkdir -p "${HOME}/.ssh"
 
 # TODO: Sure we want to do this? What about when running this on pre-existing systems?
-#find "${HOME}/.ssh/" -type f ! -name authorized_keys -delete
+#find "${HOME}/.ssh/" -type f ! -name authorized_keys -delete 2>/dev/null
 
 # Get the currently-installed version of openssh-server
 tmp=$(dpkg -s openssh-server | grep "^Version" | cut -d ":" -f3)
@@ -198,15 +198,17 @@ chmod 0400 "${HOME}/.ssh/id_rsa"
 function md5_compare() {
     # Compare MD5 to ensure new key is different from original
     echo -e "\n${GREEN}[*] ${RESET}Compare the MD5 Hashes below to ensure new key is, in fact, new!"
+    echo -e "\t${RED}OLD KEYS${RESET}"
     openssl md5 /etc/ssh/insecure_original_kali_keys/ssh_host_*
+    echo -e "\n\t${GREEN}NEW KEYS${RESET}"
     openssl md5 /etc/ssh/ssh_host_*
     sleep 10
 }
-[[ ${DO_MD5} ]] && md5_compare
+[[ "${DO_COMPARISON_MD5}" = true ]] && md5_compare
 
 
 # Copy Public key to auth file; Private key goes to client
-# TODO: May need to insert this at the top, and appned existing keys below it
+# TODO: May need to insert this at the top, and append existing keys below it
 # to avoid old key being read first if this key is replacing an existing entry
 file="${HOME}/.ssh/authorized_keys"
 cat "${HOME}/.ssh/id_rsa.pub" >> "${file}"
@@ -362,6 +364,7 @@ EOF
 
 # ==========================[ GEOIP RESTRICTIONS INTEGRATION ]============================== #
 function restrict_login_geoip() {
+    echo -e "${GREEN}[*] ${RESET}Setting up geoip integration for country-based restrictions..."
     apt-get -y install geoip-bin geoip-database
     # Test it out
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Performing a test lookup with command 'geoiplookup 8.8.8.8' now...${RESET}"
@@ -451,7 +454,6 @@ echo -e "${GREEN}============================================================${R
 
 function finish {
     # Any script-termination routines go here, but function cannot be empty
-    clear
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
     echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
 }
