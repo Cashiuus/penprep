@@ -93,7 +93,12 @@ SSH_AUTOSTART=true
 ALLOW_ROOT_LOGIN=false
 DO_PW_AUTH=true
 DO_PUBKEY_AUTH=true
+
+# Geoip based whitelist of source countries
+# allowed to access this system's SSH service
 DO_GEOIP=true
+ALLOW_COUNTRIES="US AU"
+
 # This just means script will backup old ssh keys, generate new, and show
 # you an MD5 file comparison to verify the new keys are in fact, different keys.
 DO_COMPARISON_MD5=true
@@ -198,9 +203,9 @@ chmod 0400 "${HOME}/.ssh/id_rsa"
 function md5_compare() {
     # Compare MD5 to ensure new key is different from original
     echo -e "\n${GREEN}[*] ${RESET}Compare the MD5 Hashes below to ensure new key is, in fact, new!"
-    echo -e "\t${RED}OLD KEYS${RESET}"
+    echo -e "\t-- ${RED}OLD KEYS${RESET} --"
     openssl md5 /etc/ssh/insecure_original_kali_keys/ssh_host_*
-    echo -e "\n\t${GREEN}NEW KEYS${RESET}"
+    echo -e "\n\t-- ${GREEN}NEW KEYS${RESET} --"
     openssl md5 /etc/ssh/ssh_host_*
     sleep 10
 }
@@ -212,6 +217,10 @@ function md5_compare() {
 # to avoid old key being read first if this key is replacing an existing entry
 file="${HOME}/.ssh/authorized_keys"
 cat "${HOME}/.ssh/id_rsa.pub" >> "${file}"
+
+#{ cat "${file}"; cat "${HOME}/.ssh/id_rsa.pub" } > "${file}"
+
+
 # NOTE: authorized_keys file should be set to 644 according to google, which is never wrong ever amirite?
 chmod 644 "${file}"
 
@@ -363,7 +372,15 @@ EOF
 
 
 # ==========================[ GEOIP RESTRICTIONS INTEGRATION ]============================== #
+# Credit to: http://www.axllent.org/docs/view/ssh-geoip/
+# Valid DNS Servers: http://public-dns.info/nameservers.txt
+
 function restrict_login_geoip() {
+    #
+    #   This function will setup the geoip database, download an updated .dat
+    #   and proceed to setup functionality that will block SSH access from
+    #   sources that are not in the list of approved countries
+    #
     echo -e "${GREEN}[*] ${RESET}Setting up geoip integration for country-based restrictions..."
     apt-get -y install geoip-bin geoip-database
     # Test it out
@@ -377,9 +394,10 @@ function restrict_login_geoip() {
     file="/usr/local/bin/sshfilter.sh"
     cat <<EOF > "${file}"
 #!/bin/bash
+
 # Credit to: http://www.axllent.org/docs/view/ssh-geoip/
 # UPPERCASE space-separated country codes to ACCEPT
-ALLOW_COUNTRIES="US AU"
+ALLOW_COUNTRIES=\"${ALLOW_COUNTRIES}\"
 
 if [[ \$# -ne 1 ]]; then
     echo "Usage: \`basename \$0\` <ip>" 1>&2
@@ -408,8 +426,9 @@ EOF
         || echo "sshd: ALL: aclexec /usr/local/bin/sshfilter.sh %a" >> /etc/hosts.allow
 
     # Test it out
-    echo -e "${YELLOW}[INFO] Testing sshfilter.ssh - DENY's should show in /var/log/messages${RESET}"
-    /usr/local/bin/sshfilter.sh "8.8.8.8"
+    [[ "$DEBUG" = true ]] \
+        && echo -e "${ORANGE}[DEBUG] Testing sshfilter.ssh - DENY's should show in /var/log/messages${RESET}"
+    [[ "$DEBUG" = true ]] && /usr/local/bin/sshfilter.sh "175.198.198.78"
 
     file=/usr/local/bin/geoip-updater.sh
     cat <<EOF > "${file}"
@@ -429,6 +448,13 @@ EOF
     # Setup a monthly cron job to keep your Geo-IP Database updated - 1st of month at Noon.
     # TODO: This method doesn't work for 'root' user
     #(crontab -l ; echo "00 12 1 * * ${file}") | crontab
+    # Trying this version - crontab -l will exit 1 if file is empty
+    crontab -l >/dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+        crontab -l | { cat; echo "10 23 3 * 0 /usr/local/bin/geoip-updater.sh"; } | crontab -
+    else
+        echo "10 23 3 * 0 /usr/local/bin/geoip-updater.sh" | crontab -
+    fi
 }
 
 [[ "$DO_GEOIP" = true ]] && restrict_login_geoip
