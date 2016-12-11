@@ -3,7 +3,7 @@
 # Filename: setup-ssh-server.sh
 #
 # Author:   Cashiuus
-# Created:  01-Dec-2015 - (Revised: 26-JUL-2016)
+# Created:  01-Dec-2015 - (Revised: 11-Dec-2016)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -19,7 +19,7 @@
 #             You must use another SSH agents or stick to RSA keys.
 #           - Windows SSH PuTTY does not support ECDSA as of March, 2016.
 ## =============================================================================
-__version__="1.0"
+__version__="1.1"
 __author__='Cashiuus'
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -29,29 +29,71 @@ YELLOW="\033[01;33m"   # Warnings/Information
 RED="\033[01;31m"      # Issues/Errors
 BLUE="\033[01;34m"     # Heading
 PURPLE="\033[01;35m"   # Other
+ORANGE="\033[38;5;208m" # Debugging
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
-## =========[ CONSTANTS ]================ ##
-APP_PATH=$(readlink -f $0)
-APP_BASE=$(dirname "${APP_PATH}")
+## =========[ CONSTANTS / DEFAULTS ]================ ##
+SCRIPT_DIR=$(readlink -f $0)
+APP_BASE=$(dirname ${SCRIPT_DIR})
+DEBUG=0
 LINES=$(tput lines)
 COLS=$(tput cols)
 
-ALLOW_ROOT_LOGIN=true
-## ========================================================================== ##
-# ===============================[  BEGIN  ]================================== #
+APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
+ALLOW_ROOT_LOGIN=false
 
-if [[ -f "${APP_BASE}/../../config/settings.conf" ]]; then
-    source "${APP_BASE}/../../config/settings.conf"
-else
-    echo -e "${YELLOW}[-] ERROR: ${RESET} settings.conf file is missing."
-    echo -e -n "${GREEN}[+] ${RESET}"
-    read -p "Enter SSH Server IP (If unsure, just press enter): " -i "0.0.0.0" -e SSH_SERVER_ADDRESS
-    echo -e
-    echo -e -n "${GREEN}[+] ${RESET}"
-    read -p "Enter SSH Server Port (Default: 22): " -i "22" -p SSH_SERVER_PORT
-    echo -e
+# ===============================[ Check Permissions ]============================== #
+ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
+## Exit if the script was not launched by root or through sudo
+if [[ ${EUID} -ne 0 ]]; then
+    echo "The script needs to run as sudo/root" && exit 1
 fi
+
+## ================================================================================ ##
+# ============================[ Preparations / Settings ]=========================== #
+init_settings() {
+    #
+    #
+    #
+    #
+    #
+    if [[ ! -f "${APP_SETTINGS}" ]]; then
+        mkdir -p $(dirname ${APP_SETTINGS})
+        echo -e "${GREEN}[*] ${RESET}Creating configuration directory"
+        echo -e "${GREEN}[*] ${RESET}Creating initial settings file"
+        cat <<EOF > "${APP_SETTINGS}"
+### KALI PERSONAL BUILD SETTINGS
+
+EOF
+    else
+        echo -e "[*] Reading from settings file, please wait..."
+        source "${APP_SETTINGS}"
+    fi
+    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
+}
+# Initialize configuration directory and settings file
+init_settings
+
+
+if [[ ! ${SSH_SERVER_ADDRESS} ]]; then
+    echo -e -n "${GREEN}[+] ${RESET}"
+    read -r -e -p "Enter SSH Server IP (If unsure, just press enter): " -i "0.0.0.0" SSH_SERVER_ADDRESS
+    echo -e "\n\n# SSH Custom Configuration" >> "${APP_SETTINGS}"
+    echo "SSH_SERVER_ADDRESS=${SSH_SERVER_ADDRESS}" >> "${APP_SETTINGS}"
+fi
+
+if [[ ! ${SSH_SERVER_PORT} ]]; then
+    echo -e -n "${GREEN}[+] ${RESET}"
+    read -r -e -p "Enter SSH Server Port (Default: 22): " -i "22" SSH_SERVER_PORT
+    echo "SSH_SERVER_PORT=${SSH_SERVER_PORT}" >> "${APP_SETTINGS}"
+fi
+
+# Add our root login preference to our custom settings file if not already there
+grep -q '^ALLOW_ROOT_LOGIN=' "${APP_SETTINGS}" 2>/dev/null \
+    || echo "ALLOW_ROOT_LOGIN=${ALLOW_ROOT_LOGIN}" >> "${APP_SETTINGS}" \
+    && echo -e "${YELLOW}[*] ${RESET} Root SSH Login disabled by default; Change sshd_config to enable."
+
+# ===============================[  BEGIN  ]================================== #
 
 echo -e "${GREEN}[*]${RESET} Running apt-get update & installing openssh-server..."
 apt-get -qq update
