@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ## =============================================================================
 # Filename: setup-openvpn-server.sh
 #
@@ -159,14 +159,6 @@ else
 fi
 
 
-if [[ ${CLIENT_NAME} == "client1" ]]; then
-    echo -e "\n${YELLOW}[+] Default Client Cert Detected!${RESET}\n"
-    echo -e -n "${YELLOW}[+] ${RESET}"
-    read -p "Specify a name for the client [client1]:" -i "client1" -e CLIENT_NAME
-    echo -e
-fi
-
-
 # -==[ OpenVPN Server Key ]==-
 # Build Server Key, if one of the key/crt is missing (in case you accidentally forgot to confirm the crt)
 if [[ ! -f "${VPN_PREP_DIR}/pki/private/server.key" || ! -f "${VPN_PREP_DIR}/pki/issued/server.crt" ]]; then
@@ -204,17 +196,25 @@ if [[ ! -f "${VPN_PREP_DIR}/ta.key" ]]; then
 fi
 
 
-# ===[ CLIENT KEY PAIR ]===
+# ===[ CLIENT KEY-PAIR Creation ]===
+if [[ ${CLIENT_NAME} == "client1" ]]; then
+    echo -e "\n${YELLOW}[+] Default Client Cert Detected!${RESET}\n"
+    echo -e -n "${YELLOW}[+] ${RESET}"
+    read -p "Specify a name for the client [client1]:" -i "client1" -e CLIENT_NAME
+    echo -e
+fi
 
 # Build Client Key, if it doesn't already exist (*Noticing a trend?!?)
 if [[ ! -f "${VPN_PREP_DIR}/pki/private/${CLIENT_NAME}.key" ]]; then
-    echo -e "${GREEN}[*]${RESET} Generating Client Certificate/Key Pair"
+    echo -e "${GREEN}[*]${RESET} Generating Client Certificate/Key Pair..."
     ./easyrsa gen-req "${CLIENT_NAME}" nopass
     sleep 3
     echo -e "${GREEN}[*]${RESET} Sign Client Certificate; Enter CA Passphrase below"
     ./easyrsa sign-req client "${CLIENT_NAME}"
     # No password on agents, or we have to come up with a complex solution for
-    # entering the password, see: https://bbs.archlinux.org/viewtopic.php?id=150440
+    # entering the password when agent boots up.
+    #       see: https://bbs.archlinux.org/viewtopic.php?id=150440
+    #
     # Result:
     #   Keypair and certificate request completed. Your files are:
     #       request:    ${VPN_PREP_DIR}/pki/reqs/client1.req
@@ -387,19 +387,18 @@ cd ~
 echo -e "${GREEN}[*]${RESET} Restarting OpenVPN Service to Initialize VPN Server"
 #service openvpn restart
 systemctl start openvpn
-sleep 5
-
+sleep 5s
+[[ $? -ne 0 ]] && systemctl reload openvpn
 
 echo -e -n "\n${YELLOW}[+] Enable OpenVPN for Autostart:${RESET}"
-read -n 1 -p " [Y,n]: " -i "y" -e response
+read -r -p " [Y,n]: " -i "y" -e response
 echo -e ""
 case $response in
     [Yy]* ) systemctl enable openvpn;;
 esac
 
-# Ensure Apache is not bound to port 443 (ssl) or server cannot bind to port 443
+# TODO: Ensure Apache is not bound to port 443 (ssl) or server cannot bind to port 443
 # NOTE: Disable SSL anytime with command: a2dismod ssl; service apache2 restart
-sleep 5s
 echo -e "${GREEN}[*]${RESET} Netstat of VPN Server: is port ${VPN_PORT} listening?"
 netstat -nutlap | grep "${VPN_PORT}"
 sleep 3s
