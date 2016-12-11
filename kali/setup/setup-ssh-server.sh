@@ -420,7 +420,7 @@ echo -e "${GREEN}============================================================${R
 function finish {
     # Any script-termination routines go here, but function cannot be empty
     clear
-    [[ "$DEBUG" = true]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
     echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
     # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
     # cmd_here 2>&1 | tee -a "${LOG_FILE}"

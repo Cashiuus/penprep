@@ -33,14 +33,8 @@ RESET="\033[00m"       # Normal
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
 DEBUG=0
-
-#APP_SETTINGS="${APP_BASE}/../../config/settings.conf"
 APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
-VPN_PREP_DIR="${HOME}/vpn-setup"
-VPN_PORT='1194'
-VPN_PROTOCOL='udp'
-VPN_SUBNET="10.9.8.0"
-CLIENT_NAME="client1"
+LOG_FILE="${APP_BASE}/debug.log"
 # ===============================[ Check Permissions ]============================== #
 ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
 ## Exit if the script was not launched by root or through sudo
@@ -48,9 +42,8 @@ if [[ ${EUID} -ne 0 ]]; then
     echo "The script needs to run as sudo/root" && exit 1
 fi
 
-
 # ============================[ Preparations / Settings ]=========================== #
-init_settings() {
+function init_settings() {
     #
     #
     #
@@ -64,14 +57,34 @@ init_settings() {
 ### KALI PERSONAL BUILD SETTINGS
 
 EOF
-    else
-        echo -e "[*] Reading from settings file, please wait..."
-        source "${APP_SETTINGS}"
     fi
+    echo -e "[*] Reading from settings file, please wait..."
+    source "${APP_SETTINGS}"
     [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
 }
+
+
+function init_settings_openvpn() {
+    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] Generating initial VPN defaults into settings file${RESET}"
+    cat <<EOF >> "${APP_SETTINGS}"
+# VPN Custom Configuration
+VPN_PREP_DIR="\${HOME}/vpn-setup"
+
+VPN_SERVER=''
+VPN_PORT='1194'
+VPN_PROTOCOL='udp'
+VPN_SUBNET="10.9.8.0"
+# An array of clients, you may add more below to create additional openvpn clients' packages.
+CLIENT_NAME[0]="client1"
+EOF
+    source "${APP_SETTINGS}"
+}
+
+
 # Initialize configuration directory and settings file
 init_settings
+# If our VPN server variable is not defined, assert this is a first-run & generate defaults
+[[ ! ${VPN_SERVER} ]] && init_settings_openvpn
 
 
 check_setting() {
@@ -197,39 +210,34 @@ fi
 
 
 # ===[ CLIENT KEY-PAIR Creation ]===
-if [[ ${CLIENT_NAME} == "client1" ]]; then
-    echo -e "\n${YELLOW}[+] Default Client Cert Detected!${RESET}\n"
-    echo -e -n "${YELLOW}[+] ${RESET}"
-    read -p "Specify a name for the client [client1]:" -i "client1" -e CLIENT_NAME
-    echo -e
-fi
+for i in "${CLIENT_NAME[@]}"; do
 
-# Build Client Key, if it doesn't already exist (*Noticing a trend?!?)
-if [[ ! -f "${VPN_PREP_DIR}/pki/private/${CLIENT_NAME}.key" ]]; then
-    echo -e "${GREEN}[*]${RESET} Generating Client Certificate/Key Pair..."
-    ./easyrsa gen-req "${CLIENT_NAME}" nopass
-    sleep 3
-    echo -e "${GREEN}[*]${RESET} Sign Client Certificate; Enter CA Passphrase below"
-    ./easyrsa sign-req client "${CLIENT_NAME}"
-    # No password on agents, or we have to come up with a complex solution for
-    # entering the password when agent boots up.
-    #       see: https://bbs.archlinux.org/viewtopic.php?id=150440
-    #
-    # Result:
-    #   Keypair and certificate request completed. Your files are:
-    #       request:    ${VPN_PREP_DIR}/pki/reqs/client1.req
-    #       key:        ${VPN_PREP_DIR}/pki/private/client1.key
-    # -----------------------[ BUILD CLIENT OVPN FILE - merge.sh ]----------------------------- #
-    echo -e "${GREEN}[*]${RESET} Building Client conf/ovpn File"
-    ca="${VPN_PREP_DIR}/pki/ca.crt"
-    cert="${VPN_PREP_DIR}/pki/issued/${CLIENT_NAME}.crt"
-    key="${VPN_PREP_DIR}/pki/private/${CLIENT_NAME}.key"
-    tlsauth="${VPN_PREP_DIR}/ta.key"
+    # Build Client Key, if it doesn't already exist (*Noticing a trend?!?)
+    if [[ ! -f "${VPN_PREP_DIR}/pki/private/${i}.key" ]]; then
+        echo -e "${GREEN}[*]${RESET} Generating Client Certificate/Key Pair for: ${i}"
+        ./easyrsa gen-req "${i}" nopass
+        sleep 3
+        echo -e "${GREEN}[*]${RESET} Sign Client Certificate; Enter CA Passphrase below"
+        ./easyrsa sign-req client "${i}"
+        # No password on agents, or we have to come up with a complex solution for
+        # entering the password when agent boots up.
+        #       see: https://bbs.archlinux.org/viewtopic.php?id=150440
+        #
+        # Result:
+        #   Keypair and certificate request completed. Your files are:
+        #       request:    ${VPN_PREP_DIR}/pki/reqs/client1.req
+        #       key:        ${VPN_PREP_DIR}/pki/private/client1.key
+        # -----------------------[ BUILD CLIENT OVPN FILE - merge.sh ]----------------------------- #
+        echo -e "${GREEN}[*]${RESET} Building Client conf/ovpn File"
+        ca="${VPN_PREP_DIR}/pki/ca.crt"
+        cert="${VPN_PREP_DIR}/pki/issued/${i}.crt"
+        key="${VPN_PREP_DIR}/pki/private/${i}.key"
+        tlsauth="${VPN_PREP_DIR}/ta.key"
 
-    # Generate client base config
-    cd "${VPN_PREP_DIR}"
-    file="${CLIENT_NAME}.conf"
-    cat << EOF > "${file}"
+        # Generate client base config
+        cd "${VPN_PREP_DIR}"
+        file="${i}.conf"
+        cat << EOF > "${file}"
 client
 dev tun
 proto ${VPN_PROTOCOL}
@@ -246,38 +254,60 @@ verb 3
 mute 20
 EOF
 
-    #   Delete pre-existing entries to keys and certs first
+        #   Delete pre-existing entries to keys and certs first
         sed -i \
         -e '/ca .*'$ca'/d'  \
         -e '/cert .*'$cert'/d' \
         -e '/key .*'$key'/d' \
         -e '/tls-auth .*'$tlsauth'/d' $file
 
-    #   Add keys and certs inline
-    echo "key-direction 1" >> $file
+        #   Add keys and certs inline
+        echo "key-direction 1" >> $file
 
-    echo "<ca>" >> $file
-    awk /BEGIN/,/END/ < $ca >> $file
-    echo "</ca>" >> $file
+        echo "<ca>" >> $file
+        awk /BEGIN/,/END/ < $ca >> $file
+        echo "</ca>" >> $file
 
-    echo "<cert>" >> $file
-    awk /BEGIN/,/END/ < $cert >> $file
-    echo "</cert>" >> $file
+        echo "<cert>" >> $file
+        awk /BEGIN/,/END/ < $cert >> $file
+        echo "</cert>" >> $file
 
-    echo "<key>" >> $file
-    awk /BEGIN/,/END/ < $key >> $file
-    echo "</key>" >> $file
+        echo "<key>" >> $file
+        awk /BEGIN/,/END/ < $key >> $file
+        echo "</key>" >> $file
 
-    echo "<tls-auth>" >> $file
-    awk /BEGIN/,/END/ < $tlsauth >> $file
-    echo "</tls-auth>" >> $file
-else
-    echo -e "${RED}[-] ERROR:${RESET} This client (${CLIENT_NAME}) already has an issued key pair."
-    echo -e "${RED}[-]${RESET} To make a new request, you must first revoke the original with:"
-    echo -e "${RED}[-]${RESET}\t${GREEN}./easyrsa revoke <cert_name>${RESET}"
-    echo -e "\n${RED}[-]${RESET} Then, you may also need to manually delete this client's \".crt, .key, and .req\" files.\n\n"
-    echo -e "${YELLOW}[*]${RESET} Proceeding with OpenVPN Server setup process."
-fi
+        echo "<tls-auth>" >> $file
+        awk /BEGIN/,/END/ < $tlsauth >> $file
+        echo "</tls-auth>" >> $file
+    else
+        echo -e "${RED}[-] ERROR:${RESET} This client (${i}) already has an issued key pair."
+        echo -e "${RED}[-]${RESET} To make a new request, you must first revoke the original with:"
+        echo -e "${RED}[-]${RESET}\t${GREEN}./easyrsa revoke <cert_name>${RESET}"
+        echo -e "\n${RED}[-]${RESET} Then, you may also need to manually delete this client's \".crt, .key, and .req\" files.\n\n"
+        echo -e "${YELLOW}[*]${RESET} Proceeding with OpenVPN Server setup process."
+    fi
+
+    # Generate client-specific "CCD" configs
+    #[[ ! -d "/etc/openvpn/ccd" ]] && mkdir -p /etc/openvpn/ccd
+    #file="/etc/openvpn/ccd/${i}"
+    #cat <<EOF > "${file}"
+# This file ensures the client-specific settings
+# The file's name must equal the Common Name of its certificate
+# First, we give the client a set IP that never changes
+#ifconfig-push 10.9.8.1 10.9.8.2
+
+# If we want, we can enable backend routes on the client
+# To enable this, you first place "route 192.158.1.0 255.255.255.0"
+# into the server.conf, then uncomment the line below.
+# This will give that subnet access to the VPN and vice versa. Only works if routing,
+# not bridging...e.g. using "dev tun" and "server" directives.
+#iroute 192.168.1.0 255.255.255.0
+#EOF
+
+# -==[ End of Client Configs creation ]==-
+done
+
+
 
 # Generate the server configuration file
 file="/etc/openvpn/server.conf"
@@ -340,23 +370,6 @@ mute 20
 #tls-cipher TLS-DHE-RSA-WITH-AES-256-CBC-SHA
 EOF
 
-# Generate client-specific "CCD" configs
-#[[ ! -d "/etc/openvpn/ccd" ]] && mkdir -p /etc/openvpn/ccd
-#file="/etc/openvpn/ccd/${CLIENT_NAME}"
-#cat <<EOF > "${file}"
-# This file ensures the client-specific settings
-# The file's name must equal the Common Name of its certificate
-# First, we give the client a set IP that never changes
-#ifconfig-push 10.9.8.1 10.9.8.2
-
-# If we want, we can enable backend routes on the client
-# To enable this, you first place "route 192.158.1.0 255.255.255.0"
-# into the server.conf, then uncomment the line below.
-# This will give that subnet access to the VPN and vice versa. Only works if routing,
-# not bridging...e.g. using "dev tun" and "server" directives.
-#iroute 192.168.1.0 255.255.255.0
-#EOF
-
 
 # Copy all server keys to /etc/openvpn/ if they've been updated
 echo -e "${GREEN}[*]${RESET} Moving Server Certificate Files to /etc/openvpn/"
@@ -399,14 +412,26 @@ esac
 
 # TODO: Ensure Apache is not bound to port 443 (ssl) or server cannot bind to port 443
 # NOTE: Disable SSL anytime with command: a2dismod ssl; service apache2 restart
-echo -e "${GREEN}[*]${RESET} Netstat of VPN Server: is port ${VPN_PORT} listening?"
+echo -e "${GREEN}[*]${RESET} Netstat of VPN Server - is port ${VPN_PORT} listening?"
 netstat -nutlap | grep "${VPN_PORT}"
 sleep 3s
 
 echo -e "\n${GREEN}============================================================${RESET}"
 echo -e "\tVPN SERVER:\t${VPN_SERVER}"
 echo -e "\tVPN Port:\t${VPN_PORT}/${VPN_PROTOCOL}"
-echo -e "\tClient CN:\t${CLIENT_NAME}"
-echo -e "\tClient Conf:\t${VPN_PREP_DIR}/${CLIENT_NAME}.conf"
+echo -e "\tClient(s):\t${CLIENT_NAME[@]}"
+echo -e "\tClient Conf(s):\t${VPN_PREP_DIR}/"
 echo -e "${GREEN}============================================================${RESET}"
 echo -e "\t\t${GREEN}[*]${RESET} OpenVPN Setup Complete!\n\n"
+
+
+function finish {
+    # Any script-termination routines go here, but function cannot be empty
+    clear
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
+    echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
+    # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
+    # cmd_here 2>&1 | tee -a "${LOG_FILE}"
+}
+# End of script
+trap finish EXIT
