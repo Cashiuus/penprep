@@ -19,7 +19,7 @@
 #             You must use another SSH agents or stick to RSA keys.
 #           - Windows SSH PuTTY does not support ECDSA as of March, 2016.
 ## =============================================================================
-__version__="1.1"
+__version__="1.2"
 __author__='Cashiuus'
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -36,6 +36,7 @@ RESET="\033[00m"       # Normal
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
 DEBUG=0
+LOG_FILE="${APP_BASE}/debug.log"
 LINES=$(tput lines)
 COLS=$(tput cols)
 
@@ -61,8 +62,9 @@ function init_settings() {
         echo -e "${GREEN}[*] ${RESET}Creating initial settings file"
         cat <<EOF > "${APP_SETTINGS}"
 ### KALI PERSONAL BUILD SETTINGS
-
+#
 EOF
+    fi
     echo -e "[*] Reading from settings file, please wait..."
     source "${APP_SETTINGS}"
     [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
@@ -81,15 +83,18 @@ function init_settings_ssh() {
         read -r -e -p "Enter SSH Server Port (Default: 22): " -i "22" SSH_SERVER_PORT
     fi
 
-    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] Generating initial VPN defaults into settings file${RESET}"
+    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] Generating initial SSH defaults into settings file${RESET}"
     cat <<EOF >> "${APP_SETTINGS}"
 # SSH Server Custom Configuration
 SSH_SERVER_ADDRESS=${SSH_SERVER_ADDRESS}
 SSH_SERVER_PORT=${SSH_SERVER_PORT}
 ALLOW_ROOT_LOGIN=false
+
+DO_GEOIP=true
 EOF
     sleep 1s
     source "${APP_SETTINGS}"
+    echo -e "${GREEN}[*] ${RESET}Reading SSH preferences from settings file, please wait..."
 }
 
 
@@ -392,7 +397,7 @@ chmod +x "${file}"
 #(crontab -l ; echo "00 12 1 * * ${file}") | crontab
 }
 
-restrict_login_geoip
+[[ "$DO_GEOIP" = true ]] && restrict_login_geoip
 
 
 
