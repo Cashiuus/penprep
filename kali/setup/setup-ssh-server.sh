@@ -128,8 +128,10 @@ apt-get -qq update
 apt-get -y -qq install openssh-server openssl
 
 echo -e "${GREEN}[*]${RESET} Disabling SSH service while we reconfigure..."
-update-rc.d -f ssh remove
-update-rc.d -f ssh defaults
+#update-rc.d -f ssh remove
+#update-rc.d -f ssh defaults
+systemctl stop ssh.service >/dev/null 2>&1
+systemctl disable ssh.service >/dev/null 2>&1
 
 # Move the default Kali keys to backup folder
 cd /etc/ssh
@@ -144,9 +146,6 @@ fi
 # TODO: Sure we want to do this? What about when running this on pre-existing systems?
 #find "${HOME}/.ssh/" -type f ! -name authorized_keys -delete 2>/dev/null
 
-# Get the currently-installed version of openssh-server
-tmp=$(dpkg -s openssh-server | grep "^Version" | cut -d ":" -f3)
-openssh_version="${tmp:0:3}"
 
 function version () {
     echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
@@ -163,11 +162,17 @@ function version_check () {
     fi
 }
 
+# Get the currently-installed version of openssh-server
+tmp=$(dpkg -s openssh-server | grep "^Version" | cut -d ":" -f3)
+openssh_version="${tmp:0:3}"
+
 # Call version check to test if installed version is at least 6.5 or newer (-o)
 # TODO: Ask user if they also want to implement a password
-version_check $ver 6.5
+version_check $openssh_version 6.5
+
 if [ $? == 0 ]; then
-    echo -e "${GREEN}[*] ${RESET}Newer OpenSSH Version detected, proceeding with new key format"
+    echo -e "${GREEN}[*] ${RESET}Newer OpenSSH Version detected (Installed: $openssh_version)"
+    echo -e "${GREEN}[*} ${RESET}Proceeding with new SSH key-pair format"
 
     #TODO: -o fails for this key type: ssh-keygen -b 4096 -t rsa1 -o -f /etc/ssh/ssh_host_key -P ""
     # We don't need this rsa1 key, it's for SSH protocol version 1
@@ -207,6 +212,7 @@ function md5_compare() {
     openssl md5 /etc/ssh/insecure_original_kali_keys/ssh_host_*
     echo -e "\n\t-- ${GREEN}NEW KEYS${RESET} --"
     openssl md5 /etc/ssh/ssh_host_*
+    echo -e
     sleep 10
 }
 [[ "${DO_COMPARISON_MD5}" = true ]] && md5_compare
@@ -397,7 +403,7 @@ function restrict_login_geoip() {
 
 # Credit to: http://www.axllent.org/docs/view/ssh-geoip/
 # UPPERCASE space-separated country codes to ACCEPT
-ALLOW_COUNTRIES=\"${ALLOW_COUNTRIES}\"
+ALLOW_COUNTRIES="${ALLOW_COUNTRIES}"
 
 if [[ \$# -ne 1 ]]; then
     echo "Usage: \`basename \$0\` <ip>" 1>&2
