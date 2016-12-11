@@ -29,10 +29,11 @@ PURPLE="\033[01;35m"   # Other
 ORANGE="\033[38;5;208m" # Debugging
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
-## =========[ CONSTANTS ]================ ##
-DEBUG=1
+## =========[ CONSTANTS / DEFAULTS ]================ ##
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
+DEBUG=0
+
 #APP_SETTINGS="${APP_BASE}/../../config/settings.conf"
 APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
 VPN_PREP_DIR="${HOME}/vpn-setup"
@@ -46,9 +47,9 @@ ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
 if [[ ${EUID} -ne 0 ]]; then
     echo "The script needs to run as sudo/root" && exit 1
 fi
-# ==================================[ Begin Script ]================================= #
 
 
+# ============================[ Preparations / Settings ]=========================== #
 init_settings() {
     #
     #
@@ -57,10 +58,11 @@ init_settings() {
     #
     if [[ ! -f "${APP_SETTINGS}" ]]; then
         mkdir -p $(dirname ${APP_SETTINGS})
-        echo -e "[*] Creating configuration directory"
-        echo -e "[*] Creating initial settings file"
+        echo -e "${GREEN}[*] ${RESET}Creating configuration directory"
+        echo -e "${GREEN}[*] ${RESET}Creating initial settings file"
         cat <<EOF > "${APP_SETTINGS}"
 ### KALI PERSONAL BUILD SETTINGS
+
 EOF
     else
         echo -e "[*] Reading from settings file, please wait..."
@@ -68,7 +70,7 @@ EOF
     fi
     [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
 }
-# Initialize configuration directory and settings file (~/kali-builder/settings.conf)
+# Initialize configuration directory and settings file
 init_settings
 
 
@@ -87,18 +89,17 @@ check_setting() {
 
 
 # Check VPN Server IP Address setting
-if [[ $VPN_SERVER == '' ]]; then
-    echo -e "\n${YELLOW}[ERROR] << Invalid VPN Server >> Missing VPN Server variable"
+if [[ ! $VPN_SERVER ]]; then
+    echo -e "\n${YELLOW}[ERROR] Invalid VPN Server: Missing VPN Server IP Adress variable"
     echo -e -n "${GREEN}[+] ${RESET}"
-    read -p "Enter OpenVPN Server IP: " -e VPN_SERVER
-    echo -e
+    read -r -p "Enter OpenVPN Server IP: " -e VPN_SERVER
     # Write to settings file
     echo -e "# VPN Custom Configuration" >> "${APP_SETTINGS}"
     echo "VPN_SERVER=${VPN_SERVER}" >> "${APP_SETTINGS}"
 fi
 
 
-
+# ==================================[ Begin Script ]================================= #
 sudo apt-get install openvpn openssl -y
 
 if [[ $(which openvpn) ]]; then
@@ -109,7 +110,7 @@ if [[ $(which openvpn) ]]; then
 fi
 
 
-
+# -==[ Setup Easy-RSA Package ]==-
 filedir="${HOME}/git/easy-rsa"
 if [[ ! -d "${filedir}" ]]; then
     mkdir -p "${filedir}"
@@ -127,6 +128,7 @@ cd "${VPN_PREP_DIR}"
 #mv vars.example vars
 
 
+# ===============================[ Initialize PKI Infra ]============================== #
 function new_pki {
     # Clean
     echo -e "${GREEN}[*]${RESET} Initializing a new PKI system within the specified directory path."
@@ -141,10 +143,10 @@ function new_pki {
         # [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] CA Cert now at: ${VPN_PREP_DIR}/pki/ca.crt
 
     # If CA not successfully built, halt setup
-    [[ $? -ne 0 ]] && echo -e "${YELLOW}[-] ERROR: CA not successfully built, check and try again${RESET}" && exit 1
+    [[ $? -ne 0 ]] && echo -e "${YELLOW}[-] ERROR: CA not successfully built, did you enter a password?${RESET}" && exit 1
 }
 
-# ===============================[ Initialize PKI Infra ]============================== #
+
 if [[ -f "${VPN_PREP_DIR}/pki/ca.crt" ]]; then
     echo -e "\n${YELLOW} [*] PKI Structure already exists!${RESET}"
     read -n 5 -i "N" -p " [+] Purge PKI and start fresh? [y,N]: " -e response
@@ -159,14 +161,13 @@ fi
 
 if [[ ${CLIENT_NAME} == "client1" ]]; then
     echo -e "\n${YELLOW}[+] Default Client Cert Detected!${RESET}\n"
-    echo -e "${YELLOW}[+] ${RESET}"
-    read -t 10 -p "Keep this or specify a custom name [client1]:" -i "client1" -e CLIENT_NAME
+    echo -e -n "${YELLOW}[+] ${RESET}"
+    read -p "Specify a name for the client [client1]:" -i "client1" -e CLIENT_NAME
     echo -e
 fi
 
 
-
-
+# -==[ OpenVPN Server Key ]==-
 # Build Server Key, if one of the key/crt is missing (in case you accidentally forgot to confirm the crt)
 if [[ ! -f "${VPN_PREP_DIR}/pki/private/server.key" || ! -f "${VPN_PREP_DIR}/pki/issued/server.crt" ]]; then
     cd "${VPN_PREP_DIR}"
@@ -186,7 +187,7 @@ if [[ ! -f "${VPN_PREP_DIR}/pki/private/server.key" || ! -f "${VPN_PREP_DIR}/pki
     cp -u pki/issued/server.crt /etc/openvpn/
 fi
 
-# ===[ Build Server DH Key ]===
+# -==[ OpenVPN Server DH Key ]==-
 if [[ ! -f "${VPN_PREP_DIR}/dhparam.pem" ]]; then
     if [[ $DEBUG -eq 1 ]]; then
         echo -e "${ORANGE}[DEBUG] Debug is enabled, so skipping DH key generation${RESET}"
