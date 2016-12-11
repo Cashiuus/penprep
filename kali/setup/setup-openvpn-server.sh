@@ -33,7 +33,8 @@ RESET="\033[00m"       # Normal
 DEBUG=1
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
-APP_SETTINGS="${APP_BASE}/../../config/settings.conf"
+#APP_SETTINGS="${APP_BASE}/../../config/settings.conf"
+APP_SETTINGS="${HOME}/.config/kali/settings.conf"
 VPN_PREP_DIR="${HOME}/vpn-setup"
 VPN_PORT='1194'
 VPN_PROTOCOL='udp'
@@ -46,6 +47,58 @@ if [[ ${EUID} -ne 0 ]]; then
     echo "The script needs to run as sudo/root" && exit 1
 fi
 # ==================================[ Begin Script ]================================= #
+
+
+init_settings() {
+    #
+    #
+    #
+    #
+    #
+    if [[ ! -f "${APP_SETTINGS}" ]]; then
+        mkdir -p $(dirname ${APP_SETTINGS})
+        echo -e "[*] Creating configuration directory"
+        echo -e "[*] Creating initial settings file"
+        cat <<EOF > "${APP_SETTINGS}"
+### KALI PERSONAL BUILD SETTINGS
+EOF
+    else
+        echo -e "[*] Reading from settings file, please wait..."
+        source "${APP_SETTINGS}"
+    fi
+    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
+}
+# Initialize configuration directory and settings file (~/kali-builder/settings.conf)
+init_settings
+
+
+check_setting() {
+    #
+    # Check a setting and determine if its value is valid.
+    #
+    #
+    #
+    if [[ $1 = '' ]]; then
+        [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] Setting Invalid: $1${RESET}"
+
+    fi
+}
+
+
+
+# Check VPN Server IP Address setting
+if [[ $VPN_SERVER == '' ]]; then
+    echo -e "\n${YELLOW}[ERROR] << Invalid VPN Server >> Missing VPN Server variable"
+    echo -e -n "${GREEN}[+] ${RESET}"
+    read -p "Enter OpenVPN Server IP: " -e VPN_SERVER
+    echo -e
+    # Write to settings file
+    echo -e "# VPN Custom Configuration" >> "${APP_SETTINGS}"
+    echo "VPN_SERVER=${VPN_SERVER}" >> "${APP_SETTINGS}"
+fi
+
+
+
 sudo apt-get install openvpn openssl -y
 
 if [[ $(which openvpn) ]]; then
@@ -55,25 +108,7 @@ if [[ $(which openvpn) ]]; then
     sleep 2
 fi
 
-if [[ -f "${APP_SETTINGS}" ]]; then
-    # If custom config is present, use it for VPN server specs
-    source "${APP_SETTINGS}"
-    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
-else
-        cat <<EOF > "${APP_SETTINGS}"
-### PERSONAL BUILD SETTINGS
-# VPN Custom Configuration
 
-EOF
-fi
-
-if [[ $VPN_SERVER == '' ]]; then
-    echo -e "\n${YELLOW}[ERROR] << Invalid VPN Server >> Missing VPN Server variable"
-    echo -e -n "${GREEN}[+] ${RESET}"
-    read -p "Enter OpenVPN Server IP: " -e VPN_SERVER
-    echo -e
-    echo "VPN_SERVER=${VPN_SERVER}" >> "${APP_SETTINGS}"
-fi
 
 filedir="${HOME}/git/easy-rsa"
 if [[ ! -d "${filedir}" ]]; then
