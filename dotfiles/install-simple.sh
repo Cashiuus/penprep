@@ -35,14 +35,14 @@ shopt -s dotglob
 # Backup core existing dotfiles first
 for file in .bashrc .bash_profile .profile; do
     if [[ -e ${file} ]]; then
-        echo -e "${GREEN}[*] ${RESET}Moving original ${file} to backup folder"
+        echo -e "${GREEN}[*] ${RESET}Moving original ${RED}${file}${RESET} to backup folder"
         [[ ! -d "${BACKUPS_DIR}" ]] && mkdir -p "${BACKUPS_DIR}"
-        mv "${HOME}/${file}" "${BACKUPS_DIR}/"
+        mv "${HOME}/${file}" "${BACKUPS_DIR}/" >/dev/null 1>&2
     fi
 done
 
 
-echo -e "${GREEN}[*] ${RESET}Copying dotfiles to HOME directory..."
+echo -e "${GREEN}[*] ${RESET}Copying our git dotfiles to HOME directory..."
 cp .bashrc "${HOME}/"
 cp .profile "${HOME}/"
 cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}"
