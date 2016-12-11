@@ -106,7 +106,7 @@ init_settings
 
 # Add our root login preference to our custom settings file if not already there
 grep -q '^ALLOW_ROOT_LOGIN=' "${APP_SETTINGS}" 2>/dev/null \
-    || echo "ALLOW_ROOT_LOGIN=${ALLOW_ROOT_LOGIN}" >> "${APP_SETTINGS}" \
+    || echo "ALLOW_ROOT_LOGIN=${ALLOW_ROOT_LOGIN}" >> "${APP_SETTINGS}"
 
 [[ "$ALLOW_ROOT_LOGIN" = false ]] \
     && echo -e "${YELLOW}[*] ${RESET}Root SSH Login set to disabled; Change sshd_config to enable."
