@@ -35,7 +35,7 @@ RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS / DEFAULTS ]================ ##
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
-DEBUG=0
+DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
 LINES=$(tput lines)
 COLS=$(tput cols)
@@ -65,7 +65,7 @@ function init_settings() {
 #
 EOF
     fi
-    echo -e "[*] Reading from settings file, please wait..."
+    echo -e "${GREEN}[*] ${RESET}Reading from settings file, please wait..."
     source "${APP_SETTINGS}"
     [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
 }
@@ -108,7 +108,8 @@ init_settings
 grep -q '^ALLOW_ROOT_LOGIN=' "${APP_SETTINGS}" 2>/dev/null \
     || echo "ALLOW_ROOT_LOGIN=${ALLOW_ROOT_LOGIN}" >> "${APP_SETTINGS}" \
 
-[[ "$ALLOW_ROOT_LOGIN" = false ]] && -e "${YELLOW}[*] ${RESET}Root SSH Login set to disabled; Change sshd_config to enable."
+[[ "$ALLOW_ROOT_LOGIN" = false ]] \
+    && echo -e "${YELLOW}[*] ${RESET}Root SSH Login set to disabled; Change sshd_config to enable."
 
 # ===============================[  BEGIN  ]================================== #
 
@@ -305,7 +306,7 @@ sed -i 's|^ClientAliveCountMax.*|ClientAliveCountMax 3|' "${file}"
 
 
 
-# ==[ OpenSSH Client Hardened Template
+# -==[ OpenSSH Client Hardened Template ]==-
 file=/etc/ssh/openssh_client.template
 cat <<EOF > "${file}"
 ### OpenSSH Hardened Client Template
@@ -330,16 +331,17 @@ EOF
 #iptables -A INPUT -p tcp --dport $SSH_SERVER_PORT -j ACCEPT
 
 
-
+# ==========================[ GEOIP RESTRICTIONS INTEGRATION ]============================== #
 function restrict_login_geoip() {
     apt-get -y install geoip-bin geoip-database
     # Test it out
-    geoiplookup 8.8.8.8
-    echo -e "${YELLOW}[INFO] Testing Geoip${RESET}; Did it work? Press any key to continue..."
-    read
+    [[ "$DEBUG" = true]] && echo -e "${ORANGE}[DEBUG] Performing a test lookup with command 'geoiplookup 8.8.8.8' now...${RESET}"
+    [[ "$DEBUG" = true]] && geoiplookup 8.8.8.8
+    [[ "$DEBUG" = true]] && echo -e "${ORANGE}[DEBUG] Did it work? Press any key to continue...${RESET}"
+    [[ "$DEBUG" = true]] && read
 
     # Create script that will check IPs and return True or False
-    [[ ! -d "/usr/local/bin" ]] && mkdir -vp "/usr/local/bin"
+    [[ ! -d "/usr/local/bin" ]] && mkdir -vp "/usr/local/bin" >/dev/null 2>&1
     file="/usr/local/bin/sshfilter.sh"
     cat <<EOF > "${file}"
 #!/bin/bash
@@ -407,7 +409,16 @@ chmod +x "${file}"
 systemctl start ssh
 systemctl enable ssh
 
-
+function finish {
+    # Any script-termination routines go here, but function cannot be empty
+    clear
+    [[ "$DEBUG" = true]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
+    echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
+    # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
+    # cmd_here 2>&1 | tee -a "${LOG_FILE}"
+}
+# End of script
+trap finish EXIT
 
 # ================================[ NOTES ]===================================
 # ssh-keygen
