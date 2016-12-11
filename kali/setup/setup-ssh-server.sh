@@ -88,8 +88,11 @@ function init_settings_ssh() {
 # SSH Server Custom Configuration
 SSH_SERVER_ADDRESS=${SSH_SERVER_ADDRESS}
 SSH_SERVER_PORT=${SSH_SERVER_PORT}
-ALLOW_ROOT_LOGIN=false
 
+SSH_AUTOSTART=true
+ALLOW_ROOT_LOGIN=false
+DO_PW_AUTH=true
+DO_PUBKEY_AUTH=true
 DO_GEOIP=true
 EOF
     sleep 1s
@@ -238,18 +241,43 @@ fi
 
 
 # ===========================[ SSHD CONFIG TWEAKS ] =============================== #
+#   Ref: http://man.openbsd.org/sshd_config
+
 file=/etc/ssh/sshd_config; [[ -e $file ]] && cp -n $file{,.bkup}
 
 # ==[ Server IP Address
 if [[ "${SSH_SERVER_ADDRESS}" ]]; then
-    sed -i "s/^#\?ListenAddress 0\.0\.0\.0/ListenAddress ${SSH_SERVER_ADDRESS}/" "${file}"
+    sed -i "s/^#\?ListenAddress .*/ListenAddress ${SSH_SERVER_ADDRESS}/" "${file}"
 fi
 # ==[ SSH Server Port to non-default
 sed -i "s/^#\?Port.*/Port ${SSH_SERVER_PORT}/" "${file}"
 
 # Enable RootLogin
-[[ $ALLOW_ROOT_LOGIN == 'true' ]] \
-    && sed -i 's/^PermitRootLogin .*/PermitRootLogin yes/g' "${file}"
+# As of OpenSSH 7.0, the default for PermitRootLogin has changed from 'yes' to 'prohibit-password'
+if [[ "$ALLOW_ROOT_LOGIN" = true ]]; then
+    sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin yes/g' "${file}"
+elif [[ "$ALLOW_ROOT_LOGIN" = false ]]; then
+    sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin prohibit-password/g' "${file}"
+fi
+
+if [[ "$DO_PUBKEY_AUTH" = true ]]; then
+    # -- Enable Public Key Logins
+    sed -i 's/^PubkeyAuthentication.*/PubkeyAuthentication yes/' "${file}"
+    sed -i 's|^#\?AuthorizedKeysFile.*|AuthorizedKeysFile  %h/.ssh/authorized_keys|' "${file}"
+
+    # -- Disable Password Logins if using Pub Key Auth - default is commented yes
+    sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' "${file}"
+    #sed -i -e 's|\(PasswordAuthentication\) no|\1 yes|' "${file}"
+else
+    sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/' "${file}"
+fi
+
+if [[ "$DO_PW_AUTH" = true ]]; then
+    sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' "${file}"
+    # only need to modify if it's uncommented, default is no
+    sed -i 's/^PermitEmptyPasswords.*/PermitEmptyPasswords no/' "${file}"
+fi
+
 
 # Host Keys
 # -- All are same, but put a '#' in front of: HostKey /etc/ssh/ssh_host_ed25519_key
@@ -259,14 +287,8 @@ sed -i "s/^#\?Port.*/Port ${SSH_SERVER_PORT}/" "${file}"
 sed -i -e 's|\(ServerKeyBits\) 1024|\1 2048|' "${file}"
 
 # -- Login Grace Time (Default: 120)
-sed -i 's/^LoginGraceTime.*/LoginGraceTime 60/' "${file}"
+sed -i 's/^LoginGraceTime.*/LoginGraceTime 30/' "${file}"
 
-# -- Enable Public Key Logins
-sed -i 's|^#AuthorizedKeysFile.*|AuthorizedKeysFile  %h/.ssh/authorized_keys|' "${file}"
-
-# -- Disable Password Logins if using Pub Key Auth - default is commented yes
-#sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' "${file}"
-#sed -i -e 's|\(PasswordAuthentication\) no|\1 yes|' "${file}"
 
 # ==[ X11 Forwarding - not changing this from its default of 10 for now
 #sed -i 's/X11Forwarding.*/X11Forwarding no/' >> "${file}"
@@ -292,13 +314,20 @@ grep -q '^MACs ' "${file}" 2>/dev/null \
 
 
 # ==[ Add Inactivty Timeouts
+# ClientAliveInterval = after x seconds, ssh server will send msg to client asking for response.
+#   Default is 0, server will not send a message to the client to check.
 #echo "\nClientAliveInterval 600\nClientAliveCountMax 3" >> "${file}"
 #sed -i 's|^ClientAliveInterval.*|ClientAliveInterval 600|' "${file}"
+
+# ClientAliveCountMax = total no. of checkalive msgs sent by ssh server w/o getting response from client.
+#   Default is 3
 sed -i 's|^ClientAliveCountMax.*|ClientAliveCountMax 3|' "${file}"
+
 
 # ==[ Add Whitelist and Blacklist of Users
 #grep -q '^AllowUsers ' "${file}" 2>/dev/null || echo "\nAllowUsers newuser newuser2" >> "${file}"
-#grep -q '^DenyUsers ' "${file}" 2>/dev/null || echo "\nDenyUsers root" >> "${file}"
+#grep -q '^DenyUsers ' "${file}" 2>/dev/null || echo "\nDenyUsers root apache cvs" >> "${file}"
+#grep -q '^AllowGroups ' "${file}" 2>/dev/null || echo "\nAllowGroups sysadmin" >> "${file}"
 #grep -q '^DenyGroups ' "${file}" 2>/dev/null || echo "\nDenyGroups root" >> "${file}"
 #grep -q '^PrintLastLog ' "${file}" 2>/dev/null || echo "\nPrintLastLog yes" >> "${file}"
 ## ========================================================================== ##
@@ -407,13 +436,16 @@ EOF
 #service ssh restart
 #update-rc.d -f ssh enable
 systemctl start ssh >/dev/null 2>&1
-systemctl enable ssh >/dev/null 2>&1
+[[ "$SSH_AUTOSTART" = true ]] && systemctl enable ssh >/dev/null 2>&1
 
 
 echo -e "\n${GREEN}============================================================${RESET}"
 echo -e "\tSSH SERVER IP:\t${SSH_SERVER_ADDRESS}"
 echo -e "\tSSH Port:\t${SSH_SERVER_PORT}"
-echo -e "\tAutostart:\tEnabled"
+echo -e "\tAutostart:\t$SSH_AUTOSTART"
+echo -e "\tRoot Login:\t$ALLOW_ROOT_LOGIN"
+echo -e "\tPubkey Auth:\t$DO_PUBKEY_AUTH"
+echo -e "\tPW Auth:\t$DO_PW_AUTH"
 echo -e "${GREEN}============================================================${RESET}"
 
 
@@ -422,13 +454,11 @@ function finish {
     clear
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
     echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
-    # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
-    # cmd_here 2>&1 | tee -a "${LOG_FILE}"
 }
 # End of script
 trap finish EXIT
 
-# ================================[ NOTES ]===================================
+# ================================[ SSH NOTES ]===================================
 # ssh-keygen
 #   -q                      Quiet mode
 #   -b #                    No. of bits; RSA keys - min 1024, default is 2048
