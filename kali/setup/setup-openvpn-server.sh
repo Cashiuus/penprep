@@ -34,7 +34,7 @@ DEBUG=1
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
 #APP_SETTINGS="${APP_BASE}/../../config/settings.conf"
-APP_SETTINGS="${HOME}/.config/kali/settings.conf"
+APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
 VPN_PREP_DIR="${HOME}/vpn-setup"
 VPN_PORT='1194'
 VPN_PROTOCOL='udp'
@@ -188,8 +188,12 @@ fi
 
 # ===[ Build Server DH Key ]===
 if [[ ! -f "${VPN_PREP_DIR}/dhparam.pem" ]]; then
-    echo -e "${GREEN}[*]${RESET} Generating Diffie Hellman Key"
-    openssl dhparam -out dhparam.pem 4096
+    if [[ $DEBUG -eq 1 ]]; then
+        echo -e "${ORANGE}[DEBUG] Debug is enabled, so skipping DH key generation${RESET}"
+    else
+        echo -e "${GREEN}[*]${RESET} Generating Diffie Hellman Key"
+        openssl dhparam -out dhparam.pem 4096
+    fi
 fi
 
 # ===[ Build Static HMAC Key that prevents certain DoS attacks ]===
@@ -394,9 +398,10 @@ esac
 
 # Ensure Apache is not bound to port 443 (ssl) or server cannot bind to port 443
 # NOTE: Disable SSL anytime with command: a2dismod ssl; service apache2 restart
-echo -e "${GREEN}[*]${RESET} Netstat of VPN Server: "
+sleep 5s
+echo -e "${GREEN}[*]${RESET} Netstat of VPN Server: is port ${VPN_PORT} listening?"
 netstat -nutlap | grep "${VPN_PORT}"
-sleep 3
+sleep 3s
 
 echo -e "\n${GREEN}============================================================${RESET}"
 echo -e "\tVPN SERVER:\t${VPN_SERVER}"
