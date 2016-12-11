@@ -40,8 +40,6 @@ LINES=$(tput lines)
 COLS=$(tput cols)
 
 APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
-ALLOW_ROOT_LOGIN=false
-
 # ===============================[ Check Permissions ]============================== #
 ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
 ## Exit if the script was not launched by root or through sudo
@@ -51,7 +49,7 @@ fi
 
 ## ================================================================================ ##
 # ============================[ Preparations / Settings ]=========================== #
-init_settings() {
+function init_settings() {
     #
     #
     #
@@ -65,33 +63,47 @@ init_settings() {
 ### KALI PERSONAL BUILD SETTINGS
 
 EOF
-    else
-        echo -e "[*] Reading from settings file, please wait..."
-        source "${APP_SETTINGS}"
-    fi
+    echo -e "[*] Reading from settings file, please wait..."
+    source "${APP_SETTINGS}"
     [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
 }
+
+
+function init_settings_ssh() {
+    # if this line is not in the settings file, generate defaults
+    if [[ ! ${SSH_SERVER_ADDRESS} ]]; then
+        echo -e -n "${GREEN}[+] ${RESET}"
+        read -r -e -p "Enter SSH Server IP (If unsure, just press enter): " -i "0.0.0.0" SSH_SERVER_ADDRESS
+    fi
+
+    if [[ ! ${SSH_SERVER_PORT} ]]; then
+        echo -e -n "${GREEN}[+] ${RESET}"
+        read -r -e -p "Enter SSH Server Port (Default: 22): " -i "22" SSH_SERVER_PORT
+    fi
+
+    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] Generating initial VPN defaults into settings file${RESET}"
+    cat <<EOF >> "${APP_SETTINGS}"
+# SSH Server Custom Configuration
+SSH_SERVER_ADDRESS=${SSH_SERVER_ADDRESS}
+SSH_SERVER_PORT=${SSH_SERVER_PORT}
+ALLOW_ROOT_LOGIN=false
+EOF
+    sleep 1s
+    source "${APP_SETTINGS}"
+}
+
+
 # Initialize configuration directory and settings file
 init_settings
+[[ ! ${SSH_SERVER_ADDRESS} ]] && init_settings_ssh
 
 
-if [[ ! ${SSH_SERVER_ADDRESS} ]]; then
-    echo -e -n "${GREEN}[+] ${RESET}"
-    read -r -e -p "Enter SSH Server IP (If unsure, just press enter): " -i "0.0.0.0" SSH_SERVER_ADDRESS
-    echo -e "\n\n# SSH Custom Configuration" >> "${APP_SETTINGS}"
-    echo "SSH_SERVER_ADDRESS=${SSH_SERVER_ADDRESS}" >> "${APP_SETTINGS}"
-fi
-
-if [[ ! ${SSH_SERVER_PORT} ]]; then
-    echo -e -n "${GREEN}[+] ${RESET}"
-    read -r -e -p "Enter SSH Server Port (Default: 22): " -i "22" SSH_SERVER_PORT
-    echo "SSH_SERVER_PORT=${SSH_SERVER_PORT}" >> "${APP_SETTINGS}"
-fi
 
 # Add our root login preference to our custom settings file if not already there
 grep -q '^ALLOW_ROOT_LOGIN=' "${APP_SETTINGS}" 2>/dev/null \
     || echo "ALLOW_ROOT_LOGIN=${ALLOW_ROOT_LOGIN}" >> "${APP_SETTINGS}" \
-    && echo -e "${YELLOW}[*] ${RESET} Root SSH Login disabled by default; Change sshd_config to enable."
+
+[[ "$ALLOW_ROOT_LOGIN" = false ]] && -e "${YELLOW}[*] ${RESET}Root SSH Login set to disabled; Change sshd_config to enable."
 
 # ===============================[  BEGIN  ]================================== #
 
@@ -417,7 +429,7 @@ systemctl enable ssh
 #ssh-keygen -C "$(whoami)@$(hostname)-$(date -I)"
 
 # Connect to SSH Server
-#ssh -24x -i "${HOME}/.ssh/my_key" root@$SSH_SERVER_IP -p $SSH_SERVER_PORT
+#ssh -24x -i "${HOME}/.ssh/my_key" root@$SSH_SERVER_ADDRESS -p $SSH_SERVER_PORT
 
 # Check for any Invalid User Login Attempts
 #cat /var/log/auth.log | grep "Invalid user" | cut -d " " -f 1-3,6-11 | uniq | sort
