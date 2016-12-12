@@ -18,6 +18,12 @@
 # NOTES:    - As of July 10, 2015, GNOME keyring cannot handle ECDSA and Ed25519 keys.
 #             You must use another SSH agents or stick to RSA keys.
 #           - Windows SSH PuTTY does not support ECDSA as of March, 2016.
+#
+#
+#   SSH Hardening Guides:
+#       http://docs.hardentheworld.org/Applications/OpenSSH/
+#       http://dev-sec.io/features.html
+#
 ## =============================================================================
 __version__="1.2"
 __author__='Cashiuus'
@@ -33,8 +39,10 @@ ORANGE="\033[38;5;208m" # Debugging
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS / DEFAULTS ]================ ##
-SCRIPT_DIR=$(readlink -f $0)
-APP_BASE=$(dirname ${SCRIPT_DIR})
+START_TIME=$(date +%s)
+APP_PATH=$(readlink -f $0)
+APP_BASE=$(dirname "${APP_PATH}")
+APP_NAME=$(basename "${APP_PATH}")
 DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
 LINES=$(tput lines)
@@ -50,25 +58,8 @@ fi
 
 ## ================================================================================ ##
 # ============================[ Preparations / Settings ]=========================== #
-function init_settings() {
-    #
-    #
-    #
-    #
-    #
-    if [[ ! -f "${APP_SETTINGS}" ]]; then
-        mkdir -p $(dirname ${APP_SETTINGS})
-        echo -e "${GREEN}[*] ${RESET}Creating configuration directory"
-        echo -e "${GREEN}[*] ${RESET}Creating initial settings file"
-        cat <<EOF > "${APP_SETTINGS}"
-### KALI PERSONAL BUILD SETTINGS
-#
-EOF
-    fi
-    echo -e "${GREEN}[*] ${RESET}Reading from settings file, please wait..."
-    source "${APP_SETTINGS}"
-    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
-}
+[[ ! -f "${APP_BASE}/../common.sh" ]] && echo -e "[ERROR] Unable to locate common.sh utilities helper."
+source "${APP_BASE}/../common.sh"
 
 
 function init_settings_ssh() {
@@ -86,8 +77,10 @@ function init_settings_ssh() {
     [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] Generating initial SSH defaults into settings file${RESET}"
     cat <<EOF >> "${APP_SETTINGS}"
 # SSH Server Custom Configuration
-SSH_SERVER_ADDRESS=${SSH_SERVER_ADDRESS}
+SSH_SERVER_ADDRESS="${SSH_SERVER_ADDRESS}"
 SSH_SERVER_PORT=${SSH_SERVER_PORT}
+SSH_USER_DIR="\${HOME}/.ssh"
+SSH_AUTH_KEYS="\${SSH_USER_DIR}/authorized_keys"
 
 SSH_AUTOSTART=true
 ALLOW_ROOT_LOGIN=false
@@ -123,15 +116,15 @@ grep -q '^ALLOW_ROOT_LOGIN=' "${APP_SETTINGS}" 2>/dev/null \
 
 # ===============================[  BEGIN  ]================================== #
 
-echo -e "${GREEN}[*]${RESET} Running apt-get update & installing openssh-server..."
-apt-get -qq update
-apt-get -y -qq install openssh-server openssl
-
 echo -e "${GREEN}[*]${RESET} Disabling SSH service while we reconfigure..."
 #update-rc.d -f ssh remove
 #update-rc.d -f ssh defaults
 systemctl stop ssh.service >/dev/null 2>&1
 systemctl disable ssh.service >/dev/null 2>&1
+
+echo -e "${GREEN}[*]${RESET} Running apt-get update & installing openssh-server..."
+apt-get -qq update
+apt-get -y -qq install openssh-server openssl
 
 # Move the default Kali keys to backup folder
 cd /etc/ssh
@@ -140,13 +133,7 @@ if [[ ! -d insecure_original_kali_keys ]]; then
     mv ssh_host_* insecure_original_kali_keys/
 fi
 
-# Wipe clean any ssh keys in root profile, leaving authorized_keys file intact
-[[ ! -d "${HOME}/.ssh" ]] && mkdir -p "${HOME}/.ssh"
-
-# TODO: Sure we want to do this? What about when running this on pre-existing systems?
-#find "${HOME}/.ssh/" -type f ! -name authorized_keys -delete 2>/dev/null
-
-
+# ===============================[  SSH Server Setup ]================================== #
 function version () {
     echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
 }
@@ -196,14 +183,6 @@ fi
 # chmod 0644 /etc/ssh/sshd_config
 # chmod 0600 /etc/ssh/id_rsa based on how openssh-server installs them by default in /etc/ssh/
 
-# Generate personal key pair
-ssh-keygen -b 4096 -t rsa -f "${HOME}/.ssh/id_rsa" -P "" >/dev/null
-
-# Protect files
-chmod 0700 "${HOME}/.ssh"
-chmod 0644 "${HOME}/.ssh/id_rsa.pub"
-chmod 0400 "${HOME}/.ssh/id_rsa"
-
 
 function md5_compare() {
     # Compare MD5 to ensure new key is different from original
@@ -218,34 +197,30 @@ function md5_compare() {
 [[ "${DO_COMPARISON_MD5}" = true ]] && md5_compare
 
 
-# Copy Public key to auth file; Private key goes to client
-# TODO: May need to insert this at the top, and append existing keys below it
-# to avoid old key being read first if this key is replacing an existing entry
-file="${HOME}/.ssh/authorized_keys"
-cat "${HOME}/.ssh/id_rsa.pub" >> "${file}"
+# ===============================[  SSH CLIENT SETUP  ]================================== #
+# Prepare our ssh client directory
+[[ ! -d "${HOME}/.ssh" ]] && mkdir -p "${HOME}/.ssh"
 
-#{ cat "${file}"; cat "${HOME}/.ssh/id_rsa.pub" } > "${file}"
+# TODO: Sure we want to do this? What about when running this on pre-existing systems?
+# Wipe clean any ssh keys in root profile, leaving authorized_keys file intact
+#find "${HOME}/.ssh/" -type f ! -name authorized_keys -delete 2>/dev/null
 
+# Generate personal key pair (can also add -a 6000 to iterate the hash function for increased strength)
+ssh-keygen -b 4096 -t rsa -f "${HOME}/.ssh/id_rsa" -P "" >/dev/null
 
+# Protect user files
+chmod 0700 "${HOME}/.ssh"
+chmod 0644 "${HOME}/.ssh/id_rsa.pub"
+chmod 0400 "${HOME}/.ssh/id_rsa"
+
+# Copy user's public key to authorized_keys file
+# Print both files to tmp file, backup orig, mv tmp file to new auth keys file
+cat "${SSH_USER_DIR}/id_rsa.pub" "${SSH_AUTH_KEYS}" > "${SSH_USER_DIR}/auth.tmp"
+file="${SSH_AUTH_KEYS}"; [[ -e $file ]] && cp -n $file{,.bkup}
+mv "${SSH_USER_DIR}/auth.tmp" "${SSH_AUTH_KEYS}"
 # NOTE: authorized_keys file should be set to 644 according to google, which is never wrong ever amirite?
 chmod 644 "${file}"
 
-# Configure the MOTD banner message remote users see, 2 versions below
-# Create ASCII Art: http://patorjk.com/software/taag/
-if [[ -f "${APP_BASE}/../../config/motd" ]]; then
-    echo -e "[*] Found 'motd' file in penprep/config/motd, using that!"
-    cp "${APP_BASE}/../../config/motd" /etc/motd
-else
-    cat <<EOF > /etc/motd
-###########################++++++++++###########################
-#             Welcome to the Secure Shell Server               #
-#               All Connections are Monitored                  #
-#           Do Not Probe for Vulns -- Play nice ;)             #
-#                                                              #
-#      DISCONNECT NOW IF YOU ARE NOT AN AUTHORIZED USER        #
-###########################++++++++++###########################
-EOF
-fi
 
 # TODO: Create a user specifically for ssh so we aren't connecting as root
 #   This would also require SSH certificates setup to be performed from this user
@@ -262,14 +237,14 @@ fi
 
 file=/etc/ssh/sshd_config; [[ -e $file ]] && cp -n $file{,.bkup}
 
-# ==[ Server IP Address
+# -==[ SSH Server IP Address
 if [[ "${SSH_SERVER_ADDRESS}" ]]; then
     sed -i "s/^#\?ListenAddress .*/ListenAddress ${SSH_SERVER_ADDRESS}/" "${file}"
 fi
-# ==[ SSH Server Port to non-default
+# -==[ SSH Server Port to non-default
 sed -i "s/^#\?Port.*/Port ${SSH_SERVER_PORT}/" "${file}"
 
-# Enable RootLogin
+# -==[ RootLogin
 # As of OpenSSH 7.0, the default for PermitRootLogin has changed from 'yes' to 'prohibit-password'
 if [[ "$ALLOW_ROOT_LOGIN" = true ]]; then
     sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin yes/g' "${file}"
@@ -277,6 +252,7 @@ elif [[ "$ALLOW_ROOT_LOGIN" = false ]]; then
     sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin prohibit-password/g' "${file}"
 fi
 
+# -==[ PubkeyAuthentication
 if [[ "$DO_PUBKEY_AUTH" = true ]]; then
     # -- Enable Public Key Logins
     sed -i 's/^PubkeyAuthentication.*/PubkeyAuthentication yes/' "${file}"
@@ -289,34 +265,28 @@ else
     sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/' "${file}"
 fi
 
+# -==[ PasswordAuthentication
 if [[ "$DO_PW_AUTH" = true ]]; then
     sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' "${file}"
     # only need to modify if it's uncommented, default is no
     sed -i 's/^PermitEmptyPasswords.*/PermitEmptyPasswords no/' "${file}"
 fi
 
-
-# Host Keys
-# -- All are same, but put a '#' in front of: HostKey /etc/ssh/ssh_host_ed25519_key
+# -==[ SSH Host Keys
+# All are same, but put a '#' in front of: HostKey /etc/ssh/ssh_host_ed25519_key
 #sed -i 's|^HostKey /etc/ssh/ssh_host_ed25519_key|#HostKey /etc/ssh/ssh_host_ed25519_key|' "${file}"
 
-# -- Server Key Bits (Default: 1024)
+# -==[ ServerKeyBits (Default: 1024)
 sed -i -e 's|\(ServerKeyBits\) 1024|\1 2048|' "${file}"
 
-# -- Login Grace Time (Default: 120)
+# -==[ LoginGraceTime (Default: 120)
 sed -i 's/^LoginGraceTime.*/LoginGraceTime 30/' "${file}"
 
 
-# ==[ X11 Forwarding - not changing this from its default of 10 for now
+# -==[ X11 Forwarding - not changing this from its default of 10 for now
 #sed -i 's/X11Forwarding.*/X11Forwarding no/' >> "${file}"
 #sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 15/' "${file}"
 
-
-# Find "Banner" in file and change to motd if not already
-# Orig: #Banner /etc/issue.net
-# *NOTE: When using '/' for paths in sed, use a different delimiter, such as # or |
-# *NOTE: You can specify 'none' here to have it not print anything on login - Banner "none"
-sed -i 's|^#\?Banner /etc/issue.*|Banner /etc/motd|' "${file}"
 
 # ==[ Ciphers - https://cipherli.st/
 # -- https://stribika.github.io/2015/01/04/secure-secure-shell.html
@@ -328,6 +298,11 @@ grep -q '^Ciphers ' "${file}" 2>/dev/null \
 
 grep -q '^MACs ' "${file}" 2>/dev/null \
     || echo "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com" >> "${file}"
+
+# -==[ Compression
+# Only enable compression after authentication
+grep -q '^Compression delayed' "${file}" 2>/dev/null \
+    || echo "Compression delayed" >> "${file}"
 
 
 # ==[ Add Inactivty Timeouts
@@ -347,7 +322,36 @@ sed -i 's|^ClientAliveCountMax.*|ClientAliveCountMax 3|' "${file}"
 #grep -q '^AllowGroups ' "${file}" 2>/dev/null || echo "\nAllowGroups sysadmin" >> "${file}"
 #grep -q '^DenyGroups ' "${file}" 2>/dev/null || echo "\nDenyGroups root" >> "${file}"
 #grep -q '^PrintLastLog ' "${file}" 2>/dev/null || echo "\nPrintLastLog yes" >> "${file}"
+
+# You could disable TcpForwarding by default, but allow it for certain users
+#AllowTcpForwarding no
+#Match User foobar
+#AllowTcpForwarding yes
+
 ## ========================================================================== ##
+
+
+# Configure the MOTD banner message remote users see when they first connect (before login)
+# Default: #Banner /etc/issue.net
+# We configure it this way to to suppress the default Banner sending our server /etc/issue
+sed -i 's|^#\?Banner .*|Banner none|' "${file}"
+sed -i 's|^#\?PrintMotd .*|PrintMotd yes|' "${file}"
+# Create ASCII Art: http://patorjk.com/software/taag/
+if [[ -f "${APP_BASE}/../../config/motd" ]]; then
+    echo -e "[*] Found 'motd' file in penprep/config/motd, using that!"
+    cp "${APP_BASE}/../../config/motd" /etc/motd
+else
+    cat <<EOF > /etc/motd
+###########################++++++++++###########################
+#             Welcome to the Secure Shell Server               #
+#               All Connections are Monitored                  #
+#           Do Not Probe for Vulns -- Play nice ;)             #
+#                                                              #
+#      DISCONNECT NOW IF YOU ARE NOT AN AUTHORIZED USER        #
+###########################++++++++++###########################
+EOF
+fi
+
 
 
 
@@ -361,6 +365,9 @@ cat <<EOF > "${file}"
 HashKnownHosts yes
 Host github.com
     MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-128-etm@openssh.com,hmac-sha2-512
+    # Github needs diffie-hellman-group-exchange-sha1 some of the time but not always.
+#    KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1
+
 Host *
   ConnectTimeout 30
   KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
@@ -370,6 +377,7 @@ Host *
   ControlMaster auto
   ControlPersist yes
   ControlPath ~/.ssh/socket-%r@%h:%p
+  UseRoaming no
 EOF
 
 
@@ -432,10 +440,11 @@ EOF
         || echo "sshd: ALL: aclexec /usr/local/bin/sshfilter.sh %a" >> /etc/hosts.allow
 
     # Test it out
+    # TODO: Send these deny entries to a different log for processing?
     [[ "$DEBUG" = true ]] \
-        && echo -e "${ORANGE}[DEBUG] Testing sshfilter.ssh - DENY's should show in /var/log/messages${RESET}"
+        && echo -e "${ORANGE}[DEBUG] Testing sshfilter.ssh - a DENY entry should output below (saved to: /var/log/messages)${RESET}"
     [[ "$DEBUG" = true ]] && /usr/local/bin/sshfilter.sh "175.198.198.78"
-
+    [[ "$DEBUG" = true ]] && tail /var/log/messages | grep ssh
     file=/usr/local/bin/geoip-updater.sh
     cat <<EOF > "${file}"
 #!/bin/bash
@@ -467,6 +476,65 @@ EOF
 
 
 
+function setup_google_otp() {
+    #   This goes beyond normal settings and brings in 2-FA
+    #   Once configured, SSH access will require a private key and a Google OTP token.
+    #
+    apt-get install libpam-google-authenticator
+
+
+    # Configure a secret key for user
+    google-authenticator
+
+
+
+    # Edit the sshd_config fileas such:
+    #ChallengeResponseAuthentication yes
+    #PasswordAuthentication no
+    #AuthenticationMethods publickey,keyboard-interactive
+    #UsePAM yes
+    #PubkeyAuthentication yes
+
+
+    # Edit the PAM configuration to use Google Authentication
+    # edit /etc/pam.d/sshd
+    #replace this: @include common-auth
+    #with this: auth required pam_google_authenticator.so
+}
+
+
+function setup_ssh_over_tor() {
+    #
+    #   Create a hidden tor service and route SSH over it.
+    #
+    #
+    #
+
+    # Ensure that tor is setup and running
+
+
+
+
+    # Bind only to localhost
+    #ListenAddress 127.0.0.1:22
+
+    # Create hidden service
+    file=/etc/tor/torrc
+    sed -i 's|^#HiddenServiceDir /var/lib/tor/other_hidden_service/|HiddenServiceDir /var/lib/tor/ssh|' "${file}"
+    sed #HiddenServicePort 22 127.0.0.1:22
+    sed -i 's|^#HiddenServicePort 22 127.0.0.1:22|HiddenServicePort 22 127.0.0.1:22|' "${file}"
+    # Grab our TOR hostname to use from /var/lib/tor/ssh/hostname
+
+    # Edit ssh_config (clients)
+    #Host *.onion
+        #ProxyCommand socat - SOCKS4A:localhost:%h:%p,socksport=9050
+
+    # Might want to also be sure that 'socat' exists on the current system
+
+}
+
+
+
 # ===[ Restart SSH / Enable Autostart ]=== #
 #service ssh restart
 #update-rc.d -f ssh enable
@@ -481,6 +549,8 @@ echo -e "\tAutostart:\t$SSH_AUTOSTART"
 echo -e "\tRoot Login:\t$ALLOW_ROOT_LOGIN"
 echo -e "\tPubkey Auth:\t$DO_PUBKEY_AUTH"
 echo -e "\tPW Auth:\t$DO_PW_AUTH"
+echo -e
+echo -e "\tClient Template:\t/etc/ssh/openssh_client.template"
 echo -e "${GREEN}============================================================${RESET}"
 
 
