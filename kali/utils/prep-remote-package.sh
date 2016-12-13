@@ -22,21 +22,37 @@ BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 DEST_IP=''
-file1="${HOME}/vpn-setup/client1.conf"
-file2="${HOME}/.ssh/id_rsa"
+VPN_CLIENT_CONF="${HOME}/vpn-setup/client1.conf"
+SSH_CLIENT_KEY="${HOME}/.ssh/id_rsa"
 # =============================[      ]================================ #
+
+# Locate the client .ovpn file
+if [[ ! ${VPN_CLIENT_CONF} ]]; then
+    echo -e "${YELLOW}[WARN] ${RESET} VPN Client file not found. Locate and edit script settings."
+    echo -e "${YELLOW}[WARN] ${RESET} Crawling setup directory, is file listed below?"
+    for entry in $(dirname ${VPN_CLIENT_CONF}); do
+        echo "${entry}"
+    done
+    echo -e ''
+    exit 1
+fi
+
 
 # Get IP from stored var, script argument, or ask user to type it in.
 if [[ $DEST_IP == '' ]]; then
     if [[ $1 ]]; then
         DEST_IP=$1
     else
-        read -p "[+] Please enter Destination IP: " -e DEST_IP
-        echo -e ""
+        read -r -e -p "[+] Please enter Destination IP: " DEST_IP
     fi
 fi
-# Add ssl?
-tar czv "${file1} ${file2}" | ncat --send-only "${DEST_IP}"
 
+# Serve files
+if [[ ! ${SSH_CLIENT_KEY} ]]; then
+    tar czv "${VPN_CLIENT_CONF}" | ncat --send-only "${DEST_IP}"
+else
+    # Add ssl?
+    tar czv "${VPN_CLIENT_CONF} ${SSH_CLIENT_KEY}" | ncat --send-only "${DEST_IP}"
+fi
 # Listener
 #ncat -l | tar xzv

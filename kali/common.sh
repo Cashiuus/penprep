@@ -5,6 +5,10 @@
 #APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
 
+# These can be used to know height (LINES) and width (COLS) of current terminal in script
+LINES=$(tput lines)
+COLS=$(tput cols)
+
 # ===============================[ Check Permissions ]============================== #
 function check_root {
     ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
@@ -23,6 +27,32 @@ function check_root {
     fi
 }
 
+function print_banner() {
+    #
+    #   argv1 = title text of banner
+    #   argv2 = program version number
+    #
+
+    length=${#1}
+
+
+    echo -e "\n${BLUE}===================[  ${RESET}${BOLD}$1  ${RESET}${BLUE}]===================${RESET}"
+
+
+    echo -e "${BLUE}===========================<${RESET} version: ${__version__} ${BLUE}>===========================\n${RESET}"
+}
+
+
+function center_text() {
+    width=$(tput cols)
+    height=$(tput lines)
+    str="$1"
+    length=${#str}
+    clear
+    tput cup $((height / 2)) $(((width / 2) - (length / 2)))
+    echo -e "$str"
+
+}
 
 function init_settings() {
     #

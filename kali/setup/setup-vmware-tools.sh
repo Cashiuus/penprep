@@ -30,7 +30,7 @@ gsettings set org.gnome.desktop.session idle-delay 0
 
 
 if [[ -e "/etc/vmware-tools" ]]; then
-        echo -e '[*] VMware Tools is already installed'
+        echo -e "${GREEN}[*] ${RESET}VMware Tools is already installed"
 elif $(dmidecode | grep -iq vmware); then
     echo -e "\n${GREEN}-----------${RESET}[ Installing Open VM Desktop Tools ]${GREEN}-----------${RESET}"
         apt-get -y install make

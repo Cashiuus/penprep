@@ -61,6 +61,7 @@ fi
 [[ ! -f "${APP_BASE}/../common.sh" ]] && echo -e "[ERROR] Unable to locate common.sh utilities helper."
 source "${APP_BASE}/../common.sh"
 
+print_banner "Kali Build Engine :: SSH Server Setup" $__version__
 
 function init_settings_ssh() {
     # if this line is not in the settings file, generate defaults
@@ -337,9 +338,9 @@ sed -i 's|^ClientAliveCountMax.*|ClientAliveCountMax 3|' "${file}"
 sed -i 's|^#\?Banner .*|Banner none|' "${file}"
 sed -i 's|^#\?PrintMotd .*|PrintMotd yes|' "${file}"
 # Create ASCII Art: http://patorjk.com/software/taag/
-if [[ -f "${APP_BASE}/../../config/motd" ]]; then
+if [[ -f "${APP_BASE}/../../includes/motd" ]]; then
     echo -e "[*] Found 'motd' file in penprep/config/motd, using that!"
-    cp "${APP_BASE}/../../config/motd" /etc/motd
+    cp "${APP_BASE}/../../includes/motd" /etc/motd
 else
     cat <<EOF > /etc/motd
 ###########################++++++++++###########################
@@ -519,7 +520,7 @@ function setup_ssh_over_tor() {
     #ListenAddress 127.0.0.1:22
 
     # Create hidden service
-    file=/etc/tor/torrc
+    file=/etc/tor/torrc; [[ -e $file ]] && cp -n $file{,.bkup}
     sed -i 's|^#HiddenServiceDir /var/lib/tor/other_hidden_service/|HiddenServiceDir /var/lib/tor/ssh|' "${file}"
     sed #HiddenServicePort 22 127.0.0.1:22
     sed -i 's|^#HiddenServicePort 22 127.0.0.1:22|HiddenServicePort 22 127.0.0.1:22|' "${file}"

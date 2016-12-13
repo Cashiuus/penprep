@@ -30,9 +30,11 @@ ORANGE="\033[38;5;208m" # Debugging
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS / DEFAULTS ]================ ##
-SCRIPT_DIR=$(readlink -f $0)
-APP_BASE=$(dirname ${SCRIPT_DIR})
-DEBUG=0
+START_TIME=$(date +%s)
+APP_PATH=$(readlink -f $0)
+APP_BASE=$(dirname "${APP_PATH}")
+APP_NAME=$(basename "${APP_PATH}")
+DEBUG=false
 APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
 LOG_FILE="${APP_BASE}/debug.log"
 # ===============================[ Check Permissions ]============================== #
@@ -60,12 +62,12 @@ EOF
     fi
     echo -e "[*] Reading from settings file, please wait..."
     source "${APP_SETTINGS}"
-    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
 }
 
 
 function init_settings_openvpn() {
-    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] Generating initial VPN defaults into settings file${RESET}"
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Generating initial VPN defaults into settings file${RESET}"
     cat <<EOF >> "${APP_SETTINGS}"
 # VPN Custom Configuration
 VPN_PREP_DIR="\${HOME}/vpn-setup"
@@ -94,7 +96,7 @@ check_setting() {
     #
     #
     if [[ $1 = '' ]]; then
-        [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] Setting Invalid: $1${RESET}"
+        [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Setting Invalid: $1${RESET}"
 
     fi
 }
@@ -148,12 +150,12 @@ function new_pki {
     cd "${VPN_PREP_DIR}"
     ./easyrsa init-pki
     # Result:
-        # [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] New PKI Dir: ${VPN_PREP_DIR}/pki
+        # [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] New PKI Dir: ${VPN_PREP_DIR}/pki
 
     # Build CA
     ./easyrsa build-ca
     # Result:
-        # [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] CA Cert now at: ${VPN_PREP_DIR}/pki/ca.crt
+        # [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] CA Cert now at: ${VPN_PREP_DIR}/pki/ca.crt
 
     # If CA not successfully built, halt setup
     [[ $? -ne 0 ]] && echo -e "${YELLOW}[-] ERROR: CA not successfully built, did you enter a password?${RESET}" && exit 1
@@ -194,7 +196,7 @@ fi
 
 # -==[ OpenVPN Server DH Key ]==-
 if [[ ! -f "${VPN_PREP_DIR}/dhparam.pem" ]]; then
-    if [[ $DEBUG -eq 1 ]]; then
+    if [[ "$DEBUG" = true ]]; then
         echo -e "${ORANGE}[DEBUG] Debug is enabled, so skipping DH key generation${RESET}"
     else
         echo -e "${GREEN}[*]${RESET} Generating Diffie Hellman Key"
@@ -219,6 +221,8 @@ for i in "${CLIENT_NAME[@]}"; do
         sleep 3
         echo -e "${GREEN}[*]${RESET} Sign Client Certificate; Enter CA Passphrase below"
         ./easyrsa sign-req client "${i}"
+
+        [[ $? -ne 0 ]] && echo -e "${RED}[ERROR] ${RESET}Failed to sign client cert." && exit 1
         # No password on agents, or we have to come up with a complex solution for
         # entering the password when agent boots up.
         #       see: https://bbs.archlinux.org/viewtopic.php?id=150440

@@ -2,14 +2,14 @@
 ## =============================================================================
 # File:     setup-kali-base.sh
 #
-# Author:   Cashiuus - @cashiuus
-# Created:  27-Jan-2016  - Revised: 24-JUL-2016
+# Author:   Cashiuus
+# Created:  27-Jan-2016  - Revised: 12-Dec-2016
 #
 # Purpose:  Setup bare bones kali with reasonable default options & packages
 #           This script will not perform actions that require reboot (e.g. vm-tools)
 #
 ## =============================================================================
-__version__="0.2"
+__version__="0.3"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"    # Success
@@ -20,8 +20,10 @@ BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 START_TIME=$(date +%s)
-SCRIPT_DIR=$(readlink -f $0)
-APP_BASE=$(dirname ${SCRIPT_DIR})
+APP_PATH=$(readlink -f $0)
+APP_BASE=$(dirname "${APP_PATH}")
+APP_NAME=$(basename "${APP_PATH}")
+APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
 
 GIT_BASE_DIR="/opt/git"
 GIT_DEV_DIR="${HOME}/git"
@@ -169,6 +171,7 @@ fi
 
 
 # =====[ Metasploit ]===== #
+# Another one is msfdb reinit to re-run initialization
 msfdb init
 mv /usr/share/metasploit-framework/config/database.yml ~/.msf4/database.yml
 
@@ -183,6 +186,55 @@ setg LPORT 443
 EOF
 
 
+
+function configure_bash_systemwide() {
+    file=/etc/bash.bashrc
+    grep -q "cdspell" "${file}" \
+        || echo "shopt -sq cdspell" >> "${file}"            # Spell check 'cd' commands
+    grep -q "autocd" "${file}" \
+        || echo "shopt -s autocd" >> "${file}"              # So you don't have to 'cd' before a folder
+    grep -q "checkwinsize" "${file}" \
+        || echo "shopt -sq checkwinsize" >> "${file}"       # Wrap lines correctly after resizing
+    grep -q "nocaseglob" "${file}" \
+        || echo "shopt -sq nocaseglob" >> "${file}"         # Case insensitive pathname expansion
+    grep -q "HISTSIZE" "${file}" \
+        || echo "HISTSIZE=10000" >> "${file}"               # Bash history (memory scroll back)
+    grep -q "HISTFILESIZE" "${file}" \
+        || echo "HISTFILESIZE=10000" >> "${file}"           # Bash history (file .bash_history)
+
+    # If last line of file not blank, add a blank spacer line
+    ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
+    sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
+    grep -q '^force_color_prompt' "${file}" 2>/dev/null \
+      || echo 'force_color_prompt=yes' >> "${file}"
+    sed -i 's#PS1='"'"'.*'"'"'#PS1='"'"'${debian_chroot:+($debian_chroot)}\\[\\033\[01;31m\\]\\u@\\h\\\[\\033\[00m\\]:\\[\\033\[01;34m\\]\\w\\[\\033\[00m\\]\\$ '"'"'#' "${file}"
+    grep -q "^export LS_OPTIONS='--color=auto'" "${file}" 2>/dev/null \
+      || echo "export LS_OPTIONS='--color=auto'" >> "${file}"
+    grep -q '^eval "$(dircolors)"' "${file}" 2>/dev/null \
+      || echo 'eval "$(dircolors)"' >> "${file}"
+    grep -q "^alias ls='ls $LS_OPTIONS'" "${file}" 2>/dev/null \
+      || echo "alias ls='ls $LS_OPTIONS'" >> "${file}"
+    grep -q "^alias ll='ls $LS_OPTIONS -l'" "${file}" 2>/dev/null \
+      || echo "alias ll='ls $LS_OPTIONS -l'" >> "${file}"
+    grep -q "^alias l='ls $LS_OPTIONS -lA'" "${file}" 2>/dev/null \
+      || echo "alias l='ls $LS_OPTIONS -lA'" >> "${file}"
+    # All other users that are made afterwards
+    file=/etc/skel/.bashrc
+    sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
+}
+
+
+function install_bash_completion() {
+    apt -y -qq install bash-completion
+    file=/etc/bash.bashrc
+    sed -i '/# enable bash completion in/,+7{/enable bash completion/!s/^#//}' "${file}"
+
+}
+
+
+# TODO: Test these for bugs
+configure_bash_systemwide
+install_bash_completion
 
 # ===================================[ FINISH ]====================================== #
 function finish {
