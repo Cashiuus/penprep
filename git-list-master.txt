@@ -101,6 +101,7 @@ https://github.com/Vozzie/uacscript
 https://github.com/Veil-Framework/Veil
 https://github.com/toolswatch/vFeed
 https://github.com/commonexploits/vlan-hopping
+https://github.com/nccgroup/vlan-hopping---frogger
 https://github.com/sandrogauci/wafw00f
 https://github.com/anestisb/WeBaCoo
 https://github.com/derv82/werdy
