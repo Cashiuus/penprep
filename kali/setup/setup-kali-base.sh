@@ -27,7 +27,7 @@ APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
 
 GIT_BASE_DIR="/opt/git"
 GIT_DEV_DIR="${HOME}/git"
-
+# Set of custom directories to create within ~ and /opt/
 CREATE_USER_DIRECTORIES=(engagements git pendrop .virtualenvs workspace)
 CREATE_OPT_DIRECTORIES=(git pentest)
 
@@ -51,12 +51,20 @@ print_banner
 sleep 4
 
 # =============================[ Setup VM Tools ]================================ #
+# (Re-)configure hostname
+read -r -n 5 -p "${GREEN}[+] ${RESET}Enter new hostname or just press enter : " -e response
+echo -e
+if [[ $response != "" ]]; then
+    hostname $response
+    echo "$response" > /etc/hostname
+fi
+
 # https://github.com/vmware/open-vm-tools
 if [[ ! $(which vmware-toolbox-cmd) ]]; then
   echo -e "${YELLOW}[-] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
   sleep 4
-  apt-get -y install open-vm-tools-desktop fuse
-  reboot
+  $SUDO apt-get -y install open-vm-tools-desktop fuse
+  $SUDO reboot
 fi
 
 # =============================[ APT Packages ]================================ #
@@ -64,23 +72,23 @@ fi
 echo "# kali-rolling" > /etc/apt/sources.list
 echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list
 echo "deb-src http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list
-#export DEBIAN_FRONTEND=noninteractive
-apt-get update
-apt-get -y dist-upgrade
-apt-get -y install build-essential curl locate sudo gcc git git-core make
-apt-get -y install htop sysv-rc-conf
+export DEBIAN_FRONTEND=noninteractive
+$SUDO apt-get -qq update
+$SUDO apt-get -y dist-upgrade
+$SUDO apt-get -y install build-essential curl locate sudo gcc git git-core make
+$SUDO apt-get -y install htop sysv-rc-conf
+
+# Extra base load
+$SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster ettercap exploitdb \
+    kali-linux-pwtools kali-linux-sdr kali-linux-top10 kali-linux-voip kali-linux-web \
+    kali-linux-wireless mitmproxy nikto openssh proxychains rdesktop responder screen \
+    shellter sqlmap tmux tshark vlan vncviewer whatweb wifite windows-binaries wpscan yersinia
+
 
 # TODO: Still need this?
 # Add dpkg for opposing architecture "dpkg --add-architecture amd64
 
-# =============================[ System Setup]================================ #
-
-# (Re-)configure hostname
-read -n 5 -p "[+] Enter new hostname or just press enter : " -e response
-echo -e
-if [[ $response != "" ]]; then
-    hostname $response
-fi
+# =============================[ System Configurations]================================ #
 
 # Configure Static IP
 #read -n 5 -p "[+] Enter static IP Address or just press enter for DHCP : " -e response
