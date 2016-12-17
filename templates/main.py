@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ==============================================================================
-# Created:      05-Dec-2016         -           Revised:
 # File:         file.py
+# Author:       Cashiuus
+# Created:      10-DEC-2016     -     Revised:
+#
 # Depends:      n/a
-# Compat:       2.7+
-# Author:       Cashiuus - Cashiuus{at}gmail
+# Compat:       2.7+ or 3.5+
 #
-# Purpose:
+#-[ Usage ]---------------------------------------------------------------------
 #
-# ==============================================================================
+#
+#
+#
+#-[ Notes/Links ]---------------------------------------------------------------
+#
+#
+#-[ Copyright ]-----------------------------------------------------------------
+#
 #  Copyright (C) 2016 Cashiuus <cashiuus@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -66,7 +74,10 @@ def make_dirs(path):
     Helper function to make all directories necessary in the desired path
     """
     if not os.path.isdir(path):
-        os.makedirs(path)
+        try:
+            os.makedirs(path)
+        except:
+            print("[-] Error creating folder: {}".format(str(path)))
     return
 
 
