@@ -3,7 +3,7 @@
 # File:     setup-python.sh
 #
 # Author:   Cashiuus
-# Created:  10-Mar-2016  -  (Revised: 17-July-2016)
+# Created:  10-Mar-2016  -  Revised: 16-Dec-2016
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -167,12 +167,16 @@ grep -q 'export WORKON_HOME=' "${file}" 2>/dev/null \
 source "${file}"
 
 # Finally, activate the desired default
+# TODO: This doesn't actually work because source and workon end with the script process
+#   User will still have to manually do this themselves after script exits
 echo -e "\n ${GREEN}-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup Complete - Activating Environment ]${GREEN}-----------${RESET}"
 if [[ $DEFAULT_VERSION == "3" ]]; then
     workon env-${py3version}
 else
     workon env-${py2version}
 fi
+
+
 
 # Install or upgrade (-U) a package to ALL virtualenvs
 #allvirtualenv pip install django
@@ -187,3 +191,15 @@ fi
 # that contains a .env file
 # Project:https://github.com/kennethreitz/autoenv
 
+
+function finish {
+    # Any script-termination routines go here, but function cannot be empty
+    clear
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
+    echo -e "\t\t${GREEN}[*] ${RESET}Python Setup Complete!\n\n"
+    echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
+    # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
+    # cmd_here 2>&1 | tee -a "${LOG_FILE}"
+}
+# End of script
+trap finish EXIT
