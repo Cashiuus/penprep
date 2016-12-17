@@ -1,10 +1,9 @@
 {
-  "auto_complete_delay": 25,
-  "bold_folder_labels": true,
-  "caret_style": "blink",
-  "color_scheme": "Packages/Color Scheme - Default/Mac Classic.tmTheme",
-  "file_exclude_patterns":
-  [
+	"auto_complete_delay": 25,
+	"bold_folder_labels": true,
+	"caret_style": "blink",
+	"file_exclude_patterns":
+	[
     ".DS_Store",
     ".tags*",
     "*.pyc",
@@ -42,26 +41,18 @@
     "script",
     "tmp",
     "log"
-  ],
-  "font_face": "Inconsolata",
-  "font_size": 21.0,
-  "highlight_line": true,
-  "highlight_modified_tabs": true,
-  "ignored_packages":
-  [
-    "Vintage"
-  ],
-  "indent_guide_options":
-  [
-    "draw_active"
-  ],
-  "line_padding_bottom": 0.5,
-  "line_padding_top": 0.5,
-  "save_on_focus_lost": true,
-  "scroll_past_end": true,
-  "shift_tab_unindent": true,
-  "tab_size": 2,
-  "translate_tabs_to_spaces": true,
-  "trim_trailing_white_space_on_save": true,
-  "word_wrap": "true"
+	],
+	"font_size": 12,
+	"ignored_packages":
+	[
+		"Vintage"
+	],
+	"rulers":
+	[
+		80
+	],
+	"shift_tab_unindent": true,
+	"tab_size": 2,
+	"trim_trailing_white_space_on_save": true,
+	"word_wrap": "true"
 }
