@@ -35,9 +35,9 @@ shopt -s dotglob
 # Backup core existing dotfiles first
 for file in .bashrc .bash_profile .profile; do
     if [[ -e ${file} ]]; then
-        echo -e "${GREEN}[*] ${RESET}Moving original ${RED}${file}${RESET} to " \
-            "${YELLOW}${BACKUPS_DIR}${RESET}"
         [[ ! -d "${BACKUPS_DIR}" ]] && mkdir -p "${BACKUPS_DIR}"
+        echo -e "${GREEN}[*] ${RESET}Moving original ${RED}${file}${RESET} to:" \
+            "${YELLOW}${BACKUPS_DIR}${RESET}"
         mv "${HOME}/${file}" "${BACKUPS_DIR}/" >/dev/null 1>&2
     fi
 done
