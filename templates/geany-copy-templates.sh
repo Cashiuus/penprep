@@ -11,6 +11,8 @@
 #
 #
 ## =============================================================================
+__version__="1.0"
+__author__="Cashiuus"
 SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
 
