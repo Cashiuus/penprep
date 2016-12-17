@@ -52,7 +52,8 @@ sleep 4
 
 # =============================[ Setup VM Tools ]================================ #
 # (Re-)configure hostname
-read -r -n 5 -p "${GREEN}[+] ${RESET}Enter new hostname or just press enter : " -e response
+echo -e -n "${GREEN}[+]${RESET} "
+read -r -n 5 -p "Enter new hostname or just press enter : " -e response
 echo -e
 if [[ $response != "" ]]; then
     hostname $response
@@ -79,10 +80,10 @@ $SUDO apt-get -y install build-essential curl locate sudo gcc git git-core make
 $SUDO apt-get -y install htop sysv-rc-conf
 
 # Extra base load
-$SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster ettercap exploitdb \
+$SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
     kali-linux-pwtools kali-linux-sdr kali-linux-top10 kali-linux-voip kali-linux-web \
-    kali-linux-wireless mitmproxy nikto openssh proxychains rdesktop responder screen \
-    shellter sqlmap tmux tshark vlan vncviewer whatweb wifite windows-binaries wpscan yersinia
+    kali-linux-wireless mitmproxy nikto openssh-server openssl proxychains rdesktop responder \
+    screen shellter sqlmap tmux tshark vlan whatweb wifite windows-binaries wpscan yersinia
 
 
 # TODO: Still need this?
@@ -267,39 +268,3 @@ function finish {
 # End of script
 trap finish EXIT
 
-# ================[ Expression Cheat Sheet ]==================================
-#
-#   -d      file exists and is a directory
-#   -e      file exists
-#   -f      file exists and is a regular file
-#   -h      file exists and is a symbolic link
-#   -s      file exists and size greater than zero
-#   -r      file exists and has read permission
-#   -w      file exists and write permission granted
-#   -x      file exists and execute permission granted
-#   -z      file is size zero (empty)
-#   [[ $? -eq 0 ]]    Previous command was successful
-#   [[ ! $? -eq 0 ]]    Previous command NOT successful
-#
-
-# --- TOUCH
-#touch
-#touch "$file" 2>/dev/null || { echo "Cannot write to $file" >&2; exit 1; }
-
-### ---[ READ ]---###
-#   -p ""   Instead of echoing text, provide it right in the "prompt" argument
-#               *NOTE: Typically, there is no newline, so you may need to follow
-#               this with an "echo" statement to output a newline.
-#   -e      Specify variable response is stored in. Arg can be anywhere,
-#           but variable is always at the end of the statement
-#   -n #    Number of seconds to wait for a response before continuing automatically
-#   -i ""   Specify a default value. If user hits ENTER or doesn't respond, this value is saved
-#
-
-#Ask for a path with a default value
-#read -p "Enter the path to the file: " -i "/usr/local/etc/" -e FILEPATH
-
-
-# ==================[ BASH GUIDES ]====================== #
-# Using Exit Codes: http://bencane.com/2014/09/02/understanding-exit-codes-and-how-to-use-them-in-bash-scripts/
-# Writing Robust BASH Scripts: http://www.davidpashley.com/articles/writing-robust-shell-scripts/
