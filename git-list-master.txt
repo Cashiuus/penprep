@@ -21,6 +21,8 @@ https://github.com/Dionach/CMSmap
 https://github.com/stasinopoulos/commix
 # Swiss Army Knife for pentesting Windows/AD environments
 https://github.com/byt3bl33d3r/CrackMapExec
+# Parse URLcrazy and dnstwist to identify new typosquatted domains
+https://github.com/hardwaterhacker/CrazyParser
 # Cred harvester for Samba
 https://github.com/gojhonny/CredCrack
 https://github.com/DanMcInerney/creds.py
@@ -37,10 +39,12 @@ https://github.com/mfontanini/dot11decrypt
 https://github.com/dradis/dradisframework
 # Drupal CMS scanner - Also does Silverstripe & Wordpress
 https://github.com/droope/droopescan
+# Detects DTP modes for VLAN hopping (passive check)
 https://github.com/commonexploits/dtpscan
 https://github.com/PowerShellEmpire/Empire
 # Web screenshot and recon (headers, default creds) toolkit
 https://github.com/ChrisTruncer/EyeWitness
+#https://github.com/mschwager/fierce
 https://github.com/byt3bl33d3r/gcat
 https://github.com/nullmode/gnmap-parser
 https://github.com/OJ/gobuster
@@ -95,6 +99,7 @@ https://github.com/mandatoryprogrammer/sonar.js
 https://github.com/smicallef/spiderfoot
 https://github.com/sqlmapproject/sqlmap
 https://github.com/drwetter/testssl.sh
+https://github.com/mgeeky/tomcatWarDeployer
 # Nullsecurity Tool Collection
 https://github.com/nullsecuritynet/tools
 https://github.com/Vozzie/uacscript
@@ -105,6 +110,8 @@ https://github.com/nccgroup/vlan-hopping---frogger
 https://github.com/sandrogauci/wafw00f
 https://github.com/anestisb/WeBaCoo
 https://github.com/derv82/werdy
+# Detect free/available IP addresses on a network for use with static assigning
+https://github.com/commonexploits/whatsfree
 https://github.com/urbanadventurer/WhatWeb
 https://github.com/sophron/wifiphisher
 # WebApp Information Gatherer
@@ -114,7 +121,15 @@ https://github.com/dxa4481/WPA2-HalfHandshake-Crack
 https://github.com/SilentGhostX/HT-WPS-Breaker
 https://github.com/wpscanteam/wpscan
 
-#[Phishing]
+# [Embedded Systems]
+https://github.com/hkm/routerpwn.com
+https://github.com/scadastrangelove/SCADAPASS
+
+# [Exfiltration]
+https://github.com/DShield-ISC/IPv6DNSExfil
+
+
+# [Phishing]
 #PhishPoll hasn't been updated since 2013, but good reference
 https://github.com/connection/phishpoll
 https://github.com/gophish/gophish
@@ -124,15 +139,14 @@ https://github.com/pentestgeek/phishing-frenzy
 https://github.com/averagesecurityguy/Phishing
 https://github.com/pentestgeek/phishing-frenzy-templates
 
-
-# Miscellaneous
+# [Miscellaneous]
 https://github.com/vrana/adminer
 https://github.com/GNOME/gnome-shell-extensions
 https://github.com/ikalnitsky/gnome-shell-extension-icon-hider
 https://github.com/zpydr/gnome-shell-extension-taskbar
 # Share terminal as web application
 #https://github.com/yudai/gotty
-https://github.com/rasa/vmware-tools-patches
-
+# *Windows only* routes all TCP and DNS traffic through Tor: http://www.crowdstrike.com/community-tools/
+https://github.com/CrowdStrike/Tortilla
 # Personal Cloud self-hosted framework
 https://github.com/welcomer/framework
