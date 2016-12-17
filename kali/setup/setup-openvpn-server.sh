@@ -213,8 +213,7 @@ fi
 
 # ===[ CLIENT KEY-PAIR Creation ]===
 for i in "${CLIENT_NAME[@]}"; do
-
-    # Build Client Key, if it doesn't already exist (*Noticing a trend?!?)
+    # Build Client Key, if it doesn't already exist
     if [[ ! -f "${VPN_PREP_DIR}/pki/private/${i}.key" ]]; then
         echo -e "${GREEN}[*]${RESET} Generating Client Certificate/Key Pair for: ${i}"
         ./easyrsa gen-req "${i}" nopass
@@ -222,7 +221,7 @@ for i in "${CLIENT_NAME[@]}"; do
         echo -e "${GREEN}[*]${RESET} Sign Client Certificate; Enter CA Passphrase below"
         ./easyrsa sign-req client "${i}"
 
-        [[ $? -ne 0 ]] && echo -e "${RED}[ERROR] ${RESET}Failed to sign client cert." && exit 1
+        [[ $? -ne 0 ]] && echo -e "${RED}[ERROR] ${RESET}Failed to sign client cert. Restart and try again." && exit 1
         # No password on agents, or we have to come up with a complex solution for
         # entering the password when agent boots up.
         #       see: https://bbs.archlinux.org/viewtopic.php?id=150440

@@ -123,11 +123,9 @@ source /usr/local/bin/virtualenvwrapper.sh
 file="${WORKON_HOME}/postmkvirtualenv"
 cat <<EOF > "${file}"
 #!/usr/bin/env bash
-pip install argparse
 pip install beautifulsoup4
 pip install pep8
 pip install requests
-pip install Scrapy
 EOF
 
 # Custom Django requirements file for quick Django setups
@@ -135,9 +133,13 @@ file="${WORKON_HOME}/django-requirements.txt"
 cat <<EOF > "${file}"
 cookiecutter
 django
+djang-debug-toolbar
 django-environ
 django-extensions
-django-scrapy
+django-import-export
+django-secure
+psycopg2
+pygraphviz
 six
 EOF
 
@@ -179,3 +181,9 @@ fi
 
 # ---- virtualenwrapper helpers ------
 #virtualenvwrapper_get_python_version
+
+
+# new tool called autoenv that will auto-activate a virtualenv when you cd into a folder
+# that contains a .env file
+# Project:https://github.com/kennethreitz/autoenv
+

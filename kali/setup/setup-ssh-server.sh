@@ -53,7 +53,7 @@ APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
 ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
 ## Exit if the script was not launched by root or through sudo
 if [[ ${EUID} -ne 0 ]]; then
-    echo "The script needs to run as sudo/root" && exit 1
+    echo "[-] The script needs to run as sudo/root" && exit 1
 fi
 
 ## ================================================================================ ##
