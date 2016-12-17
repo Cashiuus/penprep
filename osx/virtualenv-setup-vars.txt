@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#		- PATHS -
+# Python 2
+# Core - 		/usr/local/bin/python2 (symlink)
+#				/usr/local/Cellar/python
+# Pip - 		/usr/local/bin/pip
+#				/usr/local/Cellar/python/2.7.9/bin/
+# virtualenv 	/usr/local/bin/virtualenv
+
+# Python 3
+# Core - 		/usr/local/bin/python3
+#
+# Pip - 		/usr/local/bin/pip3
+#				/usr/local/Cellar/python3/3.4.2_1/bin/pip3
+#
+# virtualenv 	/usr/local/bin/virtualenv-3.4
+#
+# venv - 		/usr/local/bin/pyvenv
+#				/usr/local/Cellar/python3/3.4.2_1/bin/pyvenv
+
+
+# Setup for Python 2
+export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python2
+export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv-2.7
+source /usr/local/bin/virtualenvwrapper.sh
+
+# Setup for Python 3
+export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
+export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv-3.4
+source /usr/local/bin/virtualenvwrapper.sh

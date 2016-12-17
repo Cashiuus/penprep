@@ -1,0 +1,17 @@
+Django
+django-debug-toolbar
+django-environ
+django-extensions
+django-import-export
+django-secure
+Jinja2
+lxml
+Pillow
+psycopg2
+requests
+six
+tablib
+virtualenv
+virtualenvwrapper
+xlrd
+xlwt

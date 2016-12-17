@@ -2,7 +2,11 @@
 # Git gitignore Manual: http://git-scm.com/docs/gitignore
 # gitignore Example Files: https://github.com/github/gitignore
 
+### Generated Files
+*.pyc
+.idea
 
+### Project
 *.log
 *.ovpn
 *.cap
