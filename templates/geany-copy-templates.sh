@@ -17,5 +17,5 @@ SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
 
 
-cp -u ~/.config/geany/templates/files/a.sh ./
-cp -u ~/.config/geany/templates/files/main.py ./
+cp -u ~/.config/geany/templates/files/a.sh "${APP_BASE}/main-shells/"
+cp -u ~/.config/geany/templates/files/main.py "${APP_BASE}/main-shells/"

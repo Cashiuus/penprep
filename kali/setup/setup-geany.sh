@@ -24,7 +24,7 @@ SCRIPT_DIR=$(readlink -f $0)
 APP_BASE=$(dirname ${SCRIPT_DIR})
 
 BACKUPS_DIR="${HOME}/Backups/geany"
-GEANY_TEMPLATES="${APP_BASE}/../../templates"
+GEANY_TEMPLATES="${APP_BASE}/../../templates/main-shells"
 # =============================[ BEGIN ]================================ #
 apt-get -y install python-pip geany
 pip install flake8 pep8-naming
@@ -235,7 +235,7 @@ function geany_templates() {
     if [[ -d "${GEANY_TEMPLATES}" ]]; then
         GEANY_INSTALLED_TEMPLATES_DIR="${HOME}/.config/geany/templates/files"
         [[ ! -d "${GEANY_INSTALLED_TEMPLATES_DIR}" ]] && mkdir -p "${GEANY_INSTALLED_TEMPLATES_DIR}"
-        cp -ur "${GEANY_INSTALLED_TEMPLATES_DIR}"/* "${GEANY_INSTALLED_TEMPLATES_DIR}/"
+        cp -ur "${GEANY_TEMPLATES}"/* "${GEANY_INSTALLED_TEMPLATES_DIR}/"
         echo -e "${GREEN}[*]${RESET} Geany File Templates have been copied over, enjoy!"
     fi
 }
