@@ -4,13 +4,23 @@
 
 ### Generated Files
 *.pyc
+*.bak
 .idea
+
+### OS Generated Files
+Desktop.ini
+.DS_Store
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
 
 ### Project
 *.log
 *.ovpn
 *.cap
 *.local
+settings.conf
+settings.sh
+settings.py
 motd
-
-config/settings.conf
