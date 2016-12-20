@@ -122,11 +122,11 @@ EOF
 find /root/.mozilla/firefox/*.default*/ -maxdepth 1 -mindepth 1 -type f -name places.sqlite -delete
 find /root/.mozilla/firefox/*.default*/bookmarkbackups/ -type f -delete
 
-##### Setup iceweasel's plugins
-echo -e "\n ${GREEN}[+]${RESET} Installing ${GREEN}iceweasel's plugins${RESET} ~ Useful addons"
+##### Setup Firefox plugins
+echo -e "\n ${GREEN}[+]${RESET} Installing ${GREEN}Firefox plugins${RESET} ~ Useful addons"
 
 ffpath="$(find /root/.mozilla/firefox/*.default*/ -maxdepth 0 -mindepth 0 -type d -name '*.default*' -print -quit)/extensions"
-[ "${ffpath}" == "/extensions" ] && echo -e ' '${RED}'[!]'${RESET}" Couldn't find Firefox/Iceweasel folder" 1>&2
+[ "${ffpath}" == "/extensions" ] && echo -e ' '${RED}'[!]'${RESET}" Couldn't find the Firefox folder" 1>&2
 mkdir -p "${ffpath}/"
 
 timeout 300 curl --progress -k -L -f "https://addons.mozilla.org/firefox/downloads/latest/5817/addon-5817-latest.xpi?src=dp-btn-primary" -o "$ffpath/SQLiteManager@mrinalkant.blogspot.com.xpi" || echo -e ' '${RED}'[!]'${RESET}" Issue downloading 'SQLite Manager'" 1>&2                                 # SQLite Manager
@@ -147,34 +147,34 @@ for FILE in $(find "${ffpath}" -maxdepth 1 -type f -name '*.xpi'); do
   unzip -q -o -d "${ffpath}/${d}/" "${FILE}"
   rm -f "${FILE}"
 done
-#--- Enable Iceweasel's addons/plugins/extensions
-timeout 15 iceweasel >/dev/null 2>&1   #iceweasel & sleep 15s; killall -q -w iceweasel >/dev/null
+#--- Enable Firefox addons/plugins/extensions
+timeout 15 firefox >/dev/null 2>&1   #firefox & sleep 15s; killall -q -w firefox >/dev/null
 sleep 3s
 file=$(find /root/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'extensions.sqlite' -print -quit)   #&& [ -e "${file}" ] && cp -n $file{,.bkup}
 if [ ! -e "${file}" ] || [ -z "${file}" ]; then
-  #echo -e ' '${RED}'[!]'${RESET}" Something went wrong enabling Iceweasel's extensions via method #1. Trying method #2..." 1>&2
+  #echo -e ' '${RED}'[!]'${RESET}" Something went wrong enabling Firefox's extensions via method #1. Trying method #2..." 1>&2
   false
 else
-  echo -e " ${YELLOW}[i]${RESET} Enabled ${YELLOW}Iceweasel's extensions${RESET} (via method #1!)"
+  echo -e " ${YELLOW}[i]${RESET} Enabled ${YELLOW}Firefox's extensions${RESET} (via method #1!)"
   apt-get install -y -qq sqlite3 || echo -e ' '${RED}'[!] Issue with apt-get'${RESET} 1>&2
-  rm -f /tmp/iceweasel.sql; touch /tmp/iceweasel.sql
-  echo "UPDATE 'main'.'addon' SET 'active' = 1, 'userDisabled' = 0;" > /tmp/iceweasel.sql    # Force them all!
-  sqlite3 "${file}" < /tmp/iceweasel.sql      #fuser extensions.sqlite
+  rm -f /tmp/firefox.sql; touch /tmp/firefox.sql
+  echo "UPDATE 'main'.'addon' SET 'active' = 1, 'userDisabled' = 0;" > /tmp/firefox.sql    # Force them all!
+  sqlite3 "${file}" < /tmp/firefox.sql      #fuser extensions.sqlite
 fi
 file=$(find /root/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'extensions.json' -print -quit)   #&& [ -e "${file}" ] && cp -n $file{,.bkup}
 if [ ! -e "${file}" ] || [ -z "${file}" ]; then
-  #echo -e ' '${RED}'[!]'${RESET}" Something went wrong enabling Iceweasel's extensions via method #2. Did method #1 also fail?" 1>&2
+  #echo -e ' '${RED}'[!]'${RESET}" Something went wrong enabling Firefox's extensions via method #2. Did method #1 also fail?" 1>&2
   false
 else
-  echo -e " ${YELLOW}[i]${RESET} Enabled ${YELLOW}Iceweasel's extensions${RESET} (via method #2!)"
+  echo -e " ${YELLOW}[i]${RESET} Enabled ${YELLOW}Firefox's extensions${RESET} (via method #2!)"
   sed -i 's/"active":false,/"active":true,/g' "${file}"                # Force them all!
   sed -i 's/"userDisabled":true,/"userDisabled":false,/g' "${file}"    # Force them all!
 fi
 file=$(find /root/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'prefs.js' -print -quit)   #&& [ -e "${file}" ] && cp -n $file{,.bkup}
 [ ! -z "${file}" ] && sed -i '/extensions.installCache/d' "${file}"
-timeout 5 iceweasel >/dev/null 2>&1   # For extensions that just work without restarting
+timeout 5 firefox >/dev/null 2>&1   # For extensions that just work without restarting
 sleep 3s
-timeout 5 iceweasel >/dev/null 2>&1   # ...for (most) extensions, as they need iceweasel to restart
+timeout 5 firefox >/dev/null 2>&1   # ...for (most) extensions, as they need firefox to restart
 sleep 5s
 #--- Configure HackBar
 file=$(find /root/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'xulstore.json' -print -quit)   #&& [ -e "${file}" ] && cp -n $file{,.bkup}
@@ -185,7 +185,7 @@ fi
 #--- Configure foxyproxy
 file=$(find /root/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'foxyproxy.xml' -print -quit)   #&& [ -e "${file}" ] && cp -n $file{,.bkup}
 if [ -z "${file}" ]; then
-  echo -e ' '${RED}'[!]'${RESET}' Something went wrong with the FoxyProxy iceweasel extension (did any extensions install?). Skipping...' 1>&2
+  echo -e ' '${RED}'[!]'${RESET}' Something went wrong with the FoxyProxy Firefox extension (did any extensions install?). Skipping...' 1>&2
 elif [ -e "${file}" ]; then
   grep -q 'localhost:8080' "${file}" 2>/dev/null || sed -i 's#<proxy name="Default"#<proxy name="localhost:8080" id="1145138293" notes="e.g. Burp, w3af" fromSubscription="false" enabled="true" mode="manual" selectedTabIndex="0" lastresort="false" animatedIcons="true" includeInCycle="false" color="\#07753E" proxyDNS="true" noInternalIPs="false" autoconfMode="pac" clearCacheBeforeUse="true" disableCache="true" clearCookiesBeforeUse="false" rejectCookies="false"><matches/><autoconf url="" loadNotification="true" errorNotification="true" autoReload="false" reloadFreqMins="60" disableOnBadPAC="true"/><autoconf url="http://wpad/wpad.dat" loadNotification="true" errorNotification="true" autoReload="false" reloadFreqMins="60" disableOnBadPAC="true"/><manualconf host="127.0.0.1" port="8080" socksversion="5" isSocks="false" username="" password="" domain=""/></proxy><proxy name="Default"#' "${file}"          # localhost:8080
   grep -q 'localhost:8081' "${file}" 2>/dev/null || sed -i 's#<proxy name="Default"#<proxy name="localhost:8081 (socket5)" id="212586674" notes="e.g. SSH" fromSubscription="false" enabled="true" mode="manual" selectedTabIndex="0" lastresort="false" animatedIcons="true" includeInCycle="false" color="\#917504" proxyDNS="true" noInternalIPs="false" autoconfMode="pac" clearCacheBeforeUse="true" disableCache="true" clearCookiesBeforeUse="false" rejectCookies="false"><matches/><autoconf url="" loadNotification="true" errorNotification="true" autoReload="false" reloadFreqMins="60" disableOnBadPAC="true"/><autoconf url="http://wpad/wpad.dat" loadNotification="true" errorNotification="true" autoReload="false" reloadFreqMins="60" disableOnBadPAC="true"/><manualconf host="127.0.0.1" port="8081" socksversion="5" isSocks="true" username="" password="" domain=""/></proxy><proxy name="Default"#' "${file}"         # localhost:8081 (socket5)
@@ -201,4 +201,4 @@ fi
 #--- Wipe session (due to force close)
 find /root/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'sessionstore.*' -delete
 #--- Remove old temp files
-rm -f /tmp/iceweasel.sql
+rm -f /tmp/firefox.sql
