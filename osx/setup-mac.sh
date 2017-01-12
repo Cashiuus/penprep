@@ -50,7 +50,8 @@ APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 DEBUG=false
 
-
+GIT_NAME="Cashiuus"
+GIT_EMAIL=""
 ITERM_THEME="${HOME}/init/schemes/Solarized Dark.itermcolors"
 # ==================================[ ]========================================= #
 
@@ -1094,8 +1095,7 @@ exit 0
 
 
 
-
-# ---- Setup Homebrew ----
+# ----[ Setup Homebrew ]----
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew doctor
 
@@ -1105,12 +1105,64 @@ grep -q '^PATH=/usr/local/bin:/usr/local/sbin:$PATH' ~/.bash_profile 2>/dev/null
 source ~/.bash_profile
 
 
-# -----[ Setup Python 2 Core ]-----
+###############################################################################
+# Git, Gitlab, & Github                                                       #
+###############################################################################
+echo -e "[*] Configuring Git"
+
+brew install git bash-completion
+
+# Add these lines to your ~/.bash_profile to enable git completions
+source /Applications/Xcode.app/Contents/Developer/usr/share/git-core/git-completion.bash
+source /Applications/Xcode.app/Contents/Developer/usr/share/git-core/git-prompt.sh
+
+echo -e "[*] Configuring Git global settings"
+git config --global user.name "${GIT_NAME}"
+[[ $GIT_EMAIL ]] && git config --global user.email "${GIT_EMAIL}"
+
+# Create a gitexcludes file and exclude basic things, such as ".DS_Store" files
+[[ -s ~/.gitexcludes ]] && echo ".DS_Store" > ~/.gitexcludes
+git config --global core.excludesfile ~/.gitexcludes
+
+
+# ----- Using your first Git repo ------
+#git clone git@gitlab.com:<user_name>/<project>
+#git remote add origin git@ggitlab.com:<project>.git
+#git push -u origin master
+
+file=~/.bash_profile
+cat <<EOF >> "${file}"
+
+# Show git branch in PS1 when working in a git repository directory
+function git-current-branch {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1) /'
+}
+export PS1="\$(git-current-branch)$PS1"
+
+# Establish virtualenv loading via venv files within project directories
+check_virtualenv() {
+    if [[ -e .venv ]]; then
+        env=`cat .venv`
+        if [[ "$env" != "${VIRTUAL_ENV##*/}" ]]; then
+            echo "Found .venv in directory. Calling: workon ${env}"
+            workon "$env"
+        fi
+    fi
+}
+# Call function directly in case opening directly into a directory
+# (e.g. opening a new tab in Terminal)
+check_virtualenv
+EOF
+
+###############################################################################
+# Python 2                                                                    #
+###############################################################################
 # Tut: http://docs.python-guide.org/en/latest/starting/install/osx/
 # Tut: https://hackercodex.com/guide/python-development-environment-on-mac-osx/
 # Tut: http://joebergantine.com/blog/2015/apr/30/installing-python-2-and-python-3-alongside-each-ot/
 # Tut: http://protips.maxmasnick.com/installing-python-3-alongside-python-2-on-os-x-yosemite
 
+echo -e "[*] Installing Python"
 py2='2.7'
 brew install python
 # Optional: You can run 'brew linkapps python' to symlink these to /Applications
@@ -1161,7 +1213,9 @@ pip install pygraphviz
 deactivate
 
 
-# ----[ Python 3 ]------
+###############################################################################
+# Python 3                                                                    #
+###############################################################################
 py3='3.5'
 brew install python3
 # You can run 'brew linkapps python3' to symlink these to /Applications
@@ -1221,11 +1275,11 @@ workon py27
 
 
 
+###############################################################################
+# iTerm                                                                       #
+###############################################################################
 
-
-
-# Setup iTerm preferences
-
+# ----- Setup iTerm preferences ----
 
 # iTerm puts out the following env var's:
 #TERM_PROGRAM=iTerm.app
@@ -1238,14 +1292,9 @@ workon py27
 
 
 
-
-
-
-
-
-
-
-# ----- Setup Oh-My-ZSH -----
+###############################################################################
+# Oh-My-Zsh                                                                   #
+###############################################################################
 #echo "Installing Oh-My-ZSH, please wait..."
 #curl -L https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh
 
@@ -1257,21 +1306,7 @@ workon py27
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# -========================[ os x default command notes ]===============================-
+# -========================[ OS X default command notes ]===============================- #
 # Syntax:http://ss64.com/osx/defaults.html
 
 
