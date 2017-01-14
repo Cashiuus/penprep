@@ -143,6 +143,29 @@ elif [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
   xfconf-query -n -c thunar -p /last-view -t string -s "ThunarDetailsView"
 fi
 
+
+
+# Nautilus user bookmarks - modify this file: /etc/xdg/user-dirs.conf
+
+
+
+# TODO: Look into Nemo file manager :: apt-get install nemo
+# If you want to continue using Nautilus for drawing your desktop icons:
+#   Show all the startup apps:
+#   sudo sed -i 's/NoDisplay=true/NoDisplay=false/g' /etc/xdg/autostart/nemo-autostart.desktop
+
+# Then, uncheck the item under Startup Applications that says:
+#   Files
+#   Start Nemo desktop at login
+
+# Optional add-ons: sudo apt-get install nemo-compare nemo-dropbox nemo-media-columns nemo-pastebin nemo-seahorse nemo-share nemo-emblems nemo-image-converter nemo-audio-tab
+
+
+
+
+
+
+
 # =============================[ Folder Structure ]================================ #
 # Count number of folders we are creating
 count=0
