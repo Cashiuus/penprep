@@ -84,7 +84,7 @@ SSH_USER_DIR="\${HOME}/.ssh"
 SSH_AUTH_KEYS="\${SSH_USER_DIR}/authorized_keys"
 
 SSH_AUTOSTART=true
-ALLOW_ROOT_LOGIN=false
+ALLOW_ROOT_LOGIN=true
 DO_PW_AUTH=true
 DO_PUBKEY_AUTH=true
 
@@ -401,7 +401,7 @@ function restrict_login_geoip() {
     # Test it out
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Performing a test lookup with command 'geoiplookup 8.8.8.8' now...${RESET}"
     [[ "$DEBUG" = true ]] && geoiplookup 8.8.8.8
-    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Did it work? Press any key to continue...${RESET}"
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Did it work? Press ENTER to continue...${RESET}"
     [[ "$DEBUG" = true ]] && read
 
     # Create script that will check IPs and return True or False

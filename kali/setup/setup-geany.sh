@@ -3,14 +3,14 @@
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Created:  10-OCT-2015          (Revised:  13-MAY-2016)
+# Created:  10-OCT-2015          (Revised:  17-Dec-2016)
 #
 # Purpose:  Configure Geany settings on fresh Kali install
 #
 # TODO:
 #   - App shortcut is at: /usr/share/applications/geany.desktop, add to favorites?
 ## =============================================================================
-__version__="1.1"
+__version__="1.2"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"    # Success

@@ -53,7 +53,7 @@ sleep 4
 # =============================[ Setup VM Tools ]================================ #
 # (Re-)configure hostname
 echo -e -n "${GREEN}[+]${RESET} "
-read -r -n 5 -p "Enter new hostname or just press enter : " -e response
+read -r -t 10 -p "Enter new hostname or just press enter : " -e response
 echo -e
 if [[ $response != "" ]]; then
     hostname $response
@@ -225,14 +225,20 @@ function configure_bash_systemwide() {
         || echo "shopt -sq cdspell" >> "${file}"            # Spell check 'cd' commands
     grep -q "autocd" "${file}" \
         || echo "shopt -s autocd" >> "${file}"              # So you don't have to 'cd' before a folder
+
+    # TODO: Test to see if this sed works
     grep -q "checkwinsize" "${file}" \
         || echo "shopt -sq checkwinsize" >> "${file}"       # Wrap lines correctly after resizing
+    sed -i 's/^shopt -sq? checkwinsize/shopt -sq checkwinsize/' "${file}"
+
     grep -q "nocaseglob" "${file}" \
         || echo "shopt -sq nocaseglob" >> "${file}"         # Case insensitive pathname expansion
     grep -q "HISTSIZE" "${file}" \
         || echo "HISTSIZE=10000" >> "${file}"               # Bash history (memory scroll back)
+    sed -i 's/^HISTSIZE=.*/HISTSIZE=10000/' "${file}"
     grep -q "HISTFILESIZE" "${file}" \
         || echo "HISTFILESIZE=10000" >> "${file}"           # Bash history (file .bash_history)
+    sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=10000/' "${file}"
 
     # If last line of file not blank, add a blank spacer line
     ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
@@ -242,14 +248,7 @@ function configure_bash_systemwide() {
     sed -i 's#PS1='"'"'.*'"'"'#PS1='"'"'${debian_chroot:+($debian_chroot)}\\[\\033\[01;31m\\]\\u@\\h\\\[\\033\[00m\\]:\\[\\033\[01;34m\\]\\w\\[\\033\[00m\\]\\$ '"'"'#' "${file}"
     grep -q "^export LS_OPTIONS='--color=auto'" "${file}" 2>/dev/null \
       || echo "export LS_OPTIONS='--color=auto'" >> "${file}"
-    grep -q '^eval "$(dircolors)"' "${file}" 2>/dev/null \
-      || echo 'eval "$(dircolors)"' >> "${file}"
-    grep -q "^alias ls='ls $LS_OPTIONS'" "${file}" 2>/dev/null \
-      || echo "alias ls='ls $LS_OPTIONS'" >> "${file}"
-    grep -q "^alias ll='ls $LS_OPTIONS -l'" "${file}" 2>/dev/null \
-      || echo "alias ll='ls $LS_OPTIONS -l'" >> "${file}"
-    grep -q "^alias l='ls $LS_OPTIONS -lA'" "${file}" 2>/dev/null \
-      || echo "alias l='ls $LS_OPTIONS -lA'" >> "${file}"
+
     # All other users that are made afterwards
     file=/etc/skel/.bashrc
     sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
@@ -267,6 +266,23 @@ function install_bash_completion() {
 # TODO: Test these for bugs
 configure_bash_systemwide
 install_bash_completion
+
+
+# ====[ Install default interfaces config ]======
+file=/etc/network/interfaces
+# TODO: add check if iface eth0 is already present
+cat <<EOF >> "${file}"
+allow-hotplug eth0
+auto eth0
+iface eth0 inet dhcp
+#iface eth0 inet static
+#    address 192.168.
+#    netmask 255.255.255.0
+#    broadcast .0.255
+#    gateway
+#    network
+EOF
+
 
 # ===================================[ FINISH ]====================================== #
 function finish {
