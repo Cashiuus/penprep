@@ -1,21 +1,26 @@
-#!/bin/bash
-## =============================================================================
+#!/usr/bin/env bash
+# ==============================================================================
 # File:     setup-rvm.sh
 #
 # Author:   Cashiuus
-# Created:  23-JUN-2016 - - - - - - (Revised: 03-AUG-2016)
+# Created:  23-JUN-2016     -     Revised: 23-DEC-2016
 #
-# MIT License ~ http://opensource.org/licenses/MIT
-#-[ Notes ]---------------------------------------------------------------------
-# Purpose:  Install the Ruby Version Manager (RVM) platform
+#-[ Usage ]---------------------------------------------------------------------
+#   Install the Ruby Version Manager (RVM) platform
 #
-# Ref: http://rvm.io/
-## ========================================================================== ##
-__version__="0.9"
+#
+#-[ Notes/Links ]---------------------------------------------------------------
+#   - http://rvm.io/
+#
+#-[ References ]----------------------------------------------------------------
+#
+#
+#-[ Copyright ]-----------------------------------------------------------------
+#   MIT License ~ http://opensource.org/licenses/MIT
+# ==============================================================================
+__version__="1.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
-# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
-# [https://en.wikipedia.org/wiki/ANSI_escape_code]
 GREEN="\033[01;32m"    # Success
 YELLOW="\033[01;33m"   # Warnings/Information
 RED="\033[01;31m"      # Issues/Errors
@@ -28,10 +33,6 @@ APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_ARGS=$@
-LOG_FILE="${APP_BASE}/debug.log"
-# These can be used to know height (LINES) and width (COLS) of current terminal in script
-LINES=$(tput lines)
-COLS=$(tput cols)
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]];then
@@ -45,12 +46,12 @@ if [[ $EUID -ne 0 ]];then
 fi
 ## ========================================================================== ##
 # ===============================[  BEGIN  ]================================== #
+apt-get -qq update
+apt-get -y install curl
 
 # Get signing key for the RVM distribution
-apt-get -y install curl
 curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 # or: gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
-
 
 # Install RVM stable with Ruby
 # backslash before curl is to prevent misbehaving if it's aliased with ~/.curlrc
@@ -74,13 +75,14 @@ rvm install ruby-head
 ruby -v
 rvm list known
 
-echo -e "\n\n[*] Type: rvm install <version> - and install Ruby versions you need"
-echo -e "[*] Type: rvm use <version> - to start using one now"
-echo -e "[*] Set a default: rvm use <version> --default\n\n"
+echo -e "\n\n${GREEN}[*]${RESET} Type: rvm install <version> - and install Ruby versions you need"
+echo -e "${GREEN}[*]${RESET} Type: rvm use <version> - to start using one now"
+echo -e "${GREEN}[*]${RESET} Set a default: rvm use <version> --default\n\n"
 
 # Kali-style -- add source line to .bashrc
 file=$HOME/.bashrc
-grep -q '^[[ -s "/etc/profile.d/rvm.sh" ]].*' "${file}" 2>/dev/null \
+# TODO: Improve this regex
+grep -q '"/etc/profile.d/rvm.sh\" .*' "${file}"  2>/dev/null \
     || echo '[[ -s "/etc/profile.d/rvm.sh" ]] && source "/etc/profile.d/rvm.sh"' >> "${file}"
 
 source ~/.bashrc
