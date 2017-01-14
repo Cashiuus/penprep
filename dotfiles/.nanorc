@@ -1,0 +1,16 @@
+### User nanorc settings
+
+# Include custom syntax highlighting files
+include "/root/.nano/dotfiles.nanorc"
+include "/root/.nano/conf.nanorc"
+
+# Customize settings
+set smooth
+
+set autoindent
+
+# Tabbing settings
+# tabsize default: 8
+set tabsize 4
+#set tabstospaces
+

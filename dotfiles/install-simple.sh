@@ -54,3 +54,8 @@ cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}"
 #done
 echo -e "${GREEN}[*] ${RESET}Finished simple dotfiles install, goodbye!"
 exit 0
+
+
+
+# Another way to install by using git cloning
+#git clone --depth=1 https://github.com/<user>/dotfiles
