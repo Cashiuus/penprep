@@ -336,12 +336,20 @@ trap finish EXIT
 # -==[ TOUCH ]==-
 #touch
 #touch "$file" 2>/dev/null || { echo "Cannot write to $file" >&2; exit 1; }
-
+#
+#
+#
+#
 # -==[ SED ]==-
 # NOTE: When using '/' for paths in sed, use a different delimiter, such as # or |
 #
 #sed -i 's/^.*editor_font=.*/editor_font=Monospace\ 10/' "${file}"
 #sed -i 's|^.*editor_font=.*|editor_font=Monospace\ 10|' "${file}"
+#
+#
+# -==[ GREP ]==-
+#
+#
 #
 #
 #
@@ -419,3 +427,8 @@ trap finish EXIT
 #if test "$bool" = true; then
 #if test "$bool" = "true"; then
 
+#
+# List the most recently updated file matching the pattern
+#   ls -t setup-*.sh | head -n 1
+# Or we can run the file returned from this pattern
+#   java -Xmx4G "$(ls -t setup-*.sh | head -n 1)"
