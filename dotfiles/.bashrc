@@ -17,7 +17,11 @@ esac
 ### Load the shell dotfiles, and then some:
 ### * ~/.path can be used to extend `$PATH`.
 ### * ~/.extra can be used for other settings you don’t want to commit.
-[[ -f "$HOME/.bash_profile" ]] && source "$HOME/.bash_profile"
+if [[ -f "${HOME}/.dotfiles/bash/.bash_profile" ]]; then
+    source "${HOME}/.dotfiles/bash/.bash_profile"
+elif [[ -f "${HOME}/.bash_profile" ]]; then
+    source "${HOME}/.bash_profile"
+fi
 
 ### Enable the ssh-agent handler that helps with ssh keys
 if [[ -s "${HOME}/.dotfiles/bash/.bash_sshagent" ]]; then
@@ -130,4 +134,4 @@ export EDITOR=nano
 [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh"
 
 # Go Lang PATH support
-[[ -d "${HOME}" ]] && export GOPATH="${HOME}/workspace"
+[[ -d "${HOME}/workspace" ]] && export GOPATH="${HOME}/workspace"
