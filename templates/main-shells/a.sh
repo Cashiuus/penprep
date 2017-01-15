@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
-# ==============================================================================
+## =======================================================================================
 # File:     file.sh
 #
 # Author:   Cashiuus
 # Created:  15-DEC-2016     -     Revised:
 #
-#-[ Usage ]---------------------------------------------------------------------
+#-[ Usage ]-------------------------------------------------------------------------------
 #
 #
 #
 #
-#-[ Notes/Links ]---------------------------------------------------------------
+#-[ Notes/Links ]-------------------------------------------------------------------------
 #
 #
-#-[ References ]----------------------------------------------------------------
+#-[ References ]--------------------------------------------------------------------------
 #
 #
-#-[ Copyright ]-----------------------------------------------------------------
+#-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
-# ==============================================================================
+## =======================================================================================
 __version__="0.1"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
@@ -32,7 +32,7 @@ PURPLE="\033[01;35m"   # Other
 ORANGE="\033[38;5;208m" # Debugging
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
-## =========[ CONSTANTS ]================ ##
+## ============[ CONSTANTS ]================ ##
 START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
@@ -48,11 +48,12 @@ COLS=$(tput cols)
 #======[ ROOT PRE-CHECK ]=======#
 function check_root() {
     if [[ $EUID -ne 0 ]];then
+        #ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
         if [[ $(dpkg-query -s sudo) ]];then
             export SUDO="sudo"
             # $SUDO - run commands with this prefix now to account for either scenario.
         else
-            echo "Please install sudo or run this as root."
+            echo -e "${RED}[ERROR] Please install sudo or run this as root. Exiting.${RESET}"
             exit 1
         fi
     fi
@@ -77,18 +78,23 @@ check_root
 
 
 
-pause() {
-  local dummy
-  read -s -r -p "Press any key to continue..." -n 1 dummy
+function pause() {
+    # Simple function to pause a script mid-stride
+    #
+    local dummy
+    read -s -r -p "Press any key to continue..." -n 1 dummy
 }
 
-asksure() {
-    ### using it
-    #if asksure; then
-        #echo "Okay, performing rm -rf / then, master...."
-    #else
-        #echo "Pfff..."
-    #fi
+
+function asksure() {
+    ###
+    # Usage:
+    #   if asksure; then
+    #        echo "Okay, performing rm -rf / then, master...."
+    #   else
+    #        echo "Pfff..."
+    #   fi
+    ###
     echo -n "Are you sure (Y/N)? "
     while read -r -n 1 -s answer; do
         if [[ $answer = [YyNn] ]]; then
@@ -102,7 +108,36 @@ asksure() {
 }
 
 
-make_tmp_dir() {
+function check_version_java() {
+    ###
+    #   Check the installed/active version of java
+    #
+    #   Usage: check_version_java
+    #
+    ###
+    if type -p java; then
+        echo found java executable in PATH
+        _java=java
+    elif [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then
+        echo found java executable in JAVA_HOME
+        _java="$JAVA_HOME/bin/java"
+    else
+        echo "no java"
+    fi
+
+    if [[ "$_java" ]]; then
+        version=$("$_java" -version 2>&1 | awk -F '"' '/version/ {print $2}')
+        echo version "$version"
+        if [[ "$version" > "1.5" ]]; then
+            echo version is more than 1.5
+        else
+            echo version is less than 1.5
+        fi
+    fi
+}
+
+
+function make_tmp_dir() {
     # <doc:make_tmp_dir> {{{
     #
     # This function taken from a vmware tool install helper to securely
@@ -166,7 +201,8 @@ make_tmp_dir() {
     eval "$dirname"'="$tmp"'"'"'/'"'"'"$prefix$serial"'
 }
 
-is_process_alive() {
+
+function is_process_alive() {
   # Checks if the given pid represents a live process.
   # Returns 0 if the pid is a live process, 1 otherwise
   #
@@ -178,17 +214,23 @@ is_process_alive() {
 }
 
 
-
 function finish {
+    ###
+    # finish function
     # Any script-termination routines go here, but function cannot be empty
+    #
+    ###
     clear
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
     echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
-    # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
+    # Redirect app output to log, sending both stdout and stderr
+    # *NOTE: This method will not parse color codes, therefore fails color output
     # cmd_here 2>&1 | tee -a "${LOG_FILE}"
 }
 # End of script
 trap finish EXIT
+
+
 ## ========================================================================== ##
 ## ======================[ Template File Code Help ]========================= ##
 #
@@ -345,6 +387,19 @@ trap finish EXIT
 #
 #sed -i 's/^.*editor_font=.*/editor_font=Monospace\ 10/' "${file}"
 #sed -i 's|^.*editor_font=.*|editor_font=Monospace\ 10|' "${file}"
+#
+#
+#
+#
+# Remove leading whitespace only
+#   str_cleaned="$(echo -e "${str_original}" | sed -e 's/^[[:space:]]*//')"
+# Remove trailing whitespace only
+#   str_cleaned="$(echo -e "${str_original}" | sed -e 's/[[:space:]]*$//')"
+# Remove both leading and trailing whitespace
+#   str_cleaned="$(echo -e "${str_original}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+#
+# Or if BASH supports it, you can do whitespace removing this way (instead of using 'echo -e'):
+#   str_cleaned="$(sed -e 's/[[:space:]]*$//' <<<${FOO})"
 #
 #
 # -==[ GREP ]==-
