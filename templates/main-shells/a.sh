@@ -37,7 +37,7 @@ START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
-APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_ARGS=$@
 DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
@@ -57,7 +57,7 @@ function check_root() {
         fi
     fi
 }
-is_root
+check_root
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
 
