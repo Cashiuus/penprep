@@ -23,7 +23,7 @@ START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
-APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 
 GIT_BASE_DIR="/opt/git"
 GIT_DEV_DIR="${HOME}/git"
