@@ -1,29 +1,38 @@
-#!/bin/bash
-## =============================================================================
+#!/usr/bin/env bash
+## =======================================================================================
 # File:     setup-conky.sh
 #
 # Author:   Cashiuus
 # Created:  27-Jan-2016          Revised:    15-Jan-2017
 #
+#-[ Usage ]-------------------------------------------------------------------------------
 # Purpose:  Setup conky monitor dashboard on desktop with pre-configured style
 #
-## ==========[ Extra ]==========================================================
-# Source Code of Conky Variables: https://github.com/brndnmtthws/conky/blob/master/doc/variables.xml
-# Ref: http://forums.opensuse.org/english/get-technical-help-here/how-faq-forums/unreviewed-how-faq/464737-easy-configuring-conky-conkyconf.html
+#-[ Notes/Links ]-------------------------------------------------------------------------
+#   Source Code of Conky Variables: https://github.com/brndnmtthws/conky/blob/master/doc/variables.xml
+#   Ref: http://forums.opensuse.org/english/get-technical-help-here/how-faq-forums/unreviewed-how-faq/464737-easy-configuring-conky-conkyconf.html
 #
 #   Conky Colors:   https://en.wikipedia.org/wiki/X11_color_names
 #                   http://www.graphviz.org/doc/info/colors.html
-## =============================================================================
-__version__="1.01"
+## =======================================================================================
+__version__="1.02"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
-GREEN="\033[01;32m"    # Success
-YELLOW="\033[01;33m"   # Warnings/Information
-RED="\033[01;31m"      # Issues/Errors
-BLUE="\033[01;34m"     # Heading
-BOLD="\033[01;01m"     # Highlight
-RESET="\033[00m"       # Normal
+GREEN="\033[01;32m"     # Success
+YELLOW="\033[01;33m"    # Warnings/Information
+RED="\033[01;31m"       # Issues/Errors
+BLUE="\033[01;34m"      # Heading
+PURPLE="\033[01;35m"    # Other
+ORANGE="\033[38;5;208m" # Debugging
+BOLD="\033[01;01m"      # Highlight
+RESET="\033[00m"        # Normal
 ## =========[ CONSTANTS ]================ ##
+START_TIME=$(date +%s)
+APP_PATH=$(readlink -f $0)
+APP_BASE=$(dirname "${APP_PATH}")
+APP_NAME=$(basename "${APP_PATH}")
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
+
 USE_OLD_CONKY=0
 OLD_CONKY_CONF="${HOME}/.conkyrc"
 NEW_CONKY_CONF="${HOME}/.config/conky/conky.conf"
@@ -35,7 +44,7 @@ function check_root() {
             export SUDO="sudo"
             # $SUDO - run commands with this prefix now to account for either scenario.
         else
-            echo "Please install sudo or run this as root."
+            echo -e "${RED}[ERROR] Please install sudo or run this as root. Exiting.${RESET}"
             exit 1
         fi
     fi
@@ -47,12 +56,14 @@ check_root
 # NOTE: Do not install "conky", it is deprecated, instead you install it as "conky-all"
 $SUDO apt-get -y install conky-all
 
-# TODO: Determine currently-installed Conky version rather than guessing
-version=$(conky -v)
 
-
+# NOTE: Debian 8 "jessie" still uses conky 1.9, unless you enable unstable "sid" distro instead.
 # Conky < 1.9 uses old config style we are used to using
 # Conky >= 1.10 uses new Lua-based configuration style
+
+# TODO: Determine currently-installed Conky version rather than guessing
+CONKY_VERSION=$(dpkg-query -f '${Version}' -W conky)
+
 if [[ ${USE_OLD_CONKY} -eq 1 ]]; then
   # If we've set this variable to 1, we want old conky.
   echo -e "${GREEN}[*]${RESET} Performing setup of OLD version Conky..."

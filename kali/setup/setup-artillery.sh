@@ -11,7 +11,7 @@
 ## =============================================================================
 __version__="0.1"
 __author__="Cashiuus"
-## ========[ TEXT COLORS ]================= ##
+## ========[ TEXT COLORS ]=============== ##
 GREEN="\033[01;32m"    # Success
 YELLOW="\033[01;33m"   # Warnings/Information
 RED="\033[01;31m"      # Issues/Errors
@@ -21,26 +21,47 @@ RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 
 
+
+
+# -===[ Check Permissions ]===-
+function check_root {
+    ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
+    #
+    # Check if current user is root. If not and sudo is installed, $SUDO can be used.
+    #
+    #
+    if [[ $EUID -ne 0 ]];then
+        if [[ $(dpkg-query -s sudo) ]];then
+            export SUDO="sudo"
+            # $SUDO - run commands with this prefix now to account for either scenario.
+        else
+            echo "Please install sudo or run this as root."
+            exit 1
+        fi
+    fi
+}
+
 # =============================[      ]================================ #
 
 cd ~/git
 git clone https://github.com/BinaryDefense/artillery
 cd artillery
-sudo python setup.py
+$SUDO python setup.py
 cd /var/artillery
-#sudo nano config
+#$SUDO nano config
 
 # =============================[ Artillery Config ]================================ #
 
 
+#MONITOR_FOLDERS="/var/www","/etc/"
 
-MONITOR_FOLDERS="/var/www","/etc/"
+#MONITOR_FREQUENCY="60"
 
-MONITOR_FREQUENCY="60"
+#SSH_DEFAULT_PORT_CHECK="ON"
 
-SSH_DEFAULT_PORT_CHECK="ON"
+#HONEYPOT_BAN="ON"
 
-EXCLUDE=""
+#EXCLUDE=""
 
 # Dirs/Files active due to "apt-get install unattended-upgrades":
 #   /etc/apt/apt.conf.d/

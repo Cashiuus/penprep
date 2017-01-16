@@ -1,26 +1,33 @@
 #!/usr/bin/env bash
-## =============================================================================
-# Filename: setup-openvpn-server.sh
+## =======================================================================================
+# File:     setup-openvpn-server.sh
 #
 # Author:   Cashiuus
-# Created:  12-NOV-2015   -   (Revised: 13-DEC-2016)
+# Created:  12-NOV-2015   -   (Revised: 15-Jan-2017)
 #
-# MIT License ~ http://opensource.org/licenses/MIT
-#-[ Notes ]---------------------------------------------------------------------
+#-[ Usage ]-------------------------------------------------------------------------------
+#
+#   ./setup-openvpn-server.sh
 #
 # Purpose:  Setup OpenVPN Server and prep all certs needed.
 #           Uses the newer easy-rsa3 version to generate
 #           the certificate package.
 #           Lastly, we merge all client certs into a
 #           singular embedded client config file.
+#-[ Notes ]-------------------------------------------------------------------------------
 #
-# OpenVPN Hardening Cheat Sheet: http://darizotas.blogspot.com/2014/04/openvpn-hardening-cheat-sheet.html
+#   TODO:
+#       - Update entire script for sudo handling for other platforms (e.g. Debian 8)
+#
+#-[ References ]----------------------------------------------------------------
+#   - OpenVPN Hardening Cheat Sheet: http://darizotas.blogspot.com/2014/04/openvpn-hardening-cheat-sheet.html
+#
+#-[ Copyright ]-----------------------------------------------------------------
+#   MIT License ~ http://opensource.org/licenses/MIT
 ## =============================================================================
-__version__="1.2"
+__version__="1.21"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
-# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
-# [https://en.wikipedia.org/wiki/ANSI_escape_code]
 GREEN="\033[01;32m"    # Success
 YELLOW="\033[01;33m"   # Warnings/Information
 RED="\033[01;31m"      # Issues/Errors
@@ -35,22 +42,28 @@ APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 DEBUG=false
-APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 LOG_FILE="${APP_BASE}/debug.log"
-# ===============================[ Check Permissions ]============================== #
-ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
-## Exit if the script was not launched by root or through sudo
-if [[ ${EUID} -ne 0 ]]; then
-    echo "The script needs to run as sudo/root" && exit 1
-fi
 
+#======[ ROOT PRE-CHECK ]=======#
+function check_root() {
+    if [[ $EUID -ne 0 ]];then
+        if [[ $(dpkg-query -s sudo) ]];then
+            export SUDO="sudo"
+            # $SUDO - run commands with this prefix now to account for either scenario.
+        else
+            echo -e "${RED}[ERROR] Please install sudo or run this as root. Exiting.${RESET}"
+            exit 1
+        fi
+    fi
+}
+check_root
 # ============================[ Preparations / Settings ]=========================== #
 function init_settings() {
+    ###
+    # Initialize standard configuration or prepare if first-run.
     #
-    #
-    #
-    #
-    #
+    ###
     if [[ ! -f "${APP_SETTINGS}" ]]; then
         mkdir -p $(dirname ${APP_SETTINGS})
         echo -e "${GREEN}[*] ${RESET}Creating configuration directory"
@@ -60,6 +73,7 @@ function init_settings() {
 
 EOF
     fi
+
     echo -e "[*] Reading from settings file, please wait..."
     source "${APP_SETTINGS}"
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
@@ -79,22 +93,23 @@ VPN_SUBNET="10.9.8.0"
 # An array of clients, you may add more below to create additional openvpn clients' packages.
 CLIENT_NAME[0]="client1"
 EOF
+
     source "${APP_SETTINGS}"
 }
 
 
 # Initialize configuration directory and settings file
 init_settings
+
 # If our VPN server variable is not defined, assert this is a first-run & generate defaults
 [[ ! ${VPN_SERVER} ]] && init_settings_openvpn
 
 
-check_setting() {
-    #
+function check_setting() {
+    ###
     # Check a setting and determine if its value is valid.
     #
-    #
-    #
+    ###
     if [[ $1 = '' ]]; then
         [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Setting Invalid: $1${RESET}"
 
@@ -102,8 +117,7 @@ check_setting() {
 }
 
 
-
-# Check VPN Server IP Address setting
+# Check VPN Server IP Address and prompt for input
 if [[ ! $VPN_SERVER ]]; then
     echo -e "\n${YELLOW}[ERROR] Invalid VPN Server: Missing VPN Server IP Adress variable"
     echo -e -n "${GREEN}[+] ${RESET}"
@@ -115,8 +129,9 @@ fi
 
 
 # ==================================[ Begin Script ]================================= #
-sudo apt-get install openvpn openssl -y
+$SUDO apt-get -y install openvpn openssl
 
+# If openvpn is currently running, stop the service first
 if [[ $(which openvpn) ]]; then
     #service openvpn stop
     systemctl stop openvpn
@@ -145,6 +160,10 @@ cd "${VPN_PREP_DIR}"
 
 # ===============================[ Initialize PKI Infra ]============================== #
 function new_pki {
+    ###
+    #   Function to initialize a new PKI structure for signing certs. If one exists, will prompt
+    #   to either keep existing or clear and start new.
+    ###
     # Clean
     echo -e "${GREEN}[*]${RESET} Initializing a new PKI system within the specified directory path."
     cd "${VPN_PREP_DIR}"
@@ -253,6 +272,7 @@ persist-tun
 remote-cert-tls server
 cipher AES-256-CBC
 comp-lzo
+# Increase to verb 4 for troubleshooting only
 verb 3
 mute 20
 EOF
@@ -354,6 +374,12 @@ comp-lzo
 
 # Cipher entries must be copied to the client config as well
 cipher AES-256-CBC
+
+# keepalive causes ping-like messages to be sent back
+# and forth over the link so that each side knows when
+# the other side has gone down. 10 120 = ping every 10 seconds
+# assume that remote peer is down if no ping received during
+# a 120-second time period.
 keepalive 10 120
 user nobody
 group nogroup
@@ -363,7 +389,7 @@ persist-tun
 # Output a short status file showing current connections, each minute
 status openvpn-status.log
 log-append /var/log/openvpn.log
-verb 6
+verb 4
 mute 20
 
 # *UNTESTED* --TLS CIPHERS-- (Avoid DES)
@@ -383,12 +409,20 @@ cp -u pki/ca.crt /etc/openvpn/
 # Make sure all cert/key files are set to 644
 chmod 644 /etc/openvpn/{ca.crt,server.crt,server.key,ta.key,dhparam.pem}
 
+# Harden the keys
+#chmod 600 /etc/openvpn/server.key
+#chmod 600 /etc/openvpn/ta.key
+
 # Enable IP Forwarding
 echo -e "${GREEN}[*]${RESET} Configuring IP Forwarding and Firewall Exceptions"
 echo 1 > /proc/sys/net/ipv4/ip_forward
 # Make it permanent
 file="/etc/sysctl.conf"
 sed -i 's|^#net.ipv4.ip_forward=1|net.ipv4.ip_forward=1|' "${file}"
+
+# TODO: ipv6 line in same file needs uncommented for IPv6 packet forwarding
+# #net.ipv6.conf.all.forwarding=1
+
 
 # Base Firewall Configuration to ensure success
 #iptables -A FORWARD -i eth0 -o tap0 -m state --state ESTABLISHED,RELATED -j ACCEPT
