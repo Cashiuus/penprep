@@ -3,17 +3,21 @@
 # File:     file.sh
 #
 # Author:   Cashiuus
-# Created:  15-DEC-2016     -     Revised:
+# Revised:
+# Created:  15-Jan-2017
 #
-#-[ Usage ]-------------------------------------------------------------------------------
-#
-#
-#
-#
-#-[ Notes/Links ]-------------------------------------------------------------------------
+#-[ Info ]-------------------------------------------------------------------------------
+# Purpose:  Describe script purpose
 #
 #
-#-[ References ]--------------------------------------------------------------------------
+#-[ Notes ]-------------------------------------------------------------------------------
+#
+#
+#
+#
+#-[ Links/Credit ]------------------------------------------------------------------------
+#
+#
 #
 #
 #-[ Copyright ]---------------------------------------------------------------------------
@@ -24,47 +28,82 @@ __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
 # [https://en.wikipedia.org/wiki/ANSI_escape_code]
-GREEN="\033[01;32m"    # Success
-YELLOW="\033[01;33m"   # Warnings/Information
-RED="\033[01;31m"      # Issues/Errors
-BLUE="\033[01;34m"     # Heading
-PURPLE="\033[01;35m"   # Other
+GREEN="\033[01;32m"     # Success
+YELLOW="\033[01;33m"    # Warnings/Information
+RED="\033[01;31m"       # Issues/Errors
+BLUE="\033[01;34m"      # Heading
+PURPLE="\033[01;35m"    # Other
 ORANGE="\033[38;5;208m" # Debugging
-BOLD="\033[01;01m"     # Highlight
-RESET="\033[00m"       # Normal
+BOLD="\033[01;01m"      # Highlight
+RESET="\033[00m"        # Normal
 ## ============[ CONSTANTS ]================ ##
 START_TIME=$(date +%s)
-APP_PATH=$(readlink -f $0)
+APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_ARGS=$@
+
 DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
+
 # These can be used to know height (LINES) and width (COLS) of current terminal in script
 LINES=$(tput lines)
 COLS=$(tput cols)
+HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
+#INSTALL_USER="user1"
 
 #======[ ROOT PRE-CHECK ]=======#
+function install_sudo() {
+    # If
+    [[ ${INSTALL_USER} ]] || INSTALL_USER=${USER}
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Running 'install_sudo' function${RESET}"
+    echo -e "${GREEN}[*]${RESET} Now installing 'sudo' package via apt-get, elevating to root..."
+
+    su root
+    [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to su root${RESET}" && exit 1
+    apt-get -y install sudo
+    [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to install sudo pkg via apt-get${RESET}" && exit 1
+    # Use stored USER value to add our originating user account to the sudoers group
+    # TODO: Will this break if script run using sudo? Env var likely will be root if so...test this...
+    #usermod -a -G sudo ${ACTUAL_USER}
+    usermod -a -G sudo ${INSTALL_USER}
+    [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to add original user to sudoers${RESET}" && exit 1
+
+    echo -e "${YELLOW}[WARN] ${RESET}Now logging off to take effect. Restart this script after login!"
+    sleep 4
+    # First logout command will logout from su root elevation
+    logout
+    exit 1
+}
+
 function check_root() {
+
+    # There is an env var that is $USER. This is regular user if in normal state, root in sudo state
+    #   CURRENT_USER=${USER}
+    #   ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
+         # This would only be run if within sudo state
+         # This variable serves as the original user when in a sudo state
+
     if [[ $EUID -ne 0 ]];then
-        #ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
+        # If not root, check if sudo package is installed and leverage it
+        # TODO: Will this work if current user doesn't have sudo rights, but sudo is already installed?
         if [[ $(dpkg-query -s sudo) ]];then
             export SUDO="sudo"
-            # $SUDO - run commands with this prefix now to account for either scenario.
+            # This accounts for both root and sudo. If normal user, it'll use sudo.
+            # If you run script as root, $SUDO is blank and script will soldier on.
         else
-            echo -e "${RED}[ERROR] Please install sudo or run this as root. Exiting.${RESET}"
-            exit 1
+            echo -e "${YELLOW}[WARN] ${RESET}The 'sudo' package is not installed. Press any key to install it (*must enter sudo password), or cancel now"
+            read -r -t 10
+            install_sudo
+            # TODO: This error check necessary, since the function "install_sudo" exits 1 anyway?
+            [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Please install sudo or run this as root. Exiting.${RESET}" && exit 1
         fi
     fi
 }
 check_root
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
-
-
-
-
 
 
 
@@ -231,10 +270,10 @@ function finish {
 trap finish EXIT
 
 
-## ========================================================================== ##
-## ======================[ Template File Code Help ]========================= ##
+## ==================================================================================== ##
+## =====================[ Template File Code Help :: Scripting ]======================= ##
 #
-## ============[ BASH GUIDES ]============= #
+## =================[ BASH GUIDES ]=================== #
 # Google's Shell Styleguide: https://google.github.io/styleguide/shell.xml
 # Using Exit Codes: http://bencane.com/2014/09/02/understanding-exit-codes-and-how-to-use-them-in-bash-scripts/
 # Writing Robust BASH Scripts: http://www.davidpashley.com/articles/writing-robust-shell-scripts/
@@ -246,7 +285,7 @@ trap finish EXIT
 #
 #
 # =============[ Styleguide Recommendations ]============ #
-#   line length =   80
+#   line length =   80 (I'm using 90-100 though)
 #   functions   =   lower-case with underscores, must use () after func, "function" optional, be consistent
 #                   Place all functions at top below constants, don't hide exec code between functions
 #                   A function called 'main' is required for scripts long enough to contain other functions
@@ -256,41 +295,11 @@ trap finish EXIT
 #
 #   return vals =   Always check return values and give informative return values
 #
-# =============[ ECHO/PRINTF Commands ]============ #
-#   echo -n         Print without a newline
 #
-# Run echo and cat commands through sudo (notice the single quotes)
-# sudo sh -c 'echo "strings here" >> /path/to/file'
+# -===[ set options ]===-
 #
-# Pipe user input into a script to automate its input execution; this'll hit enter for all inputs
-# echo -e '\n' | timeout 300 perl vmware-install.pl
-#
-#
-#
-# -==[ Output Suppression/Redirection ]==-
-#   >/dev/null 1>&2         Supress all output (1), including errors (2)
-#
-#
-# -===[ cp ]===-
-#   cp [OPTION]... SOURCE...DIRECTORY
-#       -a          archive. same as -dR --preserve=all
-#       -b          make a backup of each existing destination file
-#       -n          --no-clobber, Do not overwrite an existing file
-#       -R, -r      recursively copy all files and subdirectories
-#       -u          --update, copy only when SOURCE file is newer than DEST file
-#       -f          --force, force the copy
-#       -l          --link, hard link the files instead of copying
-#       -s          --symbolic-link, make symbolic links instead of copying
-#
-#       --preserve[=ATTR_LIST]          Preserve specified attributes (Default: mode,ownership,timestamps)
-#                                       If possible, addtl attributes: context, links, xattr, all
-#       --no-preserve[=ATTR_LIST]       Don't preserve
-#       --strip-trailing-slashes        remove trailing slashes from any sources arguments
-#       -Z                              Set SELinux security context of dest file to default type
-#
-# Copy all files in current folder to $HOME/, preserving attributes, used in copying dotfiles
-# TODO: Did this work? or does it fail like recent cp/mv operations have showed requiring setglobopt's
-#       cp -a . $HOME/
+# set -e
+# set -o pipefail  # Bashism
 #
 # =========[ Expression Cheat Sheet ]========= #
 #
@@ -315,6 +324,104 @@ trap finish EXIT
 #   [[ $? -ne 0 ]]      Previous command NOT successful
 #
 #   [[ $var_string ]]   true if var contains a string, false if null or empty
+#
+#
+# -======[ Booleans ]======-
+# The below examples are all ways you can check booleans
+#   bool=true
+#   if [ "$bool" = true ]; then
+#   if [ "$bool" = "true" ]; then
+#
+#   if [[ "$bool" = true ]]; then
+#   if [[ "$bool" = "true" ]]; then
+#   if [[ "$bool" == true ]]; then
+#   if [[ "$bool" == "true" ]]; then
+#
+#   if test "$bool" = true; then
+#   if test "$bool" = "true"; then
+#
+#
+#
+# -====[ Output Suppression/Redirection ]====-
+#   >/dev/null 1>&2         Supress all output (1), including errors (2)
+#
+#
+#
+# ============[ Variables ]===============
+#
+#   var1="stuff"
+#   readonly var1       Make variable readonly
+#   declare -r var1     Another way to make it readonly
+#   unset var1          Delete var1
+#
+#
+# =========[ Loops ]========
+#   For, While, Until, Select
+#
+#   For x in ___; do        done
+#
+#
+#   Infinite loop within a script will cause it to be persistent until CTRL+C
+#       while true; do
+#           :
+#       done
+#
+# ===============[   ARRAYS  (Index starts at [0])   ]==================
+# Create arrays
+#   declare -a MYARRAY=(val1 val2 val3...)
+#   files=( "/etc/passwd" "/etc/group" "/etc/hosts" )
+#   limits=( 10, 20, 26, 39, 48)
+#
+# Print all items in an array; prints them space-separated, unles you do the \n method below
+#   printf "%s\n" "${array[@]}" (or) "${array[*]}"
+#   printf "%s\n" "${files[@]}"
+#   printf "%s\n" "${limits[@]}"
+#   echo -e "${array[@]}"
+#
+# Loop through an array
+#   array=( one two three )
+#   for i in "${array[@]}"
+#   do
+#       echo $i
+#   done
+#
+#
+#
+## ==================================================================================== ##
+## =================[ Template File Code Help :: Built-in Commands ]=================== ##
+#
+#
+# -=====[ cp (copy) ]=====-
+#   cp [OPTION]... SOURCE...DIRECTORY
+#       -a          archive. same as -dR --preserve=all
+#       -b          make a backup of each existing destination file
+#       -n          --no-clobber, Do not overwrite an existing file
+#       -R, -r      recursively copy all files and subdirectories
+#       -u          --update, copy only when SOURCE file is newer than DEST file
+#       -f          --force, force the copy
+#       -l          --link, hard link the files instead of copying
+#       -s          --symbolic-link, make symbolic links instead of copying
+#
+#       --preserve[=ATTR_LIST]          Preserve specified attributes (Default: mode,ownership,timestamps)
+#                                       If possible, addtl attributes: context, links, xattr, all
+#       --no-preserve[=ATTR_LIST]       Don't preserve
+#       --strip-trailing-slashes        remove trailing slashes from any sources arguments
+#       -Z                              Set SELinux security context of dest file to default type
+#
+# Copy all files in current folder to $HOME/, preserving attributes, used in copying dotfiles
+# TODO: Did this work? or does it fail like recent cp/mv operations have showed requiring setglobopt's
+#       cp -a . $HOME/
+#
+# -=====[ ECHO/PRINTF Commands ]=====-
+#   echo -n         Print without a newline
+#
+# Run echo and cat commands through sudo (notice the single quotes)
+# sudo sh -c 'echo "strings here" >> /path/to/file'
+#
+# Pipe user input into a script to automate its input execution; this'll hit enter for all inputs
+# echo -e '\n' | timeout 300 perl vmware-install.pl
+#
+#
 #
 # ===============[ READ / READLINE Commands ]=============== #
 #   Ref: http://wiki.bash-hackers.org/commands/builtin/read
@@ -358,26 +465,41 @@ trap finish EXIT
 #
 #  -= EXAMPLES =-
 # Ask for a path with a default value
-#read -r -e -p "Enter the path to the file: " -i "/usr/local/etc/" FILEPATH
+#   read -r -e -p "Enter the path to the file: " -i "/usr/local/etc/" FILEPATH
 #
 # Ask for a path with a default value and 5-second timeout - TODO: this work?
 #   read -e -r -n 5 -p "Enter the path to the file: " -i "/usr/local/etc/" FILEPATH
 #
-# A "press any key to continue..." solution like pause in MSDOS
-#pause() {
-#  local dummy
-#  read -s -r -p "Press any key to continue..." -n 1 dummy
-#}
-#
-# Parsing a simple date/time string
-#datetime="2008:07:04 00:34:45"
-#IFS=": " read -r year month day hour minute second <<< "$datetime"
-#
+# A "press any key to continue..." solution like pause in MS-DOS
+#   function pause() {
+#       local dummy
+#       read -s -r -p "Press any key to continue..." -n 1 dummy
+#   }
 #
 #
 # -==[ TOUCH ]==-
 #touch
 #touch "$file" 2>/dev/null || { echo "Cannot write to $file" >&2; exit 1; }
+#
+#
+#
+#
+#
+#
+# -==[ TIMEOUT ] ==-
+#
+# Launch executables from within a script and set a timeout so it also exits
+#   timeout 10 python /opt/sickrage/SickBeard.py
+#
+#
+#
+#
+#
+# ===============[ STRING Parsing/Handling ]=============== #
+# -==[ GREP ]==-
+#
+#
+#
 #
 #
 #
@@ -388,6 +510,11 @@ trap finish EXIT
 #sed -i 's/^.*editor_font=.*/editor_font=Monospace\ 10/' "${file}"
 #sed -i 's|^.*editor_font=.*|editor_font=Monospace\ 10|' "${file}"
 #
+#
+#
+# Parsing a simple date/time string
+#   datetime="2008:07:04 00:34:45"
+#   IFS=": " read -r year month day hour minute second <<< "$datetime"
 #
 #
 #
@@ -402,86 +529,46 @@ trap finish EXIT
 #   str_cleaned="$(sed -e 's/[[:space:]]*$//' <<<${FOO})"
 #
 #
-# -==[ GREP ]==-
 #
 #
+### ==================================================================================== ##
+## ================[ Template File Code Help :: Create Files Recipes ]================== ##
 #
+### Workaround to create files within scripts and still use $SUDO
+# TODO: Will this still work if the target file already exists?
+#   file="/etc/systemd/system/sickrage.service"
+#   # Create file and set permissions so that we can build it
+#   $SUDO touch "${file}"
+#   $SUDO chmod -f 0666 "${file}"
+#   $SUDO cat <<EOF > "${file}"
+#   #File content here
+#   #here
+#
+#   #and here
+#   EOF
+#   # Now set appropriate permissions (u:rx,g:rx,a:rx)
+#   $SUDO chmod -f 0555 "${file}"
 #
 #
 # -==[ Parse/Read a config file using whitelisting ]==-
 #
-#CONFIG_FILE="/path/here"
-# Declare a whitelist
-#CONFIG_SYNTAX="^\s*#|^\s*$|^[a-zA-Z_]+='[^']*'$"
-# Check if file contains something we don't want
-#if egrep -q -v "${CONFIG_SYNTAX}" "$CONFIG_PATH"; then
-#  echo "Error parsing config file ${CONFIG_PATH}." >&2
-#  echo "The following lines in the configfile do not fit the syntax:" >&2
-#  egrep -vn "${CONFIG_SYNTAX}" "$CONFIG_PATH"
-#  exit 5
-#fi
-# otherwise go on and source it:
-#source "${CONFIG_FILE}"
+#   CONFIG_FILE="/path/here"
+#   # Declare a whitelist
+#   CONFIG_SYNTAX="^\s*#|^\s*$|^[a-zA-Z_]+='[^']*'$"
+#   # Check if file contains something we don't want
+#   if egrep -q -v "${CONFIG_SYNTAX}" "$CONFIG_PATH"; then
+#       echo "Error parsing config file ${CONFIG_PATH}." >&2
+#       echo "The following lines in the configfile do not fit the syntax:" >&2
+#       egrep -vn "${CONFIG_SYNTAX}" "$CONFIG_PATH"
+#       exit 5
+#   fi
+#   # Otherwise go on and source it:
+#   source "${CONFIG_FILE}"
 #
 #
 #
-#
-## ======================[ Template File Code Help ]========================= ##
-#
-# ============[ Variables ]===============
-#
-#
-#   var1="stuff"
-#   readonly var1       Make variable readonly
-#   declare -r var1     Another way to make it readonly
-#   unset var1          Delete var1
-#
-#
-# =========[ Loops ]========
-#   For, While, Until, Select
-#
-#   For x in ___; do        done
-#
-#
-#   Infinite loop within a script will cause it to be persistent until CTRL+C
-#       while true; do
-#           :
-#       done
-#
-# ===============[   ARRAYS  (Index starts at [0])   ]==================
-# Create arrays
-#   declare -a MYARRAY=(val1 val2 val3...)
-#   files=( "/etc/passwd" "/etc/group" "/etc/hosts" )
-#   limits=( 10, 20, 26, 39, 48)
-#
-# Print all items in an array; prints them space-separated, unles you do the \n method below
-#   printf "%s\n" "${array[@]}" (or) "${array[*]}"
-#   printf "%s\n" "${files[@]}"
-#   printf "%s\n" "${limits[@]}"
-#   echo -e "${array[@]}"
-#
-# Loop through an array
-#   array=( one two three )
-#   for i in "${array[@]}"
-#   do
-#       echo $i
-#   done
-#
-#
-# ==============[ Booleans ]==================
-# The below examples are all ways you can check booleans
-#bool=true
-#if [ "$bool" = true ]; then
-#if [ "$bool" = "true" ]; then
-#
-#if [[ "$bool" = true ]]; then
-#if [[ "$bool" = "true" ]]; then
-#if [[ "$bool" == true ]]; then
-#if [[ "$bool" == "true" ]]; then
-#
-#if test "$bool" = true; then
-#if test "$bool" = "true"; then
-
+## ==================================================================================== ##
+## ===============[ Template File Code Help :: Miscellaneous Examples ]================ ##
 #
 # List the most recently updated file matching the pattern
 #   ls -t setup-*.sh | head -n 1
