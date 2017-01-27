@@ -103,11 +103,11 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   # ====[ Configure - Nautilus ]==== #
   dconf write /org/gnome/nautilus/preferences/show-hidden-files true
   gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
-  gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'
+  gsettings set org.gnome.nautilus.icon-view default-zoom-level 'smaller'           # Choices: small, smaller
   #gsettings set org.gnome.nautilus.icon-view thumbnail-size 64
   gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'type', 'date_modified']"
   gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
-  gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'small'
+  gsettings set org.gnome.nautilus.list-view default-zoom-level 'smaller'             # Default: 'small'
   gsettings set org.gnome.nautilus.list-view use-tree-view true                     # Default: false
   gsettings set org.gnome.nautilus.preferences sort-directories-first true          # Default: false
   gsettings set org.gnome.nautilus.window-state sidebar-width 188                   # Default: 188
