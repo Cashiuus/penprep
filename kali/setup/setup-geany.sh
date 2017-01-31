@@ -119,7 +119,8 @@ EOF
 fi
 
 # =============================[ CONFIGURE GEANY ]================================ #
-#timeout 5 geany >/dev/null 2>&1
+$SUDO timeout 5 geany >/dev/null 2>&1
+sleep 3s
 filedir="${HOME}/.config/geany"
 [[ ! -d "${filedir}" ]] && mkdir -p "${filedir}"
 file="${HOME}/.config/geany/geany.conf"
