@@ -1,36 +1,111 @@
-#!/bin/bash
-## =============================================================================
+#!/usr/bin/env bash
+## =======================================================================================
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Created:  10-OCT-2015          (Revised:  17-Dec-2016)
+# Revised:  30-Jan-2017
+# Created:  10-Oct-2015
 #
-# Purpose:  Configure Geany settings on fresh Kali install
+#-[ Info ]-------------------------------------------------------------------------------
+# Purpose:  Configure Geany settings on fresh linux install
 #
-# TODO:
+#
+#-[ Notes ]-------------------------------------------------------------------------------
+#
+#
+#
+#
+#-[ Links/Credit ]------------------------------------------------------------------------
+#
+#
+#
+#   TODO:
 #   - App shortcut is at: /usr/share/applications/geany.desktop, add to favorites?
-## =============================================================================
-__version__="1.2"
+#
+#-[ Copyright ]---------------------------------------------------------------------------
+#   MIT License ~ http://opensource.org/licenses/MIT
+## =======================================================================================
+__version__="1.3"
 __author__="Cashiuus"
-## ========[ TEXT COLORS ]================= ##
-GREEN="\033[01;32m"    # Success
-YELLOW="\033[01;33m"   # Warnings/Information
-RED="\033[01;31m"      # Issues/Errors
-BLUE="\033[01;34m"     # Heading
-BOLD="\033[01;01m"     # Highlight
-RESET="\033[00m"       # Normal
-## =========[ CONSTANTS ]================ ##
-SCRIPT_DIR=$(readlink -f $0)
-APP_BASE=$(dirname ${SCRIPT_DIR})
+## ========[ TEXT COLORS ]=============== ##
+# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
+# [https://en.wikipedia.org/wiki/ANSI_escape_code]
+GREEN="\033[01;32m"     # Success
+YELLOW="\033[01;33m"    # Warnings/Information
+RED="\033[01;31m"       # Issues/Errors
+BLUE="\033[01;34m"      # Heading
+PURPLE="\033[01;35m"    # Other
+ORANGE="\033[38;5;208m" # Debugging
+BOLD="\033[01;01m"      # Highlight
+RESET="\033[00m"        # Normal
+## ============[ CONSTANTS ]================ ##
+START_TIME=$(date +%s)
+APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
+APP_BASE=$(dirname "${APP_PATH}")
+APP_NAME=$(basename "${APP_PATH}")
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
+APP_ARGS=$@
 
+DEBUG=true
+LOG_FILE="${APP_BASE}/debug.log"
 BACKUPS_DIR="${HOME}/Backups/geany"
 GEANY_TEMPLATES="${APP_BASE}/../../templates/main-shells"
-# =============================[ BEGIN ]================================ #
-apt-get -y install python-pip geany
-pip install flake8 pep8-naming
+#======[ ROOT PRE-CHECK ]=======#
+function install_sudo() {
+    # If
+    [[ ${INSTALL_USER} ]] || INSTALL_USER=${USER}
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Running 'install_sudo' function${RESET}"
+    echo -e "${GREEN}[*]${RESET} Now installing 'sudo' package via apt-get, elevating to root..."
+
+    su root
+    [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to su root${RESET}" && exit 1
+    apt-get -y install sudo
+    [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to install sudo pkg via apt-get${RESET}" && exit 1
+    # Use stored USER value to add our originating user account to the sudoers group
+    # TODO: Will this break if script run using sudo? Env var likely will be root if so...test this...
+    #usermod -a -G sudo ${ACTUAL_USER}
+    usermod -a -G sudo ${INSTALL_USER}
+    [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to add original user to sudoers${RESET}" && exit 1
+
+    echo -e "${YELLOW}[WARN] ${RESET}Now logging off to take effect. Restart this script after login!"
+    sleep 4
+    # First logout command will logout from su root elevation
+    logout
+    exit 1
+}
+
+function check_root() {
+
+    # There is an env var that is $USER. This is regular user if in normal state, root in sudo state
+    #   CURRENT_USER=${USER}
+    #   ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
+         # This would only be run if within sudo state
+         # This variable serves as the original user when in a sudo state
+
+    if [[ $EUID -ne 0 ]];then
+        # If not root, check if sudo package is installed and leverage it
+        # TODO: Will this work if current user doesn't have sudo rights, but sudo is already installed?
+        if [[ $(dpkg-query -s sudo) ]];then
+            export SUDO="sudo"
+            # This accounts for both root and sudo. If normal user, it'll use sudo.
+            # If you run script as root, $SUDO is blank and script will soldier on.
+        else
+            echo -e "${YELLOW}[WARN] ${RESET}The 'sudo' package is not installed. Press any key to install it (*must enter sudo password), or cancel now"
+            read -r -t 10
+            install_sudo
+            # TODO: This error check necessary, since the function "install_sudo" exits 1 anyway?
+            [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Please install sudo or run this as root. Exiting.${RESET}" && exit 1
+        fi
+    fi
+}
+check_root
+## ========================================================================== ##
+# ================================[  BEGIN  ]================================ #
+$SUDO apt-get -y install python-pip geany
+$SUDO pip install flake8 pep8-naming
 
 if [[ $(which gnome-shell) ]]; then
-    dconf load /org/gnome/gnome-panel/layout/objects/geany/ << EOF
+    $SUDO dconf load /org/gnome/gnome-panel/layout/objects/geany/ << EOF
 [instance-config]
 location='/usr/share/applications/geany.desktop'
 
@@ -40,7 +115,7 @@ pack-index=3
 pack-type='start'
 toplevel-id='top-panel'
 EOF
-    dconf write /org/gnome/gnome-panel/layout/object-id-list "$(dconf read /org/gnome/gnome-panel/layout/object-id-list | sed "s/]/, 'geany']/")"
+    $SUDO dconf write /org/gnome/gnome-panel/layout/object-id-list "$(dconf read /org/gnome/gnome-panel/layout/object-id-list | sed "s/]/, 'geany']/")"
 fi
 
 # =============================[ CONFIGURE GEANY ]================================ #
@@ -48,7 +123,7 @@ fi
 filedir="${HOME}/.config/geany"
 [[ ! -d "${filedir}" ]] && mkdir -p "${filedir}"
 file="${HOME}/.config/geany/geany.conf"
-# Geany now only writes its config after a 'clean' quit, so need to handl this condition.
+# Geany now only writes its config after a 'clean' quit, so need to handle this condition.
 if [[ -e "${file}" ]]; then
     cp -n $file{,.bkup}
     sed -i 's/^.*editor_font=.*/editor_font=Monospace\ 10/' "${file}"
@@ -83,12 +158,15 @@ if [[ -e "${file}" ]]; then
     #sed -i 's#^.*project_file_path=.*#project_file_path=/root/#' "${file}"
     #grep -q '^custom_commands=sort;' "${file}" || sed -i 's/\[geany\]/[geany]\ncustom_commands=sort;/' "${file}"
 else
+    # TODO: Change this so that it works under sudo as well.
+
     # If no file exists, create one in the system default location
     # New users will use this file as part of geany's first-run routine,
     # so putting it here is better than putting in users home folder (think /etc/skel)
     file="/usr/share/geany/geany.conf"
     cd /usr/share/geany
-    touch "${file}" || echo -e "[-] Failed to create new file" && echo "" > "${file}"
+    [[ $? -ne 0 ]] && echo -e "${RED}[ERROR] Geany package not installed. Check problem and try again${RESET}" && exit 1
+    $SUDO touch "${file}" || echo -e "${RED}[ERROR] Failed to create new file${RESET}" && echo "" > "${file}"
     cat << EOF > "${file}"
 [geany]
 check_detect_indent=true
@@ -199,13 +277,13 @@ sed -i 's/^Sh=\*\.sh;configure;.*/Sh=*.sh;configure;configure.in;configure.in.in
 
 # Geany -> Tools -> Plugin Manger -> Save Actions -> HTML Characters: Enabled. Split Windows: Enabled. Save Actions: Enabled. -> Preferences -> Backup Copy -> Enable -> Directory to save backup files in: /root/Backups/geany/.
 #Directory levels to include in the backup destination: 5 -> Apply -> Ok -> Ok
-sed -i 's#^.*active_plugins.*#active_plugins=/usr/lib/geany/htmlchars.so;/usr/lib/geany/saveactions.so;/usr/lib/geany/splitwindow.so;#' "${file}"
+$SUDO sed -i 's#^.*active_plugins.*#active_plugins=/usr/lib/geany/htmlchars.so;/usr/lib/geany/saveactions.so;/usr/lib/geany/splitwindow.so;#' "${file}"
 
 
 function enable_geany_backups {
     mkdir -p "${BACKUPS_DIR}"
     mkdir -p "${HOME}/.config/geany/plugins/saveactions"
-    file="/root/.config/geany/plugins/saveactions/saveactions.conf"
+    file="${HOME}/.config/geany/plugins/saveactions/saveactions.conf"
     [[ -e "${file}" ]] && cp -n $file{,.bkup}
     cat <<EOF > "${file}"
 [saveactions]
