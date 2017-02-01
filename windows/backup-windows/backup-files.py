@@ -1,18 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Created:      01-July-2014          -           Revised Date:    03-June-2016
+# Created:      01-July-2014          -           Revised Date:    01-Feb-2017
 # File:         backup-files.py
 # Depends:      colorama
 # Compat:       2.7+
 # Author:       Cashiuus - Cashiuus{at}gmail
 #
 # Purpose:      Backup certain files on a scheduled basis by running
-#               this script from a scheduled task.
-#               From specified USB drive to a specified Backups folder
-#                   
+#               this script from a Windows scheduled task.
+#               The intended use is to backup from various sources, which
+#               includes one defined USB drive, and saving all files both
+#               as-is and compressed into a single '.zip' archive into the
+#               specified Backups folder.
+#
+#               See the "defaults.py" or "settings.py" files to define params.
+#
 # =============================================================================
-## Copyright (C) 2015 Cashiuus@gmail.com
+## Copyright (C) 2017 Cashiuus@gmail.com
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -39,19 +44,34 @@ from __future__ import print_function
 ## =======[ IMPORT & CONSTANTS ]========= ##
 import errno
 import os
-import platform
+import pip
 import shutil
 import sys
 import time
 import zipfile
 
-# TODO: Make this have a fallback in case colorama is not installed.
-from colorama import init, Fore
+### Imports with exception handling
+try: from colorama import init, Fore
+except ImportError: install_pkg('colorama')
+try: from colorama import init, Fore
+except ImportError:
+    print("[ERROR] Unable to locate or install pip package 'colorama'")
+    exit(1)
 
-__version__ = 1.5
+__version__ = 1.7
 __author__ = 'Cashiuus'
 VERBOSE = 0
 # ========================[ CORE UTILITY FUNCTIONS ]======================== #
+def install_pkg(package):
+    pip.main(['install', package])
+
+
+def check_ccleaner():
+    # If the .ini file does not exist, run the command to create them
+
+    os.system('CCleaner.exe /EXPORT')
+
+
 def create_file(path):
     """
     Create a file if it doesn't already exist.
@@ -108,12 +128,12 @@ def banner():
         border = Fore.GREEN + "===============================================================================================" + Fore.RESET
         # ASCII Art Generator: http://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something%20
         banner_msg = Fore.WHITE + """
- __      __.__            .___                    __________                __                 
-/  \    /  \__| ____    __| _/______  _  ________ \______   \_____    ____ |  | ____ ________  
-\   \/\/   /  |/    \  / __ |/  _ \ \/ \/ /  ___/  |    |  _/\__  \ _/ ___\|  |/ /  |  \____ \ 
+ __      __.__            .___                    __________                __
+/  \    /  \__| ____    __| _/______  _  ________ \______   \_____    ____ |  | ____ ________
+\   \/\/   /  |/    \  / __ |/  _ \ \/ \/ /  ___/  |    |  _/\__  \ _/ ___\|  |/ /  |  \____ \\
  \        /|  |   |  \/ /_/ (  <_> )     /\___ \   |    |   \ / __ \\  \___|    <|  |  /  |_> >
-  \__/\  / |__|___|  /\____ |\____/ \/\_//____  >  |______  /(____  /\___  >__|_ \____/|   __/ 
-       \/          \/      \/                 \/          \/      \/     \/     \/     |__|    
+  \__/\  / |__|___|  /\____ |\____/ \/\_//____  >  |______  /(____  /\___  >__|_ \____/|   __/
+       \/          \/      \/                 \/          \/      \/     \/     \/     |__|
                                 v {0}\n""".format(__version__)
 
     except ImportError:
@@ -132,11 +152,11 @@ class ProgressBar(object):
         self.width = width
         if self.width < 0:
             self.width = 0
-        
+
         self.message = message
         self.progressSymbol = progressSymbol
         self.emptySymbol = emptySymbol
-    
+
     def update(self, progress):
         totalBlocks = self.width
         filledBlocks = int(round(progress / (100 / float(totalBlocks)) ))
@@ -146,12 +166,12 @@ class ProgressBar(object):
 
         if not self.message:
             self.message = u''
-        
+
         progressMessage = u'\r{0} {1} {2}{3}%'.format(self.message, progressbar, Fore.RESET, progress)
-        
+
         sys.stdout.write(progressMessage)
         sys.stdout.flush()
-    
+
     def calculate_update(self, done, total):
         progress = int(round( (done / float(total)) * 100) )
         self.update(progress)
@@ -160,20 +180,20 @@ class ProgressBar(object):
 def countFiles(FILE_LIST):
     return len(FILE_LIST)
 
-    
+
 def backup_to_zip(files, dest):
     """
     This function will receive a list of files to backup
     and will copy the files to the pre-defined backup path
-    
+
     Usage: backup_to_zip(<list of files>, <backup destination folder path>)
     """
-    
+
     # If USB drive is not connected, quit
     if not os.path.exists(USB_DRIVE):
         if VERBOSE == 1:
             print(Fore.RED + "# ----[" + Fore.RESET + " USB Drive is not currently connected. Files will be skipped...")
-    
+
     # Build the archive's resulting file name for the backup
     zip_name = BACKUP_PATH + os.sep + time.strftime('%Y%m%d') + '.zip'
     z = zipfile.ZipFile(zip_name, 'w')
@@ -200,7 +220,7 @@ def copy_files_with_progress(files, dst):
     """
     Take a list of files and copy them to a specified destination,
     while showing a progress bar for longer copy operations.
-    
+
     Usage: copy_files_with_progress(<list of files>, <backup destination path>)
     """
     numfiles = countFiles(files)
@@ -233,7 +253,7 @@ def prune_old_backups():
     """
     pass
     return
-    
+
 
 if __name__ == '__main__':
     # See if we are running this with python.exe or pythonw.exe
