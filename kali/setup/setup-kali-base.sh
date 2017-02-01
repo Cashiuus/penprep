@@ -23,7 +23,7 @@ START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
-APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 
 GIT_BASE_DIR="/opt/git"
 GIT_DEV_DIR="${HOME}/git"
@@ -53,7 +53,7 @@ sleep 4
 # =============================[ Setup VM Tools ]================================ #
 # (Re-)configure hostname
 echo -e -n "${GREEN}[+]${RESET} "
-read -r -n 5 -p "Enter new hostname or just press enter : " -e response
+read -r -t 10 -p "Enter new hostname or just press enter : " -e response
 echo -e
 if [[ $response != "" ]]; then
     hostname $response
@@ -103,11 +103,11 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   # ====[ Configure - Nautilus ]==== #
   dconf write /org/gnome/nautilus/preferences/show-hidden-files true
   gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
-  gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'
+  gsettings set org.gnome.nautilus.icon-view default-zoom-level 'smaller'           # Choices: small, smaller
   #gsettings set org.gnome.nautilus.icon-view thumbnail-size 64
   gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'type', 'date_modified']"
   gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
-  gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'small'
+  gsettings set org.gnome.nautilus.list-view default-zoom-level 'smaller'             # Default: 'small'
   gsettings set org.gnome.nautilus.list-view use-tree-view true                     # Default: false
   gsettings set org.gnome.nautilus.preferences sort-directories-first true          # Default: false
   gsettings set org.gnome.nautilus.window-state sidebar-width 188                   # Default: 188
@@ -142,6 +142,29 @@ elif [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
   xfconf-query -n -c thunar -p /last-details-view-column-widths -t string -s "50,133,50,50,178,50,50,73,70"
   xfconf-query -n -c thunar -p /last-view -t string -s "ThunarDetailsView"
 fi
+
+
+
+# Nautilus user bookmarks - modify this file: /etc/xdg/user-dirs.conf
+
+
+
+# TODO: Look into Nemo file manager :: apt-get install nemo
+# If you want to continue using Nautilus for drawing your desktop icons:
+#   Show all the startup apps:
+#   sudo sed -i 's/NoDisplay=true/NoDisplay=false/g' /etc/xdg/autostart/nemo-autostart.desktop
+
+# Then, uncheck the item under Startup Applications that says:
+#   Files
+#   Start Nemo desktop at login
+
+# Optional add-ons: sudo apt-get install nemo-compare nemo-dropbox nemo-media-columns nemo-pastebin nemo-seahorse nemo-share nemo-emblems nemo-image-converter nemo-audio-tab
+
+
+
+
+
+
 
 # =============================[ Folder Structure ]================================ #
 # Count number of folders we are creating
@@ -202,14 +225,20 @@ function configure_bash_systemwide() {
         || echo "shopt -sq cdspell" >> "${file}"            # Spell check 'cd' commands
     grep -q "autocd" "${file}" \
         || echo "shopt -s autocd" >> "${file}"              # So you don't have to 'cd' before a folder
+
+    # TODO: Test to see if this sed works
     grep -q "checkwinsize" "${file}" \
         || echo "shopt -sq checkwinsize" >> "${file}"       # Wrap lines correctly after resizing
+    sed -i 's/^shopt -sq? checkwinsize/shopt -sq checkwinsize/' "${file}"
+
     grep -q "nocaseglob" "${file}" \
         || echo "shopt -sq nocaseglob" >> "${file}"         # Case insensitive pathname expansion
     grep -q "HISTSIZE" "${file}" \
         || echo "HISTSIZE=10000" >> "${file}"               # Bash history (memory scroll back)
+    sed -i 's/^HISTSIZE=.*/HISTSIZE=10000/' "${file}"
     grep -q "HISTFILESIZE" "${file}" \
         || echo "HISTFILESIZE=10000" >> "${file}"           # Bash history (file .bash_history)
+    sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=10000/' "${file}"
 
     # If last line of file not blank, add a blank spacer line
     ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
@@ -219,14 +248,7 @@ function configure_bash_systemwide() {
     sed -i 's#PS1='"'"'.*'"'"'#PS1='"'"'${debian_chroot:+($debian_chroot)}\\[\\033\[01;31m\\]\\u@\\h\\\[\\033\[00m\\]:\\[\\033\[01;34m\\]\\w\\[\\033\[00m\\]\\$ '"'"'#' "${file}"
     grep -q "^export LS_OPTIONS='--color=auto'" "${file}" 2>/dev/null \
       || echo "export LS_OPTIONS='--color=auto'" >> "${file}"
-    grep -q '^eval "$(dircolors)"' "${file}" 2>/dev/null \
-      || echo 'eval "$(dircolors)"' >> "${file}"
-    grep -q "^alias ls='ls $LS_OPTIONS'" "${file}" 2>/dev/null \
-      || echo "alias ls='ls $LS_OPTIONS'" >> "${file}"
-    grep -q "^alias ll='ls $LS_OPTIONS -l'" "${file}" 2>/dev/null \
-      || echo "alias ll='ls $LS_OPTIONS -l'" >> "${file}"
-    grep -q "^alias l='ls $LS_OPTIONS -lA'" "${file}" 2>/dev/null \
-      || echo "alias l='ls $LS_OPTIONS -lA'" >> "${file}"
+
     # All other users that are made afterwards
     file=/etc/skel/.bashrc
     sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
@@ -244,6 +266,23 @@ function install_bash_completion() {
 # TODO: Test these for bugs
 configure_bash_systemwide
 install_bash_completion
+
+
+# ====[ Install default interfaces config ]======
+file=/etc/network/interfaces
+# TODO: add check if iface eth0 is already present
+cat <<EOF >> "${file}"
+allow-hotplug eth0
+auto eth0
+iface eth0 inet dhcp
+#iface eth0 inet static
+#    address 192.168.
+#    netmask 255.255.255.0
+#    broadcast .0.255
+#    gateway
+#    network
+EOF
+
 
 # ===================================[ FINISH ]====================================== #
 function finish {

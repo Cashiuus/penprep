@@ -30,14 +30,14 @@ gsettings set org.gnome.desktop.session idle-delay 0
 
 
 if [[ -e "/etc/vmware-tools" ]]; then
-        echo -e "${GREEN}[*] ${RESET}VMware Tools is already installed"
+  echo -e "${GREEN}[*] ${RESET}VMware Tools is already installed"
 elif $(dmidecode | grep -iq vmware); then
-    echo -e "\n${GREEN}-----------${RESET}[ Installing Open VM Desktop Tools ]${GREEN}-----------${RESET}"
-        apt-get -y install make
-        apt-get -y install open-vm-tools-desktop fuse
+  echo -e "\n${GREEN}-----------${RESET}[ Installing Open VM Desktop Tools ]${GREEN}-----------${RESET}"
+  apt-get -y install make
+  apt-get -y install open-vm-tools-desktop fuse
 elif $(dmidecode | grep -iq virtualbox); then
-    echo -e "\n${GREEN}-----------${RESET}[ Installing VirtualBox VM Tools ]${GREEN}-----------${RESET}"
-    apt-get -y install virtualbox-guest-x11
+  echo -e "\n${GREEN}-----------${RESET}[ Installing VirtualBox VM Tools ]${GREEN}-----------${RESET}"
+  apt-get -y install virtualbox-guest-x11
 fi
 
 

@@ -1,13 +1,13 @@
 ### ~/.bashrc: executed by bash(1) for non-login shells.
 ### For Reference:
-###     .bashrc     Executes for all non-login BASH shells
-###                 (e.g. scripts with #!/bin/bash)
+###     .bashrc         Executes for all non-login BASH shells
+###                     (e.g. scripts with #!/bin/bash)
 ###     .bash_profile   Executes for all login BASH shells
-###     .profile    Executes for all login shells, not just BASH
+###     .profile        Executes for all login shells, not just BASH
 ###
 ### Ref: http://www.linuxfromscratch.org/blfs/view/stable/postlfs/profile.html
 ###
-
+# ==============================================================================
 ### If not running interactively, don't do anything
 case $- in
     *i*) ;;
@@ -15,10 +15,19 @@ case $- in
 esac
 
 ### Load the shell dotfiles, and then some:
-if [[ -f "$HOME/.dotfiles/bash/.bash_profile" ]]; then
-    source "$HOME/.dotfiles/bash/.bash_profile"
-else
-    [[ -f "$HOME/.bash_profile" ]] && source "$HOME/.bash_profile"
+### * ~/.path can be used to extend `$PATH`.
+### * ~/.extra can be used for other settings you don’t want to commit.
+if [[ -f "${HOME}/.dotfiles/bash/.bash_profile" ]]; then
+    source "${HOME}/.dotfiles/bash/.bash_profile"
+elif [[ -f "${HOME}/.bash_profile" ]]; then
+    source "${HOME}/.bash_profile"
+fi
+
+### Enable the ssh-agent handler that helps with ssh keys
+if [[ -s "${HOME}/.dotfiles/bash/.bash_sshagent" ]]; then
+    source "${HOME}/.dotfiles/bash/.bash_sshagent"
+elif [[ -s "${HOME}/.bash_sshagent" ]]; then
+    source "${HOME}/.bash_sshagent"
 fi
 
 ############-[ HISTORY CONFIGS ]-#############
@@ -26,8 +35,6 @@ fi
 #export HISTCONTROL=$HISTCONTROL${HISTCONTROL+,}ignoredups
 ### Don't put duplicate lines or lines starting with space in the history.
 HISTCONTROL=ignoreboth
-### Append to the history file, don't overwrite it
-shopt -s histappend
 ### Store command history as one line, regardless if input as multi-line
 shopt -s cmdhist
 ### Append history so that multiple terminals will not overwrite each other
@@ -35,12 +42,14 @@ shopt -s histappend
 ### Don't try to complete if it's empty, helpful with performance
 shopt -s no_empty_cmd_completion
 ### For setting history length see HISTSIZE and HISTFILESIZE
-HISTSIZE=100000
-HISTFILESIZE=2000
+# for memory scrollback
+HISTSIZE=10000
+# for history file (e.g. bash_history)
+HISTFILESIZE=10000
 
 ### check the window size after each command and, if necessary,
 ### update the values of LINES and COLUMNS.
-shopt -s checkwinsize
+shopt -sq checkwinsize
 
 ### If set, the pattern "**" used in a pathname expansion context will
 ### match all files and zero or more directories and subdirectories.
@@ -104,13 +113,17 @@ if ! shopt -oq posix; then
   fi
 fi
 
-### Load RVM, even for scripts so our installers work
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
-# Kali style
-[[ -s "/etc/profile.d/rvm.sh" ]] && source "/etc/profile.d/rvm.sh"
-
 # Set a default editor
 export EDITOR=nano
+
+### Load RVM to PATH for scripting
+#TODO: Not sure which of these lines is correct
+#[[ -d "${HOME}/.rvm" ]] && export PATH="${HOME}/.rvm/bin:$PATH"
+# This line loads rvm and ensures that scripts can call 'rvm' in them
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
+
+# Kali style
+[[ -s "/etc/profile.d/rvm.sh" ]] && source "/etc/profile.d/rvm.sh"
 
 ### Load Python Virtualenvwrapper Script helper
 [[ -s "/usr/local/bin/virtualenvwrapper.sh" ]] && source "/usr/local/bin/virtualenvwrapper.sh"
@@ -120,8 +133,5 @@ export EDITOR=nano
 [[ -d "${HOME}/.nvm" ]] && export NVM_DIR="${HOME}/.nvm"
 [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh"
 
-### Enable the ssh-agent handler that helps with ssh keys
-[[ -s "${HOME}/.dotfiles/bash/.bash_sshagent" ]] && source "${HOME}/.dotfiles/bash/.bash_sshagent"
-
 # Go Lang PATH support
-[[ -d ${HOME} ]] && export GOPATH="${HOME}/workspace"
+[[ -d "${HOME}/workspace" ]] && export GOPATH="${HOME}/workspace"

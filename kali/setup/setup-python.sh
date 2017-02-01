@@ -70,7 +70,10 @@ $SUDO apt-get -y install libxml2-dev libxslt1-dev zlib1g-dev
 $SUDO apt-get -y install libpq-dev
 
 # =====[ Pip Setup ]===== #
-pip install pip --upgrade
+pip install --upgrade pip
+# This method would be used on Windows
+# Source: https://pip.pypa.io/en/stable/installing/#upgrading-pip
+#python -m pip install --upgrade pip
 
 # Install base pip files
 file="/tmp/requirements.txt"
@@ -155,11 +158,16 @@ mkvirtualenv env-${py2version} -p /usr/bin/python${py2version}
 deactivate
 
 # Add lines to shell dot-file if they aren't there
-echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET}  Updating Shell Startup - ${GREEN}${SHELL_FILE}${RESET}"
+# Note: Prefer normal loading versus lazy loading here because lazy loading
+# will not have tab completion until after you've run at least 1 command (e.g. workon <tab>)
+# Source: https://virtualenvwrapper.readthedocs.io/en/latest/install.html
+echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET}  Updating Shell dotfile for virtualenvwrapper - ${GREEN}${SHELL_FILE}${RESET}"
 file=$SHELL_FILE
 grep -q '^### Load Python Virtualenvwrapper' "${file}" 2>/dev/null \
     || echo '### Load Python Virtualenvwrapper Script helper' >> "${file}"
-grep -q '^[[ -s "/usr/local/bin/virtualenvwrapper.sh".*' "${file}" 2>/dev/null \
+
+# TODO: Improve this regex
+grep -q '^.*"/usr/local/bin/virtualenvwrapper.sh".*' "${file}" 2>/dev/null \
     || echo '[[ -s "/usr/local/bin/virtualenvwrapper.sh" ]] && source "/usr/local/bin/virtualenvwrapper.sh"' >> "${file}"
 grep -q 'export WORKON_HOME=' "${file}" 2>/dev/null \
     || echo 'export WORKON_HOME=$HOME/.virtualenvs' >> "${file}"
@@ -190,6 +198,19 @@ fi
 # new tool called autoenv that will auto-activate a virtualenv when you cd into a folder
 # that contains a .env file
 # Project:https://github.com/kennethreitz/autoenv
+
+
+
+mkvirtualenv py3-scrapy -p /usr/bin/python${py3version}
+pip install Scrapy
+
+deactivate
+
+
+
+
+
+
 
 
 function finish {

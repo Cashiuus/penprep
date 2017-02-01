@@ -1,6 +1,6 @@
 #!/bin/bash
 ## =============================================================================
-# Filename: setup-ssh-server.sh
+# File:     setup-ssh-server.sh
 #
 # Author:   Cashiuus
 # Created:  01-Dec-2015 - (Revised: 11-Dec-2016)
@@ -28,8 +28,6 @@
 __version__="1.2"
 __author__='Cashiuus'
 ## ========[ TEXT COLORS ]=============== ##
-# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
-# [https://en.wikipedia.org/wiki/ANSI_escape_code]
 GREEN="\033[01;32m"    # Success
 YELLOW="\033[01;33m"   # Warnings/Information
 RED="\033[01;31m"      # Issues/Errors
@@ -38,23 +36,30 @@ PURPLE="\033[01;35m"   # Other
 ORANGE="\033[38;5;208m" # Debugging
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
-## =========[ CONSTANTS / DEFAULTS ]================ ##
+## ============[ CONSTANTS ]================ ##
 START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
+APP_ARGS=$@
 DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
-LINES=$(tput lines)
-COLS=$(tput cols)
 
-APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
-# ===============================[ Check Permissions ]============================== #
-ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
-## Exit if the script was not launched by root or through sudo
-if [[ ${EUID} -ne 0 ]]; then
-    echo "[-] The script needs to run as sudo/root" && exit 1
-fi
+#======[ ROOT PRE-CHECK ]=======#
+function check_root() {
+    if [[ $EUID -ne 0 ]];then
+        #ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
+        if [[ $(dpkg-query -s sudo) ]];then
+            export SUDO="sudo"
+            # $SUDO - run commands with this prefix now to account for either scenario.
+        else
+            echo -e "${RED}[ERROR] Please install sudo or run this as root. Exiting.${RESET}"
+            exit 1
+        fi
+    fi
+}
+check_root
 
 ## ================================================================================ ##
 # ============================[ Preparations / Settings ]=========================== #
@@ -84,7 +89,7 @@ SSH_USER_DIR="\${HOME}/.ssh"
 SSH_AUTH_KEYS="\${SSH_USER_DIR}/authorized_keys"
 
 SSH_AUTOSTART=true
-ALLOW_ROOT_LOGIN=false
+ALLOW_ROOT_LOGIN=true
 DO_PW_AUTH=true
 DO_PUBKEY_AUTH=true
 
@@ -115,7 +120,7 @@ grep -q '^ALLOW_ROOT_LOGIN=' "${APP_SETTINGS}" 2>/dev/null \
 [[ "$ALLOW_ROOT_LOGIN" = false ]] \
     && echo -e "${YELLOW}[INFO] Root SSH Login set to disabled; Change sshd_config to enable.${RESET}"
 
-# ===============================[  BEGIN  ]================================== #
+# ===============================[  BEGIN INSTALL  ]================================== #
 
 echo -e "${GREEN}[*]${RESET} Disabling SSH service while we reconfigure..."
 #update-rc.d -f ssh remove
@@ -134,7 +139,7 @@ if [[ ! -d insecure_original_kali_keys ]]; then
     mv ssh_host_* insecure_original_kali_keys/
 fi
 
-# ===============================[  SSH Server Setup ]================================== #
+# ===============================[  SSH Server Setup  ]================================== #
 function version () {
     echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
 }
@@ -401,7 +406,7 @@ function restrict_login_geoip() {
     # Test it out
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Performing a test lookup with command 'geoiplookup 8.8.8.8' now...${RESET}"
     [[ "$DEBUG" = true ]] && geoiplookup 8.8.8.8
-    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Did it work? Press any key to continue...${RESET}"
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Did it work? Press ENTER to continue...${RESET}"
     [[ "$DEBUG" = true ]] && read
 
     # Create script that will check IPs and return True or False
