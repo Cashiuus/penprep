@@ -115,7 +115,13 @@ pack-index=3
 pack-type='start'
 toplevel-id='top-panel'
 EOF
-    $SUDO dconf write /org/gnome/gnome-panel/layout/object-id-list "$(dconf read /org/gnome/gnome-panel/layout/object-id-list | sed "s/]/, 'geany']/")"
+    if [[ $(dconf read /org/gnome/gnome-panel/layout/object-id-list) ]]; then
+        echo -e "${DEBUG}[DEBUG] gnome-panel object-id-list exists, modifying..."
+        $SUDO dconf write /org/gnome/gnome-panel/layout/object-id-list "$($SUDO dconf read /org/gnome/gnome-panel/layout/object-id-list | sed "s/]/, 'geany']/")"
+    else
+        echo -e "${DEBUG}[DEBUG] gnome-panel object-id-list empty, adding geany..."
+        $SUDO dconf write /org/gnome/gnome-panel/layout/object-id-list "['geany',]"
+    fi
 fi
 
 # =============================[ CONFIGURE GEANY ]================================ #
