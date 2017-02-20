@@ -45,18 +45,22 @@ import mechanize
 LOG_FILE = 'public-ip.log'
 
 # ========================[ CORE UTILITY FUNCTIONS ]======================== #
-def check_network():
+def check_network(host="8.8.8.8", port=53, timeout=3):
     """
     Check for a valid network connection by attempting to contact the Google DNS server.
     :return:
     """
     try:
-        socket.create_connection(('8.8.8.8', 80))
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        #socket.create_connection(('8.8.8.8', 80))
         # If this succeeds, it passes here
-        return 0
-    except socket.error as msg:
-        print("\n[ERROR] No network connection detected.\n")
-        return 1
+        #return 0
+        return True
+    except socket.error as err:
+        print("\n[ERROR] No network connection detected. Error {}\n".format(err))
+        #return 1
+        return False
 
 
 
@@ -87,7 +91,7 @@ def retrieve_public_ip():
 
 
 def main():
-    if check_network() == 0:
+    if check_network():
         retrieve_public_ip()
     return
 
