@@ -10,12 +10,6 @@
 import os
 
 
-HOME_DRIVE = os.environ.get('HOMEDRIVE')
-USER_NAME = os.environ.get('USERNAME')
-PATH_USER_HOME = os.environ.get('HOME')
-PATH_APPDATA = os.environ.get('APPDATA')
-PATH_LOCALAPPDATA = os.environ.get('LOCALAPPDATA')
-
 # If any source files are on a USB Drive, specify its letter here.
 # The script checks that it's connected to avoid a conflict if it's
 # not connected. If not using a USB, just leave variable blank.
@@ -26,6 +20,13 @@ BACKUP_PATH = os.path.join(os.path.expanduser('~'), 'Backups', 'Windows')
 # Designate a file prefix for the output archive. This prefix will
 # prepend a date-stamp; e.g. 'Backup-Windows-20160503.zip
 BACKUP_PREFIX = 'Backup-Windows-'
+
+# ===[ Get our user-based paths ]===
+HOME_DRIVE = os.environ.get('HOMEDRIVE')
+USER_NAME = os.environ.get('USERNAME')
+PATH_USER_HOME = os.environ.get('HOME')
+PATH_APPDATA = os.environ.get('APPDATA')
+PATH_LOCALAPPDATA = os.environ.get('LOCALAPPDATA')
 
 # Populate the empty list below with files you want to backup
 FILE_LIST = [
