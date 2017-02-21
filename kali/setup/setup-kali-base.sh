@@ -129,11 +129,12 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_darkness 0.95
 
   # ====[ Configure - Nautilus ]==== #
+  gsettings set org.gnome.nautilus.desktop home-icon-visible true                   # Default: false
   dconf write /org/gnome/nautilus/preferences/show-hidden-files true
   gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
   gsettings set org.gnome.nautilus.preferences search-view 'list-view'              # Default: 'icon-view'
   gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'             # Choices: small, standard,
-  gsettings set org.gnome.nautilus.icon-view thumbnail-size 54                      # Default: 64
+  #gsettings set org.gnome.nautilus.icon-view thumbnail-size 54                      # Default: 64
   gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'type', 'date_modified']"
   gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
   gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'standard'
