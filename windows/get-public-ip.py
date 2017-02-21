@@ -38,31 +38,63 @@ from __future__ import print_function
 ## =======[ IMPORTS & CONSTANTS ]========= ##
 import datetime
 import os
+import socket
 
 import mechanize
 
 LOG_FILE = 'public-ip.log'
 
 # ========================[ CORE UTILITY FUNCTIONS ]======================== #
-# Setup the browser object and necessary HTTP headers
-br = mechanize.Browser()
-br.add_headers = [('User-agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.114 Safari/537.36')]
-
-# Does log file exist yet?
-if not os.path.isfile(LOG_FILE):
-    with open(LOG_FILE, 'w') as f:
-        f.write('# =============[ Public IP Address Log ]============= #\n')
-
-# The 'with' context manager closes the file for us when it's done
-with open(LOG_FILE, 'a') as f:
-    f.write('\n')
-    # Get IP and save it
+def check_network(host="8.8.8.8", port=53, timeout=3):
+    """
+    Check for a valid network connection by attempting to contact the Google DNS server.
+    :return:
+    """
     try:
-        response = br.open('http://api.ipify.org')
-        response = response.read()
-        print("Public IP: {}\n".format(response))
-        output = str(datetime.date.today()) + '\t' + response
-        # Write my IP to file
-        f.write(output)
-    except:
-        print("[-] Error with HTTP Request")
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        #socket.create_connection(('8.8.8.8', 80))
+        # If this succeeds, it passes here
+        #return 0
+        return True
+    except socket.error as err:
+        print("\n[ERROR] No network connection detected. Error {}\n".format(err))
+        #return 1
+        return False
+
+
+
+def retrieve_public_ip():
+    # Setup the browser object and necessary HTTP headers
+    br = mechanize.Browser()
+    br.add_headers = [('User-agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.114 Safari/537.36')]
+
+    # Does log file exist yet?
+    if not os.path.isfile(LOG_FILE):
+        with open(LOG_FILE, 'w') as f:
+            f.write('# =============[ Public IP Address Log ]============= #\n')
+
+    # The 'with' context manager closes the file for us when it's done
+    with open(LOG_FILE, 'a') as f:
+        f.write('\n')
+        # Get IP and save it
+        try:
+            response = br.open('http://api.ipify.org')
+            response = response.read()
+            print("Public IP: {}\n".format(response))
+            output = str(datetime.date.today()) + '\t' + response
+            # Write my IP to file
+            f.write(output)
+        except:
+            print("[-] Error with HTTP Request")
+    return
+
+
+def main():
+    if check_network():
+        retrieve_public_ip()
+    return
+
+
+if __name__ == '__main__':
+    main()
