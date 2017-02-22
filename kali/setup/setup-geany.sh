@@ -104,7 +104,12 @@ check_root
 $SUDO apt-get -y install python-pip geany
 $SUDO pip install flake8 pep8-naming
 
-if [[ $(which gnome-shell) ]]; then
+if [[ $(dconf read /org/gnome/gnome-panel/layout/object-id-list) ]]; then
+    # NOTE: Debian 8 default install has no "gnome-panel" key folder
+    # Skipping the 'else' clause for now because if the key isn't there, writing fails
+
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] gnome-panel object-id-list exists, modifying...${RESET}"
+
     $SUDO dconf load /org/gnome/gnome-panel/layout/objects/geany/ << EOF
 [instance-config]
 location='/usr/share/applications/geany.desktop'
@@ -115,13 +120,9 @@ pack-index=3
 pack-type='start'
 toplevel-id='top-panel'
 EOF
-    if [[ $(dconf read /org/gnome/gnome-panel/layout/object-id-list) ]]; then
-        echo -e "${DEBUG}[DEBUG] gnome-panel object-id-list exists, modifying..."
-        $SUDO dconf write /org/gnome/gnome-panel/layout/object-id-list "$($SUDO dconf read /org/gnome/gnome-panel/layout/object-id-list | sed "s/]/, 'geany']/")"
-    else
-        echo -e "${DEBUG}[DEBUG] gnome-panel object-id-list empty, adding geany..."
-        $SUDO dconf write /org/gnome/gnome-panel/layout/object-id-list "['geany',]"
-    fi
+
+    $SUDO dconf write /org/gnome/gnome-panel/layout/object-id-list "$($SUDO dconf read /org/gnome/gnome-panel/layout/object-id-list | sed "s/]/, 'geany']/")"
+
 fi
 
 # =============================[ CONFIGURE GEANY ]================================ #

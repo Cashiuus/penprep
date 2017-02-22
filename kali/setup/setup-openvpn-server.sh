@@ -358,7 +358,8 @@ server ${VPN_SUBNET} 255.255.255.0
 
 # Redirect clients' default gateway, bypassing dhcp server issues
 push "redirect-gateway def1 bypass-dhcp"
-push "dhcp-option DNS 8.8.8.8"
+# Disabling this for now
+#push "dhcp-option DNS 8.8.8.8"
 
 ### Client Settings
 client-to-client
@@ -449,9 +450,10 @@ esac
 
 # TODO: Ensure Apache is not bound to port 443 (ssl) or server cannot bind to port 443
 # NOTE: Disable SSL anytime with command: a2dismod ssl; service apache2 restart
+sleep 3s
 echo -e "${GREEN}[*]${RESET} Netstat of VPN Server - is port ${VPN_PORT} listening?"
 netstat -nutlap | grep "${VPN_PORT}"
-sleep 3s
+sleep 5s
 
 echo -e "\n${GREEN}============================================================${RESET}"
 echo -e "\tVPN SERVER:\t${VPN_SERVER}"
@@ -463,8 +465,6 @@ echo -e "\t\t${GREEN}[*]${RESET} OpenVPN Setup Complete!\n\n"
 
 
 function finish {
-    # Any script-termination routines go here, but function cannot be empty
-    clear
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
     echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
     # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
@@ -472,3 +472,10 @@ function finish {
 }
 # End of script
 trap finish EXIT
+
+
+
+# =========================[ RELEASE NOTES / CHANGES ] ======================
+#   OpenVPN 2.4 removed tls-remote option. Current setups using that option
+#     will fail to work. Update your configuration to use verify-x509-name
+#     instead.

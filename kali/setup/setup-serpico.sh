@@ -47,8 +47,8 @@ fi
 # ===============================[  BEGIN  ]================================== #
 # RVM
 if [[ ! $(which rvm) ]]; then
-	echo -e "[-] Please first install RVM and run this setup again, goodbye!"
-	exit 1
+    echo -e "[-] Please first install RVM and run this setup again, goodbye!"
+    exit 1
 fi
 
 apt-get -y install libsqlite3-dev libxslt-dev libxml2-dev zlib1g-dev gcc \
@@ -59,13 +59,10 @@ cd /opt
 git clone https://github.com/SerpicoProject/Serpico
 cd Serpico
 
-# TODO: Something wrong with version 2.1.5, using 2.1-head for now.
-#rvm install ruby-2.1.5
-#rvm use ruby-2.1.5
 rvm install ruby-2.1-head
 rvm use ruby-2.1-head
 
-# This also means modifying the Serpico Gemfile to allow setup
+# Something wrong with ruby 2.1.5, so changing req's to 2.1.10
 file='/opt/Serpico/Gemfile'
 sed -i s'|^ruby "2.1.5"|ruby "2.1.10"|' "${file}"
 

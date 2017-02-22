@@ -9,7 +9,7 @@ APP_SETTINGS="${HOME}/.config/kali-builder/settings.conf"
 LINES=$(tput lines)
 COLS=$(tput cols)
 
-# ===============================[ Check Permissions ]============================== #
+# -===[ Check Permissions ]===-
 function check_root {
     ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
     #

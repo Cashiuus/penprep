@@ -568,7 +568,7 @@ function finish {
 # End of script
 trap finish EXIT
 
-# ================================[ SSH NOTES ]===================================
+### ================================[ SSH NOTES ]=================================== ###
 # ssh-keygen
 #   -q                      Quiet mode
 #   -b #                    No. of bits; RSA keys - min 1024, default is 2048
@@ -597,3 +597,43 @@ trap finish EXIT
 
 # Check for any Invalid User Login Attempts
 #cat /var/log/auth.log | grep "Invalid user" | cut -d " " -f 1-3,6-11 | uniq | sort
+### ==============================[ RELEASE NOTES/CHANGES ]================================= ###
+#  OpenSSH 7.4 includes a number of changes that may affect existing
+#  configurations:
+
+#   * ssh(1): Remove 3des-cbc from the client's default proposal.  64-bit
+#     block ciphers are not safe in 2016 and we don't want to wait until
+#     attacks like SWEET32 are extended to SSH.  As 3des-cbc was the only
+#     mandatory cipher in the SSH RFCs, this may cause problems connecting to
+#     older devices using the default configuration, but it's highly likely
+#     that such devices already need explicit configuration for key exchange
+#     and hostkey algorithms already anyway.
+#   * sshd(8): Remove support for pre-authentication compression.  Doing
+#     compression early in the protocol probably seemed reasonable in the
+#     1990s, but today it's clearly a bad idea in terms of both cryptography
+#     (cf. multiple compression oracle attacks in TLS) and attack surface.
+#     Pre-auth compression support has been disabled by default for >10
+#     years.  Support remains in the client.
+#   * ssh-agent will refuse to load PKCS#11 modules outside a whitelist of
+#     trusted paths by default.  The path whitelist may be specified at
+#     run-time.
+#   * sshd(8): When a forced-command appears in both a certificate and an
+#     authorized keys/principals command= restriction, sshd will now refuse
+#     to accept the certificate unless they are identical.  The previous
+#     (documented) behaviour of having the certificate forced-command
+#     override the other could be a bit confusing and error-prone.
+#   * sshd(8): Remove the UseLogin configuration directive and support for
+#     having /bin/login manage login sessions.
+#
+#  The unprivileged sshd process that deals with pre-authentication network
+#  traffic is now subject to additional sandboxing restrictions by default:
+#  that is, the default sshd_config now sets UsePrivilegeSeparation to
+#  "sandbox" rather than "yes".  This has been the case upstream for a while,
+#  but until now the Debian configuration diverged unnecessarily.
+
+
+
+
+
+
+

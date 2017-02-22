@@ -1,0 +1,29 @@
+[
+	{
+		"opt": {
+			"pentest": {
+				"pre-engagement": {
+
+				},
+				"intel-gathering": {
+
+				},
+				"threat-modeling": {
+
+				},
+				"vulnerability-analysis": {
+
+				},
+				"exploitation": {
+
+				},
+				"post-exploitation": {
+
+				},
+				"reporting": {
+
+				}
+			}
+		}
+	}
+]

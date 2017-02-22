@@ -34,8 +34,8 @@ gsettings set org.gnome.desktop.session idle-delay 0
 
 # ===[ RAM check ]=== #
 if [[ "$(free -m | grep -i Mem | awk '{print $2}')" < 2048 ]]; then
-  echo -e "\n${RED}[WARN]${RED} You have 2GB or less RAM and you're using GNOME${RESET}"
-  echo -e "${YELLOW}[INFO] You might want to use XFCE instead${RESET}..."
+  echo -e "\n${RED}[WARN] You have 2GB or less RAM and you're using GNOME${RESET}"
+  echo -e "${YELLOW}[INFO] ${RESET}You might want to use XFCE instead. Press CTRL-C to quit."
   sleep 15s
 fi
 
@@ -104,7 +104,7 @@ gsettings set org.freedesktop.Tracker.Miner.Files enable-monitors false
 
 # Modify the default "favorite apps"
 gsettings set org.gnome.shell favorite-apps \
-    "['gnome-terminal.desktop', 'org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
+    "['org.gnome.Terminal.desktop', 'org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
 
 # ====[ GNOME Desktop Settings ]==== #
 gsettings set org.gnome.desktop.background show-desktop-icons true
@@ -115,8 +115,8 @@ gsettings set org.gnome.desktop.wm.preferences titlebar-font "'Droid Bold 10'"  
 gsettings set org.gnome.shell.overrides dynamic-workspaces false
 gsettings set org.gnome.desktop.wm.preferences num-workspaces 3
 # Top bar
-gsettings set org.gnome.desktop.interface clock-show-date true
 gsettings set org.gnome.desktop.datetime automatic-timezone true
+gsettings set org.gnome.desktop.interface clock-show-date true
 gsettings set org.gnome.desktop.interface clock-format '12h'                      # Default: 24h
 gsettings set org.gnome.desktop.interface toolbar-icons-size 'small'              # Default: 'large'
 # Privacy
