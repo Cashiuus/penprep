@@ -3,7 +3,7 @@
 # File:     geany-copy-templates.sh
 #
 # Author:   Cashiuus
-# Created:  02/20/2016  - (Revised: 16-Dec-2016)
+# Created:  02/20/2016  - (Revised: 21-Feb-2017)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -11,11 +11,11 @@
 #
 #
 ## =============================================================================
-__version__="1.0"
+__version__="1.1"
 __author__="Cashiuus"
-SCRIPT_DIR=$(readlink -f $0)
-APP_BASE=$(dirname ${SCRIPT_DIR})
+APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
+APP_BASE=$(dirname "${APP_PATH}")
 
 
-cp -u ~/.config/geany/templates/files/a.sh "${APP_BASE}/main-shells/"
-cp -u ~/.config/geany/templates/files/main.py "${APP_BASE}/main-shells/"
+cp -u ~/.config/geany/templates/files/file.sh "${APP_BASE}/geany/"
+cp -u ~/.config/geany/templates/files/main.py "${APP_BASE}/geany/"

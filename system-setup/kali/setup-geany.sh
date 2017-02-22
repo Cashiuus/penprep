@@ -3,8 +3,7 @@
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Revised:  30-Jan-2017
-# Created:  10-Oct-2015
+# Created:  10-Oct-2015     Revised:  21-Feb-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Configure Geany settings on fresh linux install
@@ -13,19 +12,18 @@
 #-[ Notes ]-------------------------------------------------------------------------------
 #
 #
-#
+#   TODO:
+#       - App shortcut is at: /usr/share/applications/geany.desktop, add to favorites?
 #
 #-[ Links/Credit ]------------------------------------------------------------------------
 #
 #
 #
-#   TODO:
-#   - App shortcut is at: /usr/share/applications/geany.desktop, add to favorites?
 #
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.3"
+__version__="1.4"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -49,7 +47,7 @@ APP_ARGS=$@
 DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
 BACKUPS_DIR="${HOME}/Backups/geany"
-GEANY_TEMPLATES="${APP_BASE}/../../templates/main-shells"
+GEANY_TEMPLATES="${APP_BASE}/../../templates/geany"
 #======[ ROOT PRE-CHECK ]=======#
 function install_sudo() {
     # If
@@ -160,8 +158,8 @@ if [[ -e "${file}" ]]; then
     sed -i 's/^.*pref_search_hide_find_dialog=.*/pref_search_hide_find_dialog=true/' "${file}"
 
     #pref_template_developer=
-    #pref_template_mail=cashiuus@gmail.com
-    #pref_template_initial=JMH
+    #pref_template_mail=
+    #pref_template_initial=
 
     #sed -i 's#^.*project_file_path=.*#project_file_path=/root/#' "${file}"
     #grep -q '^custom_commands=sort;' "${file}" || sed -i 's/\[geany\]/[geany]\ncustom_commands=sort;/' "${file}"
@@ -325,7 +323,6 @@ function geany_templates() {
         echo -e "${GREEN}[*]${RESET} Geany File Templates have been copied over, enjoy!"
     fi
 }
-
 # Copy over our custom code template files
 geany_templates
 

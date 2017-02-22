@@ -284,6 +284,12 @@ trap finish EXIT
 #   https://github.com/lingtalfi/bashmanager
 #
 #
+# Debugging BASH scripts
+#
+#   Run the script with debug mode enabled:
+#       bash -x script.sh
+#
+#
 # =============[ Styleguide Recommendations ]============ #
 #   line length =   80 (I'm using 90-100 though)
 #   functions   =   lower-case with underscores, must use () after func, "function" optional, be consistent
@@ -345,7 +351,9 @@ trap finish EXIT
 # -====[ Output Suppression/Redirection ]====-
 #   >/dev/null 1>&2         Supress all output (1), including errors (2)
 #
-#
+#   Replace or Append content to files that require sudo privilege to modify:
+#       echo "alpha" | sudo tee /etc/some/important/file
+#       echo "bravo" | sudo tee -a /etc/some/important/file
 #
 # ============[ Variables ]===============
 #
