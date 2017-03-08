@@ -24,7 +24,7 @@ BACKUP_PREFIX = 'Backup-Windows-'
 # ===[ Get our user-based paths ]===
 HOME_DRIVE = os.environ.get('HOMEDRIVE')
 USER_NAME = os.environ.get('USERNAME')
-PATH_USER_HOME = os.environ.get('HOME')
+PATH_USER_HOME = os.environ.get('USERPROFILE')
 PATH_APPDATA = os.environ.get('APPDATA')
 PATH_LOCALAPPDATA = os.environ.get('LOCALAPPDATA')
 
