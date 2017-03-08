@@ -50,6 +50,13 @@ import sys
 import time
 import zipfile
 
+__version__ = 1.8
+__author__ = 'Cashiuus'
+VERBOSE = 0
+# ========================[ CORE UTILITY FUNCTIONS ]======================== #
+def install_pkg(package):
+    pip.main(['install', package])
+
 ### Imports with exception handling
 try: from colorama import init, Fore
 except ImportError: install_pkg('colorama')
@@ -57,14 +64,6 @@ try: from colorama import init, Fore
 except ImportError:
     print("[ERROR] Unable to locate or install pip package 'colorama'")
     exit(1)
-
-__version__ = 1.7
-__author__ = 'Cashiuus'
-VERBOSE = 0
-# ========================[ CORE UTILITY FUNCTIONS ]======================== #
-def install_pkg(package):
-    pip.main(['install', package])
-
 
 def check_ccleaner():
     # If the .ini file does not exist, run the command to create them
