@@ -3,7 +3,7 @@
 # File:     setup-kali-base.sh
 #
 # Author:   Cashiuus
-# Created:  27-Jan-2016  - Revised: 20-Feb-2017
+# Created:  27-Jan-2016  - Revised: 21-Feb-2017
 #
 # Purpose:  Setup bare bones kali with reasonable default options & packages
 #           This script will perform a required reboot if vm-tools is not installed.
@@ -55,15 +55,6 @@ function print_banner() {
 print_banner
 sleep 4
 
-# (Re-)configure hostname
-echo -e -n "${GREEN}[+]${RESET}"
-read -e -t 10 -p " Enter new hostname or just press enter : " RESPONSE
-echo -e
-if [[ $RESPONSE != "" ]]; then
-    $SUDO hostname $RESPONSE
-    echo "$response" > /etc/hostname
-fi
-
 # =============================[ Setup VM Tools ]================================ #
 # https://github.com/vmware/open-vm-tools
 if [[ ! $(which vmware-toolbox-cmd) ]]; then
@@ -74,14 +65,27 @@ if [[ ! $(which vmware-toolbox-cmd) ]]; then
 fi
 
 
+# (Re-)configure hostname
+echo -e -n "${GREEN}[+]${RESET}"
+read -e -t 10 -p " Enter new hostname or just press enter : " RESPONSE
+echo -e
+if [[ $RESPONSE != "" ]]; then
+    $SUDO hostname $RESPONSE
+    echo "$response" > /etc/hostname
+fi
+
 # =============================[ Dotfiles ]================================ #
 if [[ -d "${APP_BASE}/../../dotfiles" ]]; then
   echo -e -n "${GREEN}[+]${RESET}"
   read -e -t 5 -i "Y" -p " Perform simple install of dotfiles? [Y,n] : " RESPONSE
   echo -e
-  if [[ $RESPONSE == "Y" ]]; then
-    source "${APP_BASE}/../../dotfiles/install_simple.sh"
-  fi
+
+  case $response in
+    [Yy]* ) source "${APP_BASE}/../../dotfiles/install_simple.sh";;
+  esac
+  #if [[ $RESPONSE == "Y" ]]; then
+  #  source "${APP_BASE}/../../dotfiles/install_simple.sh"
+  #fi
 fi
 
 # =============================[ APT Packages ]================================ #
@@ -95,21 +99,19 @@ echo -e "${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wai
 export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y dist-upgrade
-$SUDO apt-get -y install build-essential curl locate sudo gcc git git-core make
+$SUDO apt-get -y install build-essential curl locate sudo gcc git make
 $SUDO apt-get -y install htop sysv-rc-conf
 
-# Extra base load
+# Kali metapackages we want installed in case they already aren't
+$SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
+  kali-linux-voip kali-linux-web kali-linux-wireless
+
+# Extra packages - just in case they are missing
 $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
-    kali-linux-pwtools kali-linux-sdr kali-linux-top10 kali-linux-voip kali-linux-web \
-    kali-linux-wireless mitmproxy nikto openssh-server openssl proxychains rdesktop responder \
-    screen shellter sqlmap tmux tshark vlan whatweb wifite windows-binaries wpscan yersinia zsh
-
-
-# TODO: Still need this?
-# Add dpkg for opposing architecture "dpkg --add-architecture amd64
+  mitmproxy nikto openssh-server openssl proxychains rdesktop responder \
+  screen shellter sqlmap tmux tshark vlan whatweb wifite windows-binaries wpscan yersinia zsh
 
 # =============================[ System Configurations]================================ #
-
 # Configure Static IP
 #read -n 5 -p "[+] Enter static IP Address or just press enter for DHCP : " -e response
 #if [[ $response != "" ]]; then
@@ -194,10 +196,6 @@ fi
 #   Start Nemo desktop at login
 
 # Optional add-ons: sudo apt-get install nemo-compare nemo-dropbox nemo-media-columns nemo-pastebin nemo-seahorse nemo-share nemo-emblems nemo-image-converter nemo-audio-tab
-
-
-
-
 
 
 
