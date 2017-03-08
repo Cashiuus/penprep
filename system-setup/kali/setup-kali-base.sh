@@ -91,7 +91,7 @@ fi
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
 echo -e "${GREEN}[*] ${RESET}Restting sources.list to the 2 preferred kali entries"
-echo "\n# kali-rolling" | $SUDO tee /etc/apt/sources.list
+echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
 echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
 echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
 
@@ -141,7 +141,8 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
   gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'standard'
   gsettings set org.gnome.nautilus.list-view use-tree-view true                     # Default: false
-  gsettings set org.gnome.nautilus.preferences sort-directories-first true          # Default: false
+  # This setting no longer exists
+  #gsettings set org.gnome.nautilus.preferences sort-directories-first true          # Default: false
   gsettings set org.gnome.nautilus.window-state sidebar-width 160                   # Default: 188
   gsettings set org.gnome.nautilus.window-state start-with-sidebar true             # Default: true
   gsettings set org.gnome.nautilus.window-state maximized false                     # Default: false

@@ -54,6 +54,8 @@ check_root
 # =============================[ Install & Setup ]================================ #
 
 # NOTE: Do not install "conky", it is deprecated, instead you install it as "conky-all"
+# This might be due to which repo the latest conky gets served from. On Debian, latest
+# conky version comes from the next release after Jessie.
 $SUDO apt-get -y install conky-all
 
 
