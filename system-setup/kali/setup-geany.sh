@@ -3,7 +3,7 @@
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Created:  10-Oct-2015     Revised:  21-Feb-2017
+# Created:  10-Oct-2015     Revised:  09-Mar-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Configure Geany settings on fresh linux install
@@ -23,7 +23,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.4"
+__version__="1.5"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -44,7 +44,7 @@ APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_ARGS=$@
 
-DEBUG=true
+DEBUG=false
 LOG_FILE="${APP_BASE}/debug.log"
 BACKUPS_DIR="${HOME}/Backups/geany"
 GEANY_TEMPLATES="${APP_BASE}/../../templates/geany"

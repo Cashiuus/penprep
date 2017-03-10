@@ -249,9 +249,9 @@ enable_extensions
 echo -e "${GREEN}[*]${RESET} Configuring GNOME 3rd Party Extension gsettings..."
 
 # ====[ Ext: Dash-to-Dock settings ]==== #
-gsettings set org.gnome.shell.extensions.dash-to-dock extend-height true        # Set dock to use full height
-gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'LEFT'      # Set dock to the right
-gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true           # Set dock always visible
+#gsettings set org.gnome.shell.extensions.dash-to-dock extend-height true        # Set dock to use full height
+#gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'LEFT'      # Set dock to the right
+#gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true           # Set dock always visible
 
 # ====[ Ext: TaskBar (Global) ]==== #
 # Schema: https://github.com/zpydr/gnome-shell-extension-taskbar/blob/master/schemas/org.gnome.shell.extensions.TaskBar.gschema.xml

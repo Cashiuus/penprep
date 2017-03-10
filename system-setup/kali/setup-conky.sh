@@ -15,7 +15,7 @@
 #   Conky Colors:   https://en.wikipedia.org/wiki/X11_color_names
 #                   http://www.graphviz.org/doc/info/colors.html
 ## =======================================================================================
-__version__="1.02"
+__version__="1.2"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"     # Success
@@ -28,10 +28,13 @@ BOLD="\033[01;01m"      # Highlight
 RESET="\033[00m"        # Normal
 ## =========[ CONSTANTS ]================ ##
 START_TIME=$(date +%s)
-APP_PATH=$(readlink -f $0)
+APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
+APP_ARGS=$@
+DEBUG=false
+LOG_FILE="${APP_BASE}/debug.log"
 
 USE_OLD_CONKY=0
 OLD_CONKY_CONF="${HOME}/.conkyrc"
