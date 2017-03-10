@@ -251,18 +251,14 @@ function is_process_alive() {
 }
 
 
-function finish {
+function finish() {
   ###
-  # finish function
-  # Any script-termination routines go here, but function cannot be empty
+  # finish function: Any script-termination routines go here, but function cannot be empty
   #
   ###
-  clear
+  #clear
   [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
   echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
-  # Redirect app output to log, sending both stdout and stderr
-  # *NOTE: This method will not parse color codes, therefore fails color output
-  # cmd_here 2>&1 | tee -a "${LOG_FILE}"
 
   FINISH_TIME=$(date +%s)
   echo -e "${GREEN}[*] Kali Base Setup Completed Successfully ${YELLOW} --(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)--\n${RESET}"
@@ -355,6 +351,14 @@ trap finish EXIT
 #   Replace or Append content to files that require sudo privilege to modify:
 #       echo "alpha" | sudo tee /etc/some/important/file
 #       echo "bravo" | sudo tee -a /etc/some/important/file
+#
+#
+# Redirect app output to log, sending both stdout and stderr
+# *NOTE: This method will not parse color codes, therefore fails color output
+# cmd_here 2>&1 | tee -a "${LOG_FILE}"
+#
+#
+#
 #
 # ============[ Variables ]===============
 #
