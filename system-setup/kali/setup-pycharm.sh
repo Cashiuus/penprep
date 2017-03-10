@@ -1,45 +1,54 @@
-#!/bin/bash
-## =============================================================================
+#!/usr/bin/env bash
+## =======================================================================================
 # File:     setup-pycharm.sh
 #
 # Author:   Cashiuus
-# Created:  10-Dec-2016 - - - - - - (Revised: )
+# Created:  10-Dec-2016     Revised: 10-Mar-2017
 #
-# MIT License ~ http://opensource.org/licenses/MIT
-#-[ Notes ]---------------------------------------------------------------------
-# Purpose:
+#-[ Info ]-------------------------------------------------------------------------------
+# Purpose:  Download, setup pycharm, backup original pycharm settings if applicable,
+#           and create a desktop launcher with pycharm icon.
 #
 #
+#-[ Notes ]-------------------------------------------------------------------------------
 #
-# Links:
+#   TODO:
+#       - Get latest pycharm version programmatically rather than setting static constant
+#       - Determine if there is a better way to backup older version settings files
+#       -
+#
+#-[ Links/Credit ]------------------------------------------------------------------------
 #
 #   http://tutorialforlinux.com/2016/02/21/how-to-install-pycharm-python-ide-on-kali-linux-easy-guide/
-#   Quickstart Guide: http://tutorialforlinux.com/2014/09/14/debian-7-wheezy-how-to-quick-start-with-pycharm-python-ide-easy-guide/
+#   Quickstart: http://tutorialforlinux.com/2014/09/14/debian-7-wheezy-how-to-quick-start-with-pycharm-python-ide-easy-guide/
 #
-## ========================================================================== ##
+#
+#-[ Copyright ]---------------------------------------------------------------------------
+#   MIT License ~ http://opensource.org/licenses/MIT
+## =======================================================================================
 __version__="0.1"
 __author__="Cashiuus"
-## ========[ TEXT COLORS ]=============== ##
-# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
-# [https://en.wikipedia.org/wiki/ANSI_escape_code]
-GREEN="\033[01;32m"    # Success
-YELLOW="\033[01;33m"   # Warnings/Information
-RED="\033[01;31m"      # Issues/Errors
-BLUE="\033[01;34m"     # Heading
-PURPLE="\033[01;35m"   # Other
-BOLD="\033[01;01m"     # Highlight
-RESET="\033[00m"       # Normal
-## =========[ CONSTANTS ]================ ##
-APP_PATH=$(readlink -f $0)
+## ==========[ TEXT COLORS ]========== ##
+GREEN="\033[01;32m"     # Success
+YELLOW="\033[01;33m"    # Warnings/Information
+RED="\033[01;31m"       # Issues/Errors
+BLUE="\033[01;34m"      # Heading
+PURPLE="\033[01;35m"    # Other
+ORANGE="\033[38;5;208m" # Debugging
+BOLD="\033[01;01m"      # Highlight
+RESET="\033[00m"        # Normal
+## =============[ CONSTANTS ]============== ##
+START_TIME=$(date +%s)
+APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_ARGS=$@
+DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
-# These can be used to know height (LINES) and width (COLS) of current terminal in script
-LINES=$(tput lines)
-COLS=$(tput cols)
 
-PYCHARM_VERSION="2016.3"
+# TODO: Get latest pycharm version programmatically
+PYCHARM_VERSION="2016.3.2"
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]];then
@@ -73,12 +82,13 @@ fi
 if [[ -d ${HOME}/.PyCharm2016.2 ]]; then
     cp ${HOME}/.PyCharm2016.2/config/settings.jar ${HOME}/Backups/
 elif [[ -d ${HOME}/.PyCharm2016.3 ]]; then
-    cp ${HOME}/.PyCharm2016.3/config/settings.jar ${HOME}/Backups/
+    cp ${HOME}/.PyCharmCE2016.3/config/settings.jar ${HOME}/Backups/
 fi
 
 # https://confluence.jetbrains.com/display/PYH/Previous+PyCharm+Releases
+# https://www.jetbrains.com/pycharm/download/download-thanks.html?platform=linux
 cd /tmp
-wget http://download.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
+wget --no-verbose http://download.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
 #wget -q https://download-cf.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
 tar xzf pycharm-community-${PYCHARM_VERSION}.tar.gz
 
@@ -104,7 +114,8 @@ mv /tmp/pycharm-community* /opt/pycharm-community
 cp /opt/pycharm-community/bin/pycharm.png /usr/share/applications/
 
 # Setup desktop icon if you wish
-if [[ ! -f "${HOME}/Desktop/pycharm.desktop" ]]; then
+file="${HOME}/Desktop/pycharm.desktop"
+if [[ ! -f "${file}" ]]; then
     cat <<EOF > ${HOME}/Desktop/pycharm.desktop
 #!/usr/bin/env xdg-open
 [Desktop Entry]
@@ -117,6 +128,7 @@ Terminal=false
 Type=Application
 EOF
 fi
+chmod +x "${file}"
 
 
 function finish {
