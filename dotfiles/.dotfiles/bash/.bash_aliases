@@ -51,6 +51,7 @@ alias lynx='lynx -force_html -width=$COLUMNS' #best settings for viewing HTML
 alias links='links -force-html' #need to enable colour in config menu manually
 
 alias screen="screen -xRR"
+#alias screen="screen -r"
 alias strings="strings -a"
 alias tmux="tmux attach || tmux new"
 

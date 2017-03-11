@@ -6,22 +6,27 @@
 ###
 ### Ref: http://www.linuxfromscratch.org/blfs/view/stable/postlfs/profile.html
 ###
+### ------------------------------------------------------------------------ ###
 
-### Load the configs that affect login shells
-[[ -s "$HOME/.profile" ]] && source "$HOME/.profile"
+### Load the configs that affect login shells - This causes recursion error when enabled
+#[[ -s "$HOME/.profile" ]] && source "$HOME/.profile"
 
 if [[ -f "$HOME/.dotfiles/bash/.bash_aliases" ]]; then
     [[ -s "$HOME/.dotfiles/bash/.bash_aliases" ]] && source "$HOME/.dotfiles/bash/.bash_aliases"
     [[ -s "$HOME/.dotfiles/bash/.bash_prompt" ]] && source "$HOME/.dotfiles/bash/.bash_prompt"
+    [[ -s "$HOME/.dotfiles/bash/.bash_sshagent" ]] && source "$HOME/.dotfiles/bash/.bash_sshagent"
 else
     [[ -s "$HOME/.bash_aliases" ]] && source "$HOME/.bash_aliases"
     [[ -s "$HOME/.bash_prompt" ]] && source "$HOME/.bash_prompt"
+    [[ -s "$HOME/.bash_sshagent" ]] && source "$HOME/.bash_sshagent"
 fi
 
-### Load RVM into a shell session *as a function*
+### Load RVM into a shell session & make scripts available
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
-# Kali style
+
+# RVM Loading for Kali
 [[ -s "/etc/profile.d/rvm.sh" ]] && source "/etc/profile.d/rvm.sh"
+
 
 ### Initial Custom Prompt
 export PS1="\[\033[31m\]\u\[\033[m\]@\[\033[32m\]\h:\[\033[36m\]\w\[\033[m\]\$ "
