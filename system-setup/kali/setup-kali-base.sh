@@ -3,7 +3,7 @@
 # File:     setup-kali-base.sh
 #
 # Author:   Cashiuus
-# Created:  27-Jan-2016  - Revised: 09-Mar-2017
+# Created:  27-Jan-2016  - Revised: 10-Mar-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup bare bones kali with reasonable default options & packages
@@ -12,6 +12,8 @@
 #
 #-[ Notes ]-------------------------------------------------------------------------------
 #
+#   -
+#   - Setup defaults to DHCP networking with boilerplate text in 'interfaces' file.
 #
 #
 #
@@ -365,13 +367,13 @@ EOF
 
 
 # ===================================[ FINISH ]====================================== #
-function finish {
-  echo -e "\n\n${GREEN}[*]${RESET} ${GREEN}Cleaning${RESET} the system"
+function finish() {
+  echo -e "\n\n${GREEN}[*]${RESET} ${GREEN}Cleaning${RESET} the aptitude pkg system"
   #--- Clean package manager
   echo -e "\n\n${GREEN}[*] ${RESET}Issuing apt clean and purge for all removed pkgs"
-  for FILE in clean autoremove; do apt -y -qq "${FILE}"; done
+  for FILE in clean autoremove; do $SUDO apt -y -qq "${FILE}"; done
   # Removed -y -qq from this for testing, believe important dependencies are being removed here.
-  apt -y purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')   # Purged packages
+  $SUDO apt -y purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')   # Purged packages
   #--- Reset folder location
   cd ~/ &>/dev/null
   #--- Remove any history files (as they could contain sensitive info)
@@ -380,7 +382,7 @@ function finish {
     [ -e "${i}" ] && find "${i}" -type f -name '.*_history' -delete
   done
   echo -e "\n\n${GREEN}[+]${RESET} ${GREEN}Updating${RESET} the locate database"
-  updatedb
+  $SUDO updatedb
 
   FINISH_TIME=$(date +%s)
   echo -e "${GREEN}[*] Kali Base Setup Completed Successfully ${YELLOW} --(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)--\n${RESET}"

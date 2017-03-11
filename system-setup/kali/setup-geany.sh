@@ -3,10 +3,10 @@
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Created:  10-Oct-2015     Revised:  09-Mar-2017
+# Created:  10-Oct-2015     Revised:  10-Mar-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
-# Purpose:  Configure Geany settings on fresh linux install
+# Purpose:  Install Geany IDE tool, configure custom settings, and copy in file templates.
 #
 #
 #-[ Notes ]-------------------------------------------------------------------------------
@@ -14,6 +14,8 @@
 #
 #   TODO:
 #       - App shortcut is at: /usr/share/applications/geany.desktop, add to favorites?
+#       - Ensure that the geany.conf code blocks work in all conditions
+#
 #
 #-[ Links/Credit ]------------------------------------------------------------------------
 #
@@ -43,9 +45,9 @@ APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_ARGS=$@
-
 DEBUG=false
 LOG_FILE="${APP_BASE}/debug.log"
+
 BACKUPS_DIR="${HOME}/Backups/geany"
 GEANY_TEMPLATES="${APP_BASE}/../../templates/geany"
 #======[ ROOT PRE-CHECK ]=======#
@@ -164,7 +166,7 @@ if [[ -e "${file}" ]]; then
     #sed -i 's#^.*project_file_path=.*#project_file_path=/root/#' "${file}"
     #grep -q '^custom_commands=sort;' "${file}" || sed -i 's/\[geany\]/[geany]\ncustom_commands=sort;/' "${file}"
 else
-    # TODO: Change this so that it works under sudo as well.
+    # TODO: Test that this block works under sudo
 
     # If no file exists, create one in the system default location
     # New users will use this file as part of geany's first-run routine,
@@ -172,8 +174,9 @@ else
     file="/usr/share/geany/geany.conf"
     cd /usr/share/geany
     [[ $? -ne 0 ]] && echo -e "${RED}[ERROR] Geany package not installed. Check problem and try again${RESET}" && exit 1
-    $SUDO touch "${file}" || echo -e "${RED}[ERROR] Failed to create new file${RESET}" && echo "" > "${file}"
-    cat << EOF > "${file}"
+    $SUDO touch "${file}" || echo -e "${RED}[ERROR] Failed to create new file${RESET}" && $SUDO echo "" > "${file}"
+    $SUDO chmod -f 0666 "${file}"
+    cat <<EOF > "${file}"
 [geany]
 check_detect_indent=true
 detect_indent_width=true
@@ -240,6 +243,9 @@ grep_cmd=grep
 
 EOF
 fi
+# Files in this dir should be writeable to root, read-only to group and everyone else (0655)
+$SUDO chmod -f 0655 "${file}"
+
 
 # Build Commands
 # File-dependent build commands go in their own file for each filetype
@@ -326,4 +332,23 @@ function geany_templates() {
 # Copy over our custom code template files
 geany_templates
 
-exit 0
+
+
+# Copy desktop shortcut to the desktop
+cp /usr/share/applications/geany.desktop "${HOME}/Desktop/"
+chmod +x "${HOME}/Desktop/geany.desktop"
+
+function finish() {
+  ###
+  # finish function: Any script-termination routines go here, but function cannot be empty
+  #
+  ###
+  #clear
+  [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
+  echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
+
+  FINISH_TIME=$(date +%s)
+  echo -e "${GREEN}[*] Penbuilder Setup :: $0 :: Completed Successfully ${YELLOW} --(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)--\n${RESET}"
+}
+# End of script
+trap finish EXIT
