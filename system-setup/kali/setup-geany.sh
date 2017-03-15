@@ -48,7 +48,7 @@ APP_ARGS=$@
 DEBUG=false
 LOG_FILE="${APP_BASE}/debug.log"
 
-BACKUPS_DIR="${HOME}/Backups/geany"
+BACKUPS_PATH="${HOME}/Backups/geany"
 GEANY_TEMPLATES="${APP_BASE}/../../templates/geany"
 #======[ ROOT PRE-CHECK ]=======#
 function install_sudo() {
@@ -293,7 +293,7 @@ $SUDO sed -i 's#^.*active_plugins.*#active_plugins=/usr/lib/geany/htmlchars.so;/
 
 
 function enable_geany_backups {
-    mkdir -p "${BACKUPS_DIR}"
+    mkdir -p "${BACKUPS_PATH}"
     mkdir -p "${HOME}/.config/geany/plugins/saveactions"
     file="${HOME}/.config/geany/plugins/saveactions/saveactions.conf"
     [[ -e "${file}" ]] && cp -n $file{,.bkup}
@@ -314,7 +314,7 @@ default_ft=None
 [backupcopy]
 dir_levels=5
 time_fmt=%Y-%m-%d-%H-%M-%S
-backup_dir=${BACKUPS_DIR}
+backup_dir=${BACKUPS_PATH}
 EOF
 }
 

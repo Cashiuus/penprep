@@ -126,8 +126,9 @@ echo -e "${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wai
 export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y dist-upgrade
-$SUDO apt-get -y install build-essential curl locate sudo gcc git make
-$SUDO apt-get -y install htop sysv-rc-conf
+$SUDO apt-get -y install bash-completion build-essential curl locate sudo gcc git make
+# Extra Packages - Utilities
+$SUDO apt-get -y install geany htop sysv-rc-conf
 
 # Kali metapackages we want installed in case they already aren't
 $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
@@ -137,9 +138,6 @@ $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
 $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
   mitmproxy nikto openssh-server openssl proxychains rdesktop responder \
   screen shellter sqlmap tmux tshark vlan whatweb wifite windows-binaries wpscan yersinia zsh
-
-# Extra Packages - Utilities
-$SUDO apt-get -y install geany
 
 
 # =============================[ System Configurations]================================ #
@@ -385,8 +383,17 @@ function finish() {
   $SUDO updatedb
 
   FINISH_TIME=$(date +%s)
-  echo -e "${GREEN}[*] Kali Base Setup Completed Successfully ${YELLOW} --(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)--\n${RESET}"
-  echo -e "${YELLOW}[*] NOTE: ${RESET}If you have font errors after update, run: apt --reinstall install fonts-cantarell"
+  echo -e "${YELLOW}[INFO] Troubleshooting:${RESET}"
+  echo -e "\t${YELLOW}[+]${RESET} If you have font errors after dist-upgrade, run: apt --reinstall install fonts-cantarell\n"
+  echo -e "${YELLOW}[INFO] Misc Notes:${RESET}"
+  echo -e "\t${YELLOW}[+]${RESET} Change passwords!"
+  echo -e "\t${YELLOW}[+]${RESET} Setup Git: add your ~/.gitconfig and .gitexcludes files"
+  echo -e "\t${YELLOW}[+]${RESET} Setup SSH: add your ~/.ssh/config file & any keys"
+  echo -e "\t${YELLOW}[+]${RESET} Backup: Take Snapshot if in a VM!"
+  echo -e "\t${YELLOW}[+]${RESET} Reboot System when able!"
+  #echo -e "\t${YELLOW}[+]${RESET} "
+  echo -e
+  echo -e "${BLUE} -=[ Penbuilder${RESET} :: ${BLUE}$APP_NAME ${BLUE}]=- ${GREEN}Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
 }
 # End of script
 trap finish EXIT
