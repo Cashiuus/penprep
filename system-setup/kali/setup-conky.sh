@@ -3,7 +3,7 @@
 # File:     setup-conky.sh
 #
 # Author:   Cashiuus
-# Created:  27-Jan-2016          Revised:    15-Jan-2017
+# Created:  27-Jan-2016          Revised:    16-Mar-2017
 #
 #-[ Usage ]-------------------------------------------------------------------------------
 # Purpose:  Setup conky monitor dashboard on desktop with pre-configured style
@@ -15,7 +15,7 @@
 #   Conky Colors:   https://en.wikipedia.org/wiki/X11_color_names
 #                   http://www.graphviz.org/doc/info/colors.html
 ## =======================================================================================
-__version__="1.2"
+__version__="1.3"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"     # Success
@@ -58,7 +58,7 @@ check_root
 
 # NOTE: Do not install "conky", it is deprecated, instead you install it as "conky-all"
 # This might be due to which repo the latest conky gets served from. On Debian, latest
-# conky version comes from the next release after Jessie.
+# conky version (v1.10+) comes from the next release after Jessie ("sid" as of right now).
 $SUDO apt-get -y install conky-all
 
 
@@ -141,7 +141,7 @@ Highest MEM \${alignr} CPU% MEM%
 
 \${color green}FILESYSTEMS\${hr 1}\${color}
 Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
-\${fs_bar 4 /}+
+\${fs_bar 4 /}
 
 \${color yellow}NETWORK \${hr 1}\${color}
 \${if_up eth0}\${color white}LAN: eth0 (\${addr eth0})
@@ -179,16 +179,16 @@ conky.config = {
     draw_shades = true,
 
     background = false,
+    double_buffer = true,
+
     own_window = true,
-    own_window_type = 'normal',
-    own_window_transparent = false,
+    own_window_argb_value = 50,
+    own_window_argb_visual = true,
     own_window_class = 'conky-semi',
     own_window_colour = 'black',
-    own_window_argb_visual = true,
-    own_window_argb_value = 50,
+    own_window_type = 'normal',
+    own_window_transparent = false,
     own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
-
-    double_buffer = true,
 
     out_to_console = false,
     out_to_stderr = false,
@@ -202,40 +202,51 @@ conky.config = {
     total_run_times = 0,
     cpu_avg_samples = 2,
     net_avg_samples = 2,
+
+    color1 = 'B9EAFA',
 };
 
 conky.text = [[
 \${color green}SYSTEM: \$nodename (\$machine)\${hr 1}\${color}
-Uptime: \$alignr\$uptime
-CPU: \${alignr}\${freq_g} GHz
-Processes: \${alignr}\$processes (\$running_processes running)
-Load: \${alignr}\$loadavg
-\${cpugraph 20}
-Ram \${alignr}\$mem / \$memmax (\$memperc%)
+\${color1}Uptime: \${color}\${alignr}\$uptime
+\${color1}CPU:\${color} \${freq_g} GHz \${alignr}\${color1}Load: \${color}\${loadavg}
+\${color1}Processes:\${color} \$processes (\$running_processes running)
+\${cpugraph 20,240 000000 white}
+\${color1}Ram \${alignr}\$mem / \$memmax (\$memperc%)\${color}
 \${membar 4}
-Swap \${alignr}\$swap / \$swapmax (\$swapperc%)
+\${color1}Swap \${alignr}\$swap / \$swapmax (\$swapperc%)\${color}
 \${swapbar 4}
-Highest CPU \${alignr} CPU% MEM%
-\${top name 1}\$alignr\${top cpu 1}\${top mem 1}
-\${top name 2}\$alignr\${top cpu 2}\${top mem 2}
+\${color green}PROCESSES\${hr 1}\${color}
+\${color1}Highest CPU       PID     CPU%    MEM%\${color}
+\${top name 1} \${top pid 1}  \${top cpu 1}  \${top mem 1}
+\${top name 2} \${top pid 2}  \${top cpu 2}  \${top mem 2}
+\${top name 3} \${top pid 3}  \${top cpu 3}  \${top mem 3}
 
-Highest MEM \${alignr} CPU% MEM%
-\${top_mem name 1}\${alignr}\${top_mem cpu 1}\${top_mem mem 1}
-\${top_mem name 2}\${alignr}\${top_mem cpu 2}\${top_mem mem 2}
+\${color1}Highest MEM       PID     CPU%    MEM%\${color}
+\${top_mem name 1} \${top_mem pid 1}  \${top_mem cpu 1}  \${top_mem mem 1}
+\${top_mem name 2} \${top_mem pid 2}  \${top_mem cpu 2}  \${top_mem mem 2}
+\${top_mem name 3} \${top_mem pid 3}  \${top_mem cpu 3}  \${top_mem mem 3}
 
 \${color green}FILESYSTEMS\${hr 1}\${color}
 Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
-\${fs_bar 4 /}+
+\${fs_bar 4 /}
 
-\${color yellow}NETWORK \${hr 1}\${color}
+\${color green}NETWORK \${hr 1}\${color}
 \${if_up eth0}\${color white}LAN: eth0 (\${addr eth0})
 \${downspeedgraph eth0 10,80 99cc33 006600} \${alignr}\${upspeedgraph eth0 10,80 ffcc00 ff0000}
 Down\${color}: \${downspeed eth0}KB/s \${alignr}\${color white}Up\${color}: \${upspeed eth0}KB/s
-\${endif}
-\${if_up wlan0}\${color white}LAN: wlan0 (\${addr wlan0})
+\${endif}\${if_up wlan0}\${color white}LAN: wlan0 (\${addr wlan0})
 \${downspeedgraph wlan0 10,80 99cc33 006600} \${alignr}\${upspeedgraph wlan0 10,80 ffcc00 ff0000}
 Down\${color}: \${downspeed wlan0}KB/s \${alignr}\${color white}Up\${color}: \${upspeed wlan0}KB/s
 \${endif}
+\${color1}Inbound \${alignr}Local Service/Port\${color}
+\$color \${tcp_portmon 1 32767 rhost 0} \${alignr}\${tcp_portmon 1 32767 lservice 0}
+\$color \${tcp_portmon 1 32767 rhost 1} \${alignr}\${tcp_portmon 1 32767 lservice 1}
+\$color \${tcp_portmon 1 32767 rhost 2} \${alignr}\${tcp_portmon 1 32767 lservice 2}
+\${color1}Outbound \${alignr}Remote Service/Port\${color}
+\$color \${tcp_portmon 32768 61000 rhost 0} \${alignr}\${tcp_portmon 32768 61000 rservice 0}
+\$color \${tcp_portmon 32768 61000 rhost 1} \${alignr}\${tcp_portmon 32768 61000 rservice 1}
+\$color \${tcp_portmon 32768 61000 rhost 2} \${alignr}\${tcp_portmon 32768 61000 rservice 2}
 \${color green}CUSTOM ALIASES \${hr 1}\${color}
 bashload \${alignr}update-kali
 myip \${alignr}timer
@@ -260,7 +271,7 @@ cat <<EOF > "${file}"
 #!/bin/bash
 
 $(which timeout) 10 $(which killall) -9 -q -w conky
-$(which sleep) 20s
+$(which sleep) 15s
 $(which conky) &
 EOF
 # Now make file launchable by all users
@@ -272,12 +283,16 @@ mkdir -p "${HOME}/.config/autostart"
 file="${HOME}/.config/autostart/conkyscript.desktop"
 cat <<EOF > "${file}"
 [Desktop Entry]
+Encoding=UTF-8
 Name=conky
+Type=Application
 Exec=/usr/local/bin/conky-start
-Hidden=false
+#Exec=conky -p 10 -d
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
-Type=Application
+StartupNotify=false
+Terminal=false
+Hidden=false
 Comment=
 EOF
 
@@ -305,17 +320,28 @@ EOF
 bash $SUDO /usr/local/bin/conky-start >/dev/null 2>&1 &
 echo -e "${GREEN}[*]${RESET} Conky install complete!"
 
-# Any easy way to force reload your ~/.conkyrc config:
+# An easy way to force reload your ~/.conkyrc config:
 #$SUDO killall -SIGUSR1 conky
 
-# ============================ [ NOTES ] ================================= #
+
+# ============================ [  NOTES  ] ================================= #
 #
 # Default config file path: $HOME/.conkyrc
 # System config file: /etc/conky/conky.conf
 # Package library path: /usr/lib/conky
-
+#
 # Color options: /usr/share/X11/rgb.txt and can also be in #RRGGBB format (hex).
-
+#
+#
+#
+#
+# -===[ Version 1.10+ Lua Syntax ]===-
+#
+#   -- Comments start with a double dash in the conf file
+#
+#
+#
+#
 #Usage: conky [OPTION]...
 #conky is a system monitor that renders text on desktop or to own transparent
 #window. Command line options will override configurations defined in config
