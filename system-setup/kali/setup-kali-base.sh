@@ -383,14 +383,16 @@ function finish() {
   $SUDO updatedb
 
   FINISH_TIME=$(date +%s)
-  echo -e "${YELLOW}[INFO] Troubleshooting:${RESET}"
-  echo -e "\t${YELLOW}[+]${RESET} If you have font errors after dist-upgrade, run: apt --reinstall install fonts-cantarell\n"
+  echo -e
   echo -e "${YELLOW}[INFO] Misc Notes:${RESET}"
   echo -e "\t${YELLOW}[+]${RESET} Change passwords!"
   echo -e "\t${YELLOW}[+]${RESET} Setup Git: add your ~/.gitconfig and .gitexcludes files"
   echo -e "\t${YELLOW}[+]${RESET} Setup SSH: add your ~/.ssh/config file & any keys"
   echo -e "\t${YELLOW}[+]${RESET} Backup: Take Snapshot if in a VM!"
   echo -e "\t${YELLOW}[+]${RESET} Reboot System when able!"
+  echo -e
+  echo -e "${YELLOW}[INFO] Troubleshooting:${RESET}"
+  echo -e "\t${YELLOW}[+]${RESET} If you have font errors after dist-upgrade, run: apt --reinstall install fonts-cantarell\n"
   #echo -e "\t${YELLOW}[+]${RESET} "
   echo -e
   echo -e "${BLUE} -=[ Penbuilder${RESET} :: ${BLUE}$APP_NAME ${BLUE}]=- ${GREEN}Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
