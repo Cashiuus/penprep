@@ -1,23 +1,56 @@
-#!/bin/bash
-## =============================================================================
+#!/usr/bin/env bash
+## =======================================================================================
 # File:     setup-firefox.sh
 #
 # Author:   Cashiuus
-# Created:  10-APR-2016 - - - - - - (Revised: )
+# Revised:  09-Mar-2017
+# Created:  10-Apr-2016
 #
-# MIT License ~ http://opensource.org/licenses/MIT
-#-[ Notes ]---------------------------------------------------------------------
-# Purpose:  First-Run Configuration Tweaks to Iceweasal web browser
+#-[ Info ]-------------------------------------------------------------------------------
+# Purpose:  Setup and set First-Run Configuration Tweaks to Firefox web browser
 #
 #
-## ========================================================================== ##
+#-[ Notes ]-------------------------------------------------------------------------------
+#
+#
+#
+#
+#-[ Links/Credit ]------------------------------------------------------------------------
+#
+#
+#
+#
+#-[ Copyright ]---------------------------------------------------------------------------
+#   MIT License ~ http://opensource.org/licenses/MIT
+## =======================================================================================
+__version__="0.2"
+__author__="Cashiuus"
+## ========[ TEXT COLORS ]=============== ##
+# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
+# [https://en.wikipedia.org/wiki/ANSI_escape_code]
+GREEN="\033[01;32m"     # Success
+YELLOW="\033[01;33m"    # Warnings/Information
+RED="\033[01;31m"       # Issues/Errors
+BLUE="\033[01;34m"      # Heading
+PURPLE="\033[01;35m"    # Other
+ORANGE="\033[38;5;208m" # Debugging
+BOLD="\033[01;01m"      # Highlight
+RESET="\033[00m"        # Normal
+## ============[ CONSTANTS ]================ ##
+START_TIME=$(date +%s)
+APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
+APP_BASE=$(dirname "${APP_PATH}")
+APP_NAME=$(basename "${APP_PATH}")
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
+APP_ARGS=$@
 
-RED="\033[01;31m"      # Issues/Errors
-GREEN="\033[01;32m"    # Success
-YELLOW="\033[01;33m"   # Warnings/Information
-BLUE="\033[01;34m"     # Heading
-BOLD="\033[01;01m"     # Highlight
-RESET="\033[00m"       # Normal
+DEBUG=false
+LOG_FILE="${APP_BASE}/debug.log"
+
+# These can be used to know height (LINES) and width (COLS) of current terminal in script
+LINES=$(tput lines)
+COLS=$(tput cols)
+HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
 
 
 # Launch it to generate first-run files
@@ -25,7 +58,7 @@ echo -e "\n ${GREEN}[+]${RESET} Installing ${GREEN}Mozilla Firefox${RESET} web b
 apt-get -y -qq install unzip curl firefox-esr
 
 export DISPLAY=:0.0
-timeout 15 firefox >/dev/null 2>&1
+timeout 10 firefox >/dev/null 2>&1
 timeout 5 killall -9 -q -w firefox-esr >/dev/null
 
 file=$(find ~/.mozilla/firefox/*.default*/ -maxdepth 1 -type f -name 'prefs.js' -print -quit)

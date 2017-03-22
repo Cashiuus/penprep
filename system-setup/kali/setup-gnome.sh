@@ -3,29 +3,32 @@
 # File:     setup-gnome.sh
 #
 # Author:   Cashiuus
-# Created:  11/27/2015  - Revised:  23-JUL-2016
+# Created:  27-Nov-2015  - Revised:  09-Mar-2017
 #
-# Purpose:  Configure GNOME settings on fresh Kali 2016.1 install
+# Purpose:  Configure GNOME desktop settings on fresh Kali install
 #
 ## =============================================================================
-__version__="1.0"
+__version__="1.1"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
-GREEN="\033[01;32m"    # Success
-YELLOW="\033[01;33m"   # Warnings/Information
-RED="\033[01;31m"      # Issues/Errors
-BLUE="\033[01;34m"     # Heading
-BOLD="\033[01;01m"     # Highlight
-RESET="\033[00m"       # Normal
+GREEN="\033[01;32m"     # Success
+YELLOW="\033[01;33m"    # Warnings/Information
+RED="\033[01;31m"       # Issues/Errors
+BLUE="\033[01;34m"      # Heading
+PURPLE="\033[01;35m"    # Other
+ORANGE="\033[38;5;208m" # Debugging
+BOLD="\033[01;01m"      # Highlight
+RESET="\033[00m"        # Normal
 ## =========[ CONSTANTS ]================ ##
 # SYSTEM-WIDE:  /usr/share/gnome-shell/extensions/
 # PER-USER:     ${HOME}/.local/share/gnome-shell/extensions/
 EXTENSION_PATH="/usr/share/gnome-shell/extensions"
-
-# =============================[      ]================================ #
+#GNOME_VERSION='3.18'
+GNOME_VERSION=$(gnome-shell --version | cut -d " " -f3 | cut -d "." -f1-2)
+# =============================[   BEGIN   ]================================ #
 echo -e "${GREEN}[*] ${PURPLE}[penprep]${RESET} Beginning GNOME Setup, please wait..."
 apt-get -qq update
-apt-get -y install gconf-editor
+apt-get -y install gconf-editor geany
 
 # Disable idle timeout to screensaver
 xset s 0 0
@@ -35,8 +38,8 @@ gsettings set org.gnome.desktop.session idle-delay 0
 # ===[ RAM check ]=== #
 if [[ "$(free -m | grep -i Mem | awk '{print $2}')" < 2048 ]]; then
   echo -e "\n${RED}[WARN] You have 2GB or less RAM and you're using GNOME${RESET}"
-  echo -e "${YELLOW}[INFO] ${RESET}You might want to use XFCE instead. Press CTRL-C to quit."
-  sleep 15s
+  echo -e "${YELLOW}[INFO] ${RESET}You might want to use XFCE instead. Press CTRL-C to quit, or wait to continue..."
+  sleep 10s
 fi
 
 # ===[ Disable notification package updater ]=== #
@@ -51,43 +54,42 @@ else
 fi
 
 
-# ====[ Nautilus ]==== #
-echo -e "${GREEN}[*]${RESET} Configuring Nautilus gsettings"
+# ====[ Configure - Nautilus ]==== #
 gsettings set org.gnome.nautilus.desktop home-icon-visible true                   # Default: false
-gsettings set org.gnome.nautilus.desktop font "'Cantrell 9'"                      # Default: <blank>
-gsettings set org.gnome.nautilus.preferences show-hidden-files true               # Default: false
-gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'    # Default: icon-view
-
-# No such key as of July 23, 2016
-#gsettings set org.gnome.nautilus.preferences enable-recursive-search false       # Default: true
-
-#gsettings set org.gnome.nautilus.icon-view thumbnail-size                        # Default: 64
-gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'             # Default: 'standard'
-
+dconf write /org/gnome/nautilus/preferences/show-hidden-files true
+gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
+gsettings set org.gnome.nautilus.preferences search-view 'list-view'              # Default: 'icon-view'
+gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'             # Choices: small, standard,
 gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'type', 'date_modified']"
 gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
-gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'small'
+gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'standard'
 gsettings set org.gnome.nautilus.list-view use-tree-view true                     # Default: false
-gsettings set org.gnome.nautilus.preferences sort-directories-first true          # Default: false
-gsettings set org.gnome.nautilus.window-state sidebar-width 188                   # Default: 188
+# This setting no longer exists
+#gsettings set org.gnome.nautilus.preferences sort-directories-first true          # Default: false
+gsettings set org.gnome.nautilus.window-state sidebar-width 160                   # Default: 188
 gsettings set org.gnome.nautilus.window-state start-with-sidebar true             # Default: true
 gsettings set org.gnome.nautilus.window-state maximized false                     # Default: false
 
-# ====[ Gedit ]==== #
+# Find your mouse's back button by running: xev | grep ', button' and right-clicking in the black box
+#gsettings set org.gnome.nautilus.preferences mouse-back-button 8                  # Default: 8
+
+# ====[ Configure - Gedit ]==== #
 echo -e "${GREEN}[*]${RESET} Configuring Gedit gsettings"
-gsettings set org.gnome.gedit.preferences.editor display-line-numbers true
-gsettings set org.gnome.gedit.preferences.editor editor-font "'Monospace 10'"
-gsettings set org.gnome.gedit.preferences.editor insert-spaces true
-gsettings set org.gnome.gedit.preferences.editor right-margin-position 90
-gsettings set org.gnome.gedit.preferences.editor tabs-size 4                      # Default: uint32 8
-gsettings set org.gnome.gedit.preferences.editor create-backup-copy false
-gsettings set org.gnome.gedit.preferences.editor auto-save false
-gsettings set org.gnome.gedit.preferences.editor scheme 'classic'
-gsettings set org.gnome.gedit.preferences.editor ensure-trailing-newline true
 gsettings set org.gnome.gedit.preferences.editor auto-indent true                 # Default: false
-gsettings set org.gnome.gedit.preferences.editor syntax-highlighting true
+gsettings set org.gnome.gedit.preferences.editor auto-save false                  # Default: true
+gsettings set org.gnome.gedit.preferences.editor create-backup-copy false         # Default: true
+gsettings set org.gnome.gedit.preferences.editor display-line-numbers true        # Default: false
+gsettings set org.gnome.gedit.preferences.editor display-right-margin true        # Default: false
+gsettings set org.gnome.gedit.preferences.editor editor-font "'Monospace 10'"     # Default: Monospace 12
+gsettings set org.gnome.gedit.preferences.editor ensure-trailing-newline true     # Default: true
+gsettings set org.gnome.gedit.preferences.editor insert-spaces true               # Default: false
+gsettings set org.gnome.gedit.preferences.editor right-margin-position 90         # Default: 80
+gsettings set org.gnome.gedit.preferences.editor scheme 'classic'                 # Default: 'classic'
+gsettings set org.gnome.gedit.preferences.editor syntax-highlighting true         # Default: true
+gsettings set org.gnome.gedit.preferences.editor tabs-size 4                      # Default: 8
 gsettings set org.gnome.gedit.preferences.ui bottom-panel-visible true            # Default: false
-gsettings set org.gnome.gedit.preferences.ui toolbar-visible true
+gsettings set org.gnome.gedit.preferences.ui side-panel-visible true              # Default: false
+gsettings set org.gnome.gedit.preferences.ui toolbar-visible true                 # Default: true
 gsettings set org.gnome.gedit.state.window side-panel-size 150                    # Default: 200
 
 # ====[ Configure - Default GNOME Terminal ]==== #
@@ -114,9 +116,9 @@ gsettings set org.gnome.desktop.wm.preferences titlebar-font "'Droid Bold 10'"  
 # Workspaces
 gsettings set org.gnome.shell.overrides dynamic-workspaces false
 gsettings set org.gnome.desktop.wm.preferences num-workspaces 3
-# Top bar
+# ====[ Configure - Top bar ]==== #
 gsettings set org.gnome.desktop.datetime automatic-timezone true
-gsettings set org.gnome.desktop.interface clock-show-date true
+gsettings set org.gnome.desktop.interface clock-show-date true                    # Default: false
 gsettings set org.gnome.desktop.interface clock-format '12h'                      # Default: 24h
 gsettings set org.gnome.desktop.interface toolbar-icons-size 'small'              # Default: 'large'
 # Privacy
@@ -125,7 +127,6 @@ gsettings set org.gnome.desktop.privacy hide-identity true                      
 
 # ========================== [ 3rd Party Extensions ] =============================== #
 echo -e "\n${GREEN}[*]${RESET} Configuring 3rd Party GNOME Extensions..."
-
 [[ ! -d "/usr/share/gnome-shell/extensions/" ]] && mkdir -p "/usr/share/gnome-shell/extensions"
 
 # ====[ Ext: TaskBar ]==== #
@@ -173,88 +174,59 @@ function enable_ext_dropdown_terminal() {
 }
 
 
-function enable_ext_show_ip() {
-  # Ext: https://extensions.gnome.org/extension/941/show-ip/
-  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Show-IP${RESET}"
-  filedir="/usr/share/gnome-shell/extensions/show-ip@sgaraud.github.com"
-  if [[ ! -d "${filedir}" ]]; then
-    mkdir -p "${filedir}"
-    git clone https://github.com/sgaraud/gnome-extension-show-ip "${filedir}"
-  fi
-}
-
 
 function install_gnome_extension() {
-  # Usage: install_gnome_extension <ID>
+  # Usage: install_gnome_extension '000'
 
-  # Reference: http://bernaerts.dyndns.org/linux/76-gnome/283-gnome-shell-install-extension-command-line-script
-  # Another method for installing GNOME extensions
+
   # 1. Get extension ID
-  GNOME_VERSION='3.18'
   #EXTENSION_ID='941'
   EXTENSION_ID=$1
-
   GNOME_SITE="https://extensions.gnome.org"
-  # 2. Get extension description for the download URL & UUID
-  wget --header='Accept-Encoding:none' -O /tmp/extension.txt "https://extensions.gnome.org/extension-info/?pk=${EXTENSION_ID}&shell_version=${GNOME_VERSION}"
+
+  # 2. Get extension description for the download URL & UUID and store values
+  wget -q --header='Accept-Encoding:none' -O /tmp/extension.txt "https://extensions.gnome.org/extension-info/?pk=${EXTENSION_ID}&shell_version=${GNOME_VERSION}"
 
   EXTENSION_UUID=$(cat /tmp/extension.txt | grep "uuid" | sed 's/^.*uuid[\": ]*\([^\"]*\).*$/\1/')
   EXTENSION_URL=$(cat /tmp/extension.txt | grep "download_url" | sed 's/^.*download_url[\": ]*\([^\"]*\).*$/\1/')
 
-  echo -e "${GREEN}[*]${RESET} Installing Extension ${BLUE}${EXTENSION_UUID}${RESET} by retrieving from portal"
+  echo -e "${GREEN}[*]${RESET} Installing Extension: ${BLUE}${EXTENSION_UUID}${RESET} by retrieving from portal"
 
   # 3. Download the extension into our desired path
   if [[ "$EXTENSION_URL" != "" ]]; then
     wget --header='Accept-Encoding:none' -O /tmp/extension.zip "${GNOME_SITE}${EXTENSION_URL}"
     mkdir -p "${EXTENSION_PATH}/${EXTENSION_UUID}"
-    unzip /tmp/extension.zip -d "${EXTENSION_PATH}/${EXTENSION_UUID}"
-
+    unzip -q /tmp/extension.zip -d "${EXTENSION_PATH}/${EXTENSION_UUID}"
 
     # 4. Enable extension in gsettings if not already enabled
-    # check if extension is already enabled
     EXTENSION_LIST=$(gsettings get org.gnome.shell enabled-extensions | sed 's/^.\(.*\).$/\1/')
     EXTENSION_ENABLED=$(echo ${EXTENSION_LIST} | grep ${EXTENSION_UUID})
     if [[ "$EXTENSION_ENABLED" = "" ]]; then
-      # enable extension
+      # enable extension by appending to existing list
       gsettings set org.gnome.shell enabled-extensions "[${EXTENSION_LIST},'${EXTENSION_UUID}']"
       echo "Extension with ID ${EXTENSION_ID} has been enabled. Restart Gnome Shell to take effect."
 
-      # Not a valid dconf on first run
-      #dconf write /org/gnome/shell/extensions/show-ip/last-device 'eth0'
-      dconf write /org/gnome/shell/extensions/show-ip/public false
     fi
   else
-    # extension is not available
+    # Error: extension is not available
     echo "Extension with ID ${EXTENSION_ID} is not available for Gnome Shell ${GNOME_VERSION}."
   fi
 }
-install_gnome_extension '941'
 
 
-function enable_ext_taskwarrior() {
-  # Ext: https://extensions.gnome.org/extension/1052/taskwarrior-integration/
-  # Git: https://github.com/sgaraud/gnome-extension-taskwarrior
-  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Show-IP${RESET}"
-  filedir="/usr/share/gnome-shell/extensions/taskwarrior-integration@sgaraud.github.com"
-  if [[ ! -d "${filedir}" ]]; then
-    mkdir -p "${filedir}"
-    git clone https://github.com/sgaraud/gnome-extension-taskwarrior "${filedir}"
-  fi
-}
+install_gnome_extension '941'   # Show IP - Taskbar helper to show IP Addresses assigned
+# 'last-device' is not a valid dconf on first run
+#dconf write /org/gnome/shell/extensions/show-ip/last-device 'eth0'
+dconf write /org/gnome/shell/extensions/show-ip/public false
 
+install_gnome_extension '699'   # Connection Manager - GUI menu for SSH/Telnet/Custom connections
 
-function enable_skype_ext() {
-  # Ext: https://extensions.gnome.org/extension/696/skype-integration/
-  # Git: https://github.com/chrisss404/gnome-shell-ext-SkypeNotification
-  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Skype-Integration${RESET}"
-}
 
 
 # Setup the Extensions - Comment ones you don't want to setup
 enable_frippery
 enable_icon_hider
 enable_ext_dropdown_terminal
-#enable_ext_show_ip
 #enable_skype_ext
 
 
@@ -277,9 +249,9 @@ enable_extensions
 echo -e "${GREEN}[*]${RESET} Configuring GNOME 3rd Party Extension gsettings..."
 
 # ====[ Ext: Dash-to-Dock settings ]==== #
-gsettings set org.gnome.shell.extensions.dash-to-dock extend-height true        # Set dock to use full height
-gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'LEFT'      # Set dock to the right
-gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true           # Set dock always visible
+#gsettings set org.gnome.shell.extensions.dash-to-dock extend-height true        # Set dock to use full height
+#gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'LEFT'      # Set dock to the right
+#gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true           # Set dock always visible
 
 # ====[ Ext: TaskBar (Global) ]==== #
 # Schema: https://github.com/zpydr/gnome-shell-extension-taskbar/blob/master/schemas/org.gnome.shell.extensions.TaskBar.gschema.xml
@@ -325,12 +297,57 @@ function finish {
   # Any script-termination routines go here
   rm -f /tmp/extension.txt
   rm -f /tmp/extension.zip
-  echo -e "${GREEN}[*]${RESET} GNOME Setup Complete. Restart to take effect, as 'gnome-shell --replace' doesn't completely work."
+  echo -e "${GREEN}[*]${RESET} GNOME Setup Complete. Restart system to take effect, as 'gnome-shell --replace' doesn't completely work."
   #gnome-shell --replace &
 }
 # End of script
 trap finish EXIT
 
+
+
+# ===========[ Extra Extensions Not In Use - For Reference ]============== #
+function enable_ext_taskwarrior() {
+  # Ext: https://extensions.gnome.org/extension/1052/taskwarrior-integration/
+  # Git: https://github.com/sgaraud/gnome-extension-taskwarrior
+  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Show-IP${RESET}"
+  filedir="/usr/share/gnome-shell/extensions/taskwarrior-integration@sgaraud.github.com"
+  if [[ ! -d "${filedir}" ]]; then
+    mkdir -p "${filedir}"
+    git clone https://github.com/sgaraud/gnome-extension-taskwarrior "${filedir}"
+  fi
+}
+
+
+function enable_skype_ext() {
+  # Ext: https://extensions.gnome.org/extension/696/skype-integration/
+  # Git: https://github.com/chrisss404/gnome-shell-ext-SkypeNotification
+  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Skype-Integration${RESET}"
+}
+
+function enable_ext_show_ip() {
+  # Ext: https://extensions.gnome.org/extension/941/show-ip/
+  echo -e "${GREEN}[*]${RESET} Installing GNOME Extension: ${BLUE}Show-IP${RESET}"
+  filedir="/usr/share/gnome-shell/extensions/show-ip@sgaraud.github.com"
+  if [[ ! -d "${filedir}" ]]; then
+    mkdir -p "${filedir}"
+    git clone https://github.com/sgaraud/gnome-extension-show-ip "${filedir}"
+  fi
+}
+
+
+
+
+
+
+# ================[ OS Env Variables ]============== #
+#   XDG_CURRENT_DESKTOP=GNOME
+#   GDMSESSION=default
+#   GNOME_DESKTOP_SESSION_ID=this-is-deprecated
+#   XDG_SESSION_TYPE=x11
+#   XDG_DATA_DIRS=/usr/share/gnome:/usr/local/share/:/usr/share/
+#   XDG_SESSION_DESKTOP=default
+#
+#
 # ===============================[ GNOME Executables ]=============================== #
 # gnome-help                  Get a GUI help menu to learn more about gnome
 # gnome-control-center
@@ -348,8 +365,10 @@ trap finish EXIT
 #
 # ===============================[ GNOME Tips & Help ]=============================== #
 # Get version info
-#dpkg -l gnome-shell            # e.g. 3.18.1-1
-
+#   dpkg -l gnome-shell            # e.g. 3.18.1-1
+#   gnome-shell --version
+#
+#
 # ==========[ GNOME Extensions ]=============
 # Help: http://bernaerts.dyndns.org/linux/76-gnome/283-gnome-shell-install-extension-command-line-script
 #

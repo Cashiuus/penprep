@@ -7,7 +7,8 @@
 ###
 ### Ref: http://www.linuxfromscratch.org/blfs/view/stable/postlfs/profile.html
 ###
-# ==============================================================================
+### ------------------------------------------------------------------------ ###
+
 ### If not running interactively, don't do anything
 case $- in
     *i*) ;;
@@ -15,8 +16,8 @@ case $- in
 esac
 
 ### Load the shell dotfiles, and then some:
-### * ~/.path can be used to extend `$PATH`.
-### * ~/.extra can be used for other settings you don’t want to commit.
+#       * ~/.path can be used to extend `$PATH`.
+#       * ~/.extra can be used for other settings you don’t want to commit.
 if [[ -f "${HOME}/.dotfiles/bash/.bash_profile" ]]; then
     source "${HOME}/.dotfiles/bash/.bash_profile"
 elif [[ -f "${HOME}/.bash_profile" ]]; then
@@ -42,9 +43,9 @@ shopt -s histappend
 ### Don't try to complete if it's empty, helpful with performance
 shopt -s no_empty_cmd_completion
 ### For setting history length see HISTSIZE and HISTFILESIZE
-# for memory scrollback
-HISTSIZE=10000
-# for history file (e.g. bash_history)
+# HISTSIZE (Default: 1000) For memory scrollback
+HISTSIZE=9000
+# HISTFILESIZE (Default: 2000) For history file (e.g. bash_history)
 HISTFILESIZE=10000
 
 ### check the window size after each command and, if necessary,
@@ -102,7 +103,7 @@ xterm*|rxvt*)
 esac
 export PS1
 
-# enable programmable completion features (you don't need to enable
+# Enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
 if ! shopt -oq posix; then
@@ -122,7 +123,7 @@ export EDITOR=nano
 # This line loads rvm and ensures that scripts can call 'rvm' in them
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
 
-# Kali style
+# RVM Loading for Kali
 [[ -s "/etc/profile.d/rvm.sh" ]] && source "/etc/profile.d/rvm.sh"
 
 ### Load Python Virtualenvwrapper Script helper

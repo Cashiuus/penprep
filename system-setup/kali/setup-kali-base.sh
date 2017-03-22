@@ -1,29 +1,50 @@
-#!/bin/bash
-## =============================================================================
+#!/usr/bin/env bash
+## =======================================================================================
 # File:     setup-kali-base.sh
 #
 # Author:   Cashiuus
-# Created:  27-Jan-2016  - Revised: 21-Feb-2017
+# Created:  27-Jan-2016  - Revised: 10-Mar-2017
 #
+#-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup bare bones kali with reasonable default options & packages
 #           This script will perform a required reboot if vm-tools is not installed.
 #
-## =============================================================================
-__version__="0.4"
+#
+#-[ Notes ]-------------------------------------------------------------------------------
+#
+#   -
+#   - Setup defaults to DHCP networking with boilerplate text in 'interfaces' file.
+#
+#
+#
+#-[ Links/Credit ]------------------------------------------------------------------------
+#
+#
+#
+#
+#-[ Copyright ]---------------------------------------------------------------------------
+#   MIT License ~ http://opensource.org/licenses/MIT
+## =======================================================================================
+__version__="1.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
-GREEN="\033[01;32m"    # Success
-YELLOW="\033[01;33m"   # Warnings/Information
-RED="\033[01;31m"      # Issues/Errors
-BLUE="\033[01;34m"     # Heading
-BOLD="\033[01;01m"     # Highlight
-RESET="\033[00m"       # Normal
-## =========[ CONSTANTS ]================ ##
+GREEN="\033[01;32m"     # Success
+YELLOW="\033[01;33m"    # Warnings/Information
+RED="\033[01;31m"       # Issues/Errors
+BLUE="\033[01;34m"      # Heading
+PURPLE="\033[01;35m"    # Other
+ORANGE="\033[38;5;208m" # Debugging
+BOLD="\033[01;01m"      # Highlight
+RESET="\033[00m"        # Normal
+## =============[ CONSTANTS ]============== ##
 START_TIME=$(date +%s)
-APP_PATH=$(readlink -f $0)
+APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
+APP_ARGS=$@
+DEBUG=true
+LOG_FILE="${APP_BASE}/debug.log"
 
 ## =======[ EDIT THESE SETTINGS ]======= ##
 # Modify these setting to your liking to fit your directory style
@@ -45,7 +66,7 @@ gsettings set org.gnome.desktop.session idle-delay 0
 
 
 function print_banner() {
-    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2016 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
+    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2017 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
     cat /etc/os-release
     cat /proc/version
     uname -a
@@ -91,16 +112,23 @@ fi
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
 echo -e "${GREEN}[*] ${RESET}Restting sources.list to the 2 preferred kali entries"
-echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
-echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+if [[ $SUDO ]]; then
+  echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
+  echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+  echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+else
+  echo "# kali-rolling" > /etc/apt/sources.list
+  echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
+  echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
+fi
 
 echo -e "${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
 export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y dist-upgrade
-$SUDO apt-get -y install build-essential curl locate sudo gcc git make
-$SUDO apt-get -y install htop sysv-rc-conf
+$SUDO apt-get -y install bash-completion build-essential curl locate sudo gcc git make
+# Extra Packages - Utilities
+$SUDO apt-get -y install geany htop sysv-rc-conf
 
 # Kali metapackages we want installed in case they already aren't
 $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
@@ -110,6 +138,7 @@ $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
 $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
   mitmproxy nikto openssh-server openssl proxychains rdesktop responder \
   screen shellter sqlmap tmux tshark vlan whatweb wifite windows-binaries wpscan yersinia zsh
+
 
 # =============================[ System Configurations]================================ #
 # Configure Static IP
@@ -123,8 +152,12 @@ $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
 if [[ ${GDMSESSION} == 'default' ]]; then
   echo -e "${GREEN}[*] ${RESET}Reconfiguring GNOME and related app settings"
 
-  # Top bar
+
+  # ====[ Configure - Top bar ]==== #
+  gsettings set org.gnome.desktop.datetime automatic-timezone true
   gsettings set org.gnome.desktop.interface clock-show-date true                    # Default: false
+  gsettings set org.gnome.desktop.interface clock-format '12h'                      # Default: 24h
+  gsettings set org.gnome.desktop.interface toolbar-icons-size 'small'              # Default: 'large'
 
   # ====[ Configure - Default GNOME Terminal ]==== #
   gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_type transparent
@@ -136,7 +169,6 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
   gsettings set org.gnome.nautilus.preferences search-view 'list-view'              # Default: 'icon-view'
   gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'             # Choices: small, standard,
-  #gsettings set org.gnome.nautilus.icon-view thumbnail-size 54                      # Default: 64
   gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'type', 'date_modified']"
   gsettings set org.gnome.nautilus.list-view default-column-order "['name', 'date_modified', 'size', 'type']"
   gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'             # Default: 'standard'
@@ -168,6 +200,10 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   gsettings set org.gnome.gedit.preferences.ui side-panel-visible true              # Default: false
   gsettings set org.gnome.gedit.preferences.ui toolbar-visible true                 # Default: true
   gsettings set org.gnome.gedit.state.window side-panel-size 150                    # Default: 200
+
+  # ====[ Configure - Default GNOME Terminal ]==== #
+  gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_type transparent
+  gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_darkness 0.95
 
   # Modify the default "favorite apps"
   gsettings set org.gnome.shell favorite-apps \
@@ -234,18 +270,32 @@ ln -s /usr/share/wordlists /wordlists
 
 # =====[ Metasploit ]===== #
 # Another one is msfdb reinit to re-run initialization
-echo -e "${GREEN}[*] ${RESET}Initializing Metasploit and moving config to '~/.msf4/database.yml'"
+echo -e "${GREEN}[*] ${RESET}Initializing Metasploit"
 msfdb init
+sleep 3s
+# Another method of init is doing: msfdb reinit
+
+echo -e "${GREEN}[*] ${RESET} Moving MSF config file to '~/.msf4/database.yml'"
 mv /usr/share/metasploit-framework/config/database.yml ${HOME}/.msf4/database.yml
 
 cat << EOF > ~/.msf4/msfconsole.rc
 # Disabling this because I believe msf locates the .yml file automatically in this path.
 #db_connect -y ${HOME}/.msf4/database.yml
 spool ${HOME}/.msf4/logs/console.log
-setg TimestampOutput true
-setg VERBOSE true
+
+load auto_add_route
+load alias
+alias del rm
+alias handler use exploit/multi/handler
+
 setg LHOST 0.0.0.0
 setg LPORT 443
+
+setg TimestampOutput true
+setg VERBOSE true
+setg ExitOnSession false
+setg EnableStageEncoding true
+
 EOF
 
 
@@ -315,13 +365,13 @@ EOF
 
 
 # ===================================[ FINISH ]====================================== #
-function finish {
-  echo -e "\n\n${GREEN}[*]${RESET} ${GREEN}Cleaning${RESET} the system"
+function finish() {
+  echo -e "\n\n${GREEN}[*]${RESET} ${GREEN}Cleaning${RESET} the aptitude pkg system"
   #--- Clean package manager
   echo -e "\n\n${GREEN}[*] ${RESET}Issuing apt clean and purge for all removed pkgs"
-  for FILE in clean autoremove; do apt -y -qq "${FILE}"; done
+  for FILE in clean autoremove; do $SUDO apt -y -qq "${FILE}"; done
   # Removed -y -qq from this for testing, believe important dependencies are being removed here.
-  apt -y purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')   # Purged packages
+  $SUDO apt -y purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')   # Purged packages
   #--- Reset folder location
   cd ~/ &>/dev/null
   #--- Remove any history files (as they could contain sensitive info)
@@ -330,11 +380,22 @@ function finish {
     [ -e "${i}" ] && find "${i}" -type f -name '.*_history' -delete
   done
   echo -e "\n\n${GREEN}[+]${RESET} ${GREEN}Updating${RESET} the locate database"
-  updatedb
+  $SUDO updatedb
 
   FINISH_TIME=$(date +%s)
-  echo -e "${GREEN}[*] Kali Base Setup Completed Successfully ${YELLOW} --(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)--\n${RESET}"
-  echo -e "${YELLOW}[*] NOTE: ${RESET}If you have font errors after update, run: apt --reinstall install fonts-cantarell"
+  echo -e
+  echo -e "${YELLOW}[INFO] Misc Notes:${RESET}"
+  echo -e "\t${YELLOW}[+]${RESET} Change passwords!"
+  echo -e "\t${YELLOW}[+]${RESET} Setup Git: add your ~/.gitconfig and .gitexcludes files"
+  echo -e "\t${YELLOW}[+]${RESET} Setup SSH: add your ~/.ssh/config file & any keys"
+  echo -e "\t${YELLOW}[+]${RESET} Backup: Take Snapshot if in a VM!"
+  echo -e "\t${YELLOW}[+]${RESET} Reboot System when able!"
+  echo -e
+  echo -e "${YELLOW}[INFO] Troubleshooting:${RESET}"
+  echo -e "\t${YELLOW}[+]${RESET} If you have font errors after dist-upgrade, run: apt --reinstall install fonts-cantarell\n"
+  #echo -e "\t${YELLOW}[+]${RESET} "
+  echo -e
+  echo -e "${BLUE} -=[ Penbuilder${RESET} :: ${BLUE}$APP_NAME ${BLUE}]=- ${GREEN}Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
 }
 # End of script
 trap finish EXIT
