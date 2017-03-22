@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Created:      01-July-2014          -           Revised Date:    01-Feb-2017
+# Created:      01-July-2014          -           Revised Date:    21-Mar-2017
 # File:         backup-files.py
 # Depends:      colorama
 # Compat:       2.7+
@@ -43,16 +43,19 @@ from __future__ import absolute_import
 from __future__ import print_function
 ## =======[ IMPORT & CONSTANTS ]========= ##
 import errno
+import fnmatch
 import os
 import pip
+import re
 import shutil
 import sys
 import time
 import zipfile
 
-__version__ = 1.8
+__version__ = 2.0
 __author__ = 'Cashiuus'
-VERBOSE = 0
+VERBOSE = 1
+DEBUG = 0
 # ========================[ CORE UTILITY FUNCTIONS ]======================== #
 def install_pkg(package):
     pip.main(['install', package])
@@ -104,7 +107,7 @@ def create_file(path):
                            "# prepend a datestamp; e.g. 'Backup-Windows-20160503.zip\n"
                            "BACKUP_PREFIX = 'Backup-Windows-'\n\n"
                            "# Populate the empty list below with files you want to backup\n"
-                           "FILE_LIST = [\n"
+                           "LIST_BACKUP_FILES = [\n"
                            "    # Win Example: r'C:\Windows\System32\drivers\etc\hosts',\n"
                            "]\n")
         return True
@@ -130,7 +133,7 @@ def banner():
  __      __.__            .___                    __________                __
 /  \    /  \__| ____    __| _/______  _  ________ \______   \_____    ____ |  | ____ ________
 \   \/\/   /  |/    \  / __ |/  _ \ \/ \/ /  ___/  |    |  _/\__  \ _/ ___\|  |/ /  |  \____ \\
- \        /|  |   |  \/ /_/ (  <_> )     /\___ \   |    |   \ / __ \\  \___|    <|  |  /  |_> >
+ \        /|  |   |  \/ /_/ (  <_> )     /\___ \   |    |   \ / __ \   \___|    <|  |  /  |_> >
   \__/\  / |__|___|  /\____ |\____/ \/\_//____  >  |______  /(____  /\___  >__|_ \____/|   __/
        \/          \/      \/                 \/          \/      \/     \/     \/     |__|
                                 v {0}\n""".format(__version__)
@@ -146,6 +149,7 @@ def banner():
 class ProgressBar(object):
     """
     A progress bar framework for use in file copying operations
+
     """
     def __init__(self, message, width=20, progressSymbol=u'\u00bb ', emptySymbol=u'\u002e '):
         self.width = width
@@ -176,8 +180,47 @@ class ProgressBar(object):
         self.update(progress)
 
 
-def countFiles(FILE_LIST):
-    return len(FILE_LIST)
+def count_files(files):
+    return len(files)
+
+
+def create_input_list(input_list):
+    """
+    Receive an input list and clean up files and directories to build a clean list of files w/o any directory entries.
+    This will serve to be a cleaned input file list for the backup zip file, which doesn't easily compress entire directories.
+
+    :param input_list:
+    :return:
+    """
+    # Enumerate the input file list and build a proper input list of files
+    verified_list = []
+
+    # Transform excludes glob patterns to regular expressions
+    excludes = r'|'.join([fnmatch.translate(x) for x in LIST_EXCLUDES]) or r'$.'
+
+    for item in input_list:
+        # Check if input 'file' is a directory or file
+        if os.path.isdir(item):
+            for root, dirs, filenames in os.walk(item):
+                # Exclude dirs we don't want before processing the walk
+                dirs[:] = [os.path.join(root, d) for d in dirs]
+                dirs[:] = [d for d in dirs if not re.match(excludes, d)]
+                # exclude from files iter
+                filenames = [os.path.join(root, f) for f in filenames]
+                filenames = [f for f in filenames if not re.match(excludes, f)]
+                #filenames = [f for f in filenames if re.match(includes, f)]
+
+                for filename in filenames:
+                    verified_list.append(os.path.join(root, filename))
+        else:
+            verified_list.append(item)
+
+    if DEBUG:
+        print(Fore.YELLOW + " [DEBUG :: create_input_list] " + Fore.RESET)
+        print(verified_list)
+        print("")
+
+    return verified_list
 
 
 def backup_to_zip(files, dest):
@@ -188,28 +231,36 @@ def backup_to_zip(files, dest):
     Usage: backup_to_zip(<list of files>, <backup destination folder path>)
     """
 
-    # If USB drive is not connected, quit
+    # Check for removable device (defined in defaults.py or settings.py)
     if not os.path.exists(USB_DRIVE):
-        if VERBOSE == 1:
-            print(Fore.RED + "# ----[" + Fore.RESET + " USB Drive is not currently connected. Files will be skipped...")
+        if VERBOSE:
+            print(Fore.RED + "[WARN]" + Fore.RESET + " USB Drive is not currently connected. Files will be skipped...")
 
     # Build the archive's resulting file name for the backup
     zip_name = BACKUP_PATH + os.sep + time.strftime('%Y%m%d') + '.zip'
     z = zipfile.ZipFile(zip_name, 'w')
 
-    # Then, iter through the files and back them up
     for file in files:
+        # Filter out any patterns we want to skip
+        if os.path.basename(file).startswith('~'):
+            continue
+
+        # Begin prepping and writing to the archive
         DST_FILE = os.path.join(dest, os.path.basename(file))
-        if VERBOSE == 1:
-            print("# ----[ Copying File: {}".format(DST_FILE))
+
+        if VERBOSE:
+            print(Fore.GREEN + "[*]" + Fore.RESET + " Copying file: {}".format(str(file)))
         try:
             # Copy file; will fail if file is open or locked
-            shutil.copy2(file, DST_FILE)
+            #shutil.copy2(file, DST_FILE)
             z.write(file)
+            if DEBUG:
+                print(Fore.YELLOW + " [DEBUG : backup_to_zip]" + Fore.RESET + " Copied: {}".format(str(file)))
         except Exception as e:
-            if VERBOSE == 1:
-                print(Fore.RED + "[-]" + Fore.RESET + " Error copying file: ", e)
+            if VERBOSE or DEBUG:
+                print(Fore.RED + "[ERROR]" + Fore.RESET + " Error copying file: ", e)
             pass
+
     # Close the zip file when done
     z.close()
     return
@@ -217,12 +268,12 @@ def backup_to_zip(files, dest):
 
 def copy_files_with_progress(files, dst):
     """
-    Take a list of files and copy them to a specified destination,
+    Take a list of files and copies them to a specified destination,
     while showing a progress bar for longer copy operations.
 
     Usage: copy_files_with_progress(<list of files>, <backup destination path>)
     """
-    numfiles = countFiles(files)
+    numfiles = count_files(files)
     numcopied = 0
     copy_error = []
     if numfiles > 0:
@@ -231,11 +282,13 @@ def copy_files_with_progress(files, dst):
             try:
                 shutil.copy2(file, destfile)
                 numcopied += 1
+                if DEBUG:
+                    print(" [DEBUG :: copy_files_with_progress] Copied: {}".format(str(file)))
             except:
                 copy_error.append(file)
                 files.remove(file)
                 numfiles -= 1
-                continue
+                pass
             p.calculate_update(numcopied, numfiles)
         print("\n")
         for f in copy_error:
@@ -245,29 +298,42 @@ def copy_files_with_progress(files, dst):
     return files
 
 
-def prune_old_backups():
+def prune_old_backups(search_path, archive_pattern, keep_archives=10):
     """
     Parse the backups directory and remove certain archives to keep
     size consumed down.
+
     """
-    pass
-    return
+    matches = []
+    for root, dirs, filenames in os.walk(search_path):
+        for filename in filenames:
+            if filename.endswith(('.zip')):
+                matches.append(os.path.join(root, filename))
+
+    # TODO: Process this list of identified backup archives to
+    #       1) identify valid ones based on our naming variable, and
+    #       2) identify the 10 most recent (possibly exclude archives with identical hashes), and delete the rest.
+
+    return matches
 
 
 if __name__ == '__main__':
     # See if we are running this with python.exe or pythonw.exe
     check_python_binary()
-
     print(banner())
 
     # Import settings.py that we don't want stored in version control
     try:
         from settings import *
-        # Copy the list of files to destination, then also zip them all into a
-        # destination .zip file
-        p = ProgressBar('# ----[ Creating Backup ]----')
-        my_files = copy_files_with_progress(FILE_LIST, BACKUP_PATH)
-        backup_to_zip(my_files, BACKUP_PATH)
+        # Copy the list of files to destination
+        p = ProgressBar('# ----[ Beging Backup & Copy Procedures ]----')
+        my_files = copy_files_with_progress(LIST_COPY_FILES, BACKUP_PATH)
+
+        # Backup our larger list of input files to compressed archive
+        my_file_list = create_input_list(LIST_BACKUP_FILES)
+        backup_to_zip(my_file_list, BACKUP_PATH)
+
+
     except ImportError:
         # First time running script or for some reason settings.py doesn't exist
         # Create a fresh settings file with some defaults

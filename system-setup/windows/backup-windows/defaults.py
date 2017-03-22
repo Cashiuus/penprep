@@ -28,8 +28,22 @@ PATH_USER_HOME = os.environ.get('USERPROFILE')
 PATH_APPDATA = os.environ.get('APPDATA')
 PATH_LOCALAPPDATA = os.environ.get('LOCALAPPDATA')
 
-# Populate the empty list below with files you want to backup
-FILE_LIST = [
+
+# List of directories to exclude from the archive.
+# This is to prevent unneeded junk from making our archive size too large.
+LIST_EXCLUDES = [
+    'LiveContent',
+]
+
+# This is a small list of files we want to directly copy over to our destination,
+# such as files we want to cloud sync so we can access them from multiple systems.
+LIST_COPY_FILES = [
+
+
+]
+
+# This is a larger list of files/directories you wish to backup into a compressed archive.
+LIST_BACKUP_FILES = [
 
     # Example files to get you started. Note, you need the 'r' prefix for 'raw' assignments
     # to properly handle Windows backslashes in file paths, or you must escape them all.
@@ -42,5 +56,8 @@ FILE_LIST = [
     # -- APPLICATION SETTINGS FILES --
     # You can also include files using os.path as below
     os.path.join(PATH_APPDATA, 'Microsoft', 'Excel', 'Excel14.xlb'),
+    # - Microsoft Office Templates and Files
+    # *NOTE: This path below is a directory, not a file. The script will backup all files in entries that are directories!
+    os.path.join(PATH_APPDATA, 'Microsoft', 'Templates'),
 
 ]
