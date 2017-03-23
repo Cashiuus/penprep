@@ -138,13 +138,6 @@ defaults write NSGlobalDomain AppleShowScrollBars -string "Always"
 # Disable the over-the-top focus ring animation
 defaults write NSGlobalDomain NSUseAnimatedFocusRing -bool false
 
-# Disable smooth scrolling
-# (Uncomment if you’re on an older Mac that messes up the animation)
-#defaults write NSGlobalDomain NSScrollAnimationEnabled -bool false
-
-# Increase window resize speed for Cocoa applications
-defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
-
 # Expand save panel by default
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
@@ -211,6 +204,30 @@ defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
 #rm -rf ~/Library/Application Support/Dock/desktoppicture.db
 #sudo rm -rf /System/Library/CoreServices/DefaultDesktop.jpg
 #sudo ln -s /path/to/your/image /System/Library/CoreServices/DefaultDesktop.jpg
+
+
+# ==================[ Speed Optimization Tweaks ]================== #
+# Disable animations when opening and closing windows
+#defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
+
+# Disable animations when opening a Quick Look window.
+defaults write -g QLPanelAnimationDuration -float 0
+
+# Accelerated playback when adjusting the window size (Cocoa applications)
+defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
+
+# Disable animation when opening the Info window in Finder (cmd⌘ + i).
+defaults write com.apple.finder DisableAllAnimations -bool true
+
+# Disable animations when you open an application from the Dock
+defaults write com.apple.dock launchanim -bool false
+
+# Make all animations faster that are used by Mission Control
+defaults write com.apple.dock expose-animation-duration -float 0.1
+
+# Disable the delay when you hide the Dock
+# Keep this at 0 because it affects delay for showing dock on mouseover/hover also
+defaults write com.apple.Dock autohide-delay -float 0
 
 
 ###############################################################################
@@ -304,6 +321,12 @@ defaults write com.apple.screensaver askForPasswordDelay -int 0
 # Screenshots save path directory
 defaults write com.apple.screencapture location -string "${HOME}/Downloads/Screenshots"
 
+# Specify a non-default filename prefix for screenshots
+# Default: “Screen Shot date - time”
+#defaults write com.apple.screencapture name "New Screen Shot Name"
+# Go back to the default prefix if ever needed
+#defaults write com.apple.screencapture name ""
+
 # Screenshots save in PNG format (other options: BMP, GIF, JPG, PDF, TIFF)
 defaults write com.apple.screencapture type -string "png"
 
@@ -316,15 +339,54 @@ defaults write NSGlobalDomain AppleFontSmoothing -int 2
 # Enable HiDPI display modes (requires restart)
 sudo defaults write /Library/Preferences/com.apple.windowserver DisplayResolutionEnabled -bool true
 
+# Restart for screensaver setting to apply immediately
+killall SystemUIServer
+
+
+###############################################################################
+#	Screen Hot Corners                                                          #
+###############################################################################
+
+# Hot corners
+# Possible values:
+#  0: no-op
+#  2: Mission Control
+#  3: Show application windows
+#  4: Desktop
+#  5: Start screen saver
+#  6: Disable screen saver
+#  7: Dashboard
+# 10: Put display to sleep
+# 11: Launchpad
+# 12: Notification Center
+
+# Top left screen corner → Mission Control
+#defaults write com.apple.dock wvous-tl-corner -int 2
+#defaults write com.apple.dock wvous-tl-modifier -int 0
+
+# Top left screen corner - put display to sleep
+defaults write com.apple.dock wvous-tl-corner -int 10
+defaults write com.apple.dock wvous-tl-modifier -int 5
+
+# Top right screen corner → Desktop
+defaults write com.apple.dock wvous-tr-corner -int 4
+defaults write com.apple.dock wvous-tr-modifier -int 0
+
+# Bottom left screen corner → Start screen saver
+defaults write com.apple.dock wvous-bl-corner -int 5
+defaults write com.apple.dock wvous-bl-modifier -int 0
+
+# Bottom-Right - Screensaver (5)
+defaults write com.apple.dock wvous-br-corner -int 5
+defaults write com.apple.dock wvous-br-modifier -int 2
+
+
 ###############################################################################
 # Finder                                                                      #
 ###############################################################################
 
 # Finder: allow quitting via ⌘ + Q; doing so will also hide desktop icons
 defaults write com.apple.finder QuitMenuItem -bool true
-
-# Finder: disable window animations and Get Info animations
-#defaults write com.apple.finder DisableAllAnimations -bool true
 
 # Set Desktop as the default location for new Finder windows
 # For other paths, use `PfLo` and `file:///full/path/here/`
@@ -436,8 +498,9 @@ defaults write com.apple.finder FXInfoPanesExpanded -dict \
     OpenWith -bool true \
     Privileges -bool true
 
+
 ###############################################################################
-# Dock, Dashboard, and hot corners                                            #
+#	Dock and Dashboard                                                          #
 ###############################################################################
 
 # Enable highlight hover effect for the grid view of a stack (Dock)
@@ -466,12 +529,6 @@ defaults write com.apple.dock show-process-indicators -bool true
 # Show only open applications in the Dock
 #defaults write com.apple.dock static-only -bool true
 
-# Don’t animate opening applications from the Dock
-defaults write com.apple.dock launchanim -bool false
-
-# Speed up Mission Control animations
-defaults write com.apple.dock expose-animation-duration -float 0.1
-
 # Don’t group windows by application in Mission Control
 # (i.e. use the old Exposé behavior instead)
 defaults write com.apple.dock expose-group-by-app -bool false
@@ -493,9 +550,6 @@ defaults write com.apple.dock autohide -bool true
 # NOTE: For testing, you can apply these settings in Terminal and do "killall Dock" to see speed. 0=instant
 defaults write com.apple.dock autohide-time-modifier -float 1
 
-# Auto-hiding Dock delay - Keep this at 0 because it affects delay for showing dock on mouseover also
-defaults write com.apple.dock autohide-delay -float 0
-
 # Make Dock icons of hidden applications translucent
 defaults write com.apple.dock showhidden -bool true
 
@@ -510,46 +564,23 @@ sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.a
 sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator (Watch).app" "/Applications/Simulator (Watch).app"
 
 # Add a spacer to the left side of the Dock (where the applications are)
-#defaults write com.apple.dock persistent-apps -array-add '{tile-data={}; tile-type="spacer-tile";}'
+# Create a blank spacer that will be a blank space the size of an icon
+# Can create multiples of these to organize your apps into groups
+defaults write com.apple.dock persistent-apps -array-add '{tile-data={}; tile-type="spacer-tile";}'
+defaults write com.apple.dock persistent-apps -array-add '{tile-data={}; tile-type="spacer-tile";}'
+
 # Add a spacer to the right side of the Dock (where the Trash is)
-#defaults write com.apple.dock persistent-others -array-add '{tile-data={}; tile-type="spacer-tile";}'
+defaults write com.apple.dock persistent-others -array-add '{tile-data={}; tile-type="spacer-tile";}'
+# Restart Dock so the changes take place right away
+killall Dock
 
-# Hot corners
-# Possible values:
-#  0: no-op
-#  2: Mission Control
-#  3: Show application windows
-#  4: Desktop
-#  5: Start screen saver
-#  6: Disable screen saver
-#  7: Dashboard
-# 10: Put display to sleep
-# 11: Launchpad
-# 12: Notification Center
-
-# Top left screen corner → Mission Control
-#defaults write com.apple.dock wvous-tl-corner -int 2
-#defaults write com.apple.dock wvous-tl-modifier -int 0
-
-# Top left screen corner - put display to sleep
-defaults write com.apple.dock wvous-tl-corner -int 10
-defaults write com.apple.dock wvous-tl-modifier -int 5
-
-# Top right screen corner → Desktop
-defaults write com.apple.dock wvous-tr-corner -int 4
-defaults write com.apple.dock wvous-tr-modifier -int 0
-
-# Bottom left screen corner → Start screen saver
-defaults write com.apple.dock wvous-bl-corner -int 5
-defaults write com.apple.dock wvous-bl-modifier -int 0
-
-# Bottom-Right - Screensaver (5)
-defaults write com.apple.dock wvous-br-corner -int 5
-defaults write com.apple.dock wvous-br-modifier -int 2
 
 ###############################################################################
 # Safari & WebKit                                                             #
 ###############################################################################
+
+# Disable the standard delay in rendering a Web page
+defaults write com.apple.Safari WebKitInitialTimedLayoutDelay 0.25
 
 # Privacy: don’t send search queries to Apple
 defaults write com.apple.Safari UniversalSearchEnabled -bool false
@@ -1303,10 +1334,26 @@ workon py27
 
 
 
+###############################################################################
+# FINISH SCRIPT                                                               #
+###############################################################################
+
+killall SystemUIServer
+killall Dock
 
 
 
-# -========================[ OS X default command notes ]===============================- #
+
+
+
+
+
+
+
+
+
+# ================================================================================ #
+# -========================[ OS X default command notes ]========================- #
 # Syntax:http://ss64.com/osx/defaults.html
 
 
