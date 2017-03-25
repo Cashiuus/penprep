@@ -25,14 +25,16 @@
 __version__="0.1"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]========== ##
+# [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
 # [https://en.wikipedia.org/wiki/ANSI_escape_code]
 GREEN="\033[01;32m"     # Success
 YELLOW="\033[01;33m"    # Warnings/Information
 RED="\033[01;31m"       # Issues/Errors
 BLUE="\033[01;34m"      # Heading
-PURPLE="\033[01;35m"    # Other
 ORANGE="\033[38;5;208m" # Debugging
+PURPLE="\033[01;35m"    # Other
+GREY="\e[90m"           # Subdued Text
 BOLD="\033[01;01m"      # Highlight
 RESET="\033[00m"        # Normal
 ## =============[ CONSTANTS ]============== ##
@@ -261,33 +263,35 @@ function finish() {
   echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
 
   FINISH_TIME=$(date +%s)
-  echo -e "${GREEN}[*] Kali Base Setup Completed Successfully ${YELLOW} --(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)--\n${RESET}"
+  echo -e "${BLUE} -=[ Penbuilder${RESET} :: ${BLUE}$APP_NAME ${BLUE}]=- ${GREEN}Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
 }
 # End of script
 trap finish EXIT
 
 
-## ==================================================================================== ##
-## =====================[ Template File Code Help :: Scripting ]======================= ##
+## ===================================================================================== ##
+## =====================[ Template File Code Help :: Core Notes ]======================= ##
 #
-## =================[ BASH GUIDES ]=================== #
-# Google's Shell Styleguide: https://google.github.io/styleguide/shell.xml
-# Using Exit Codes: http://bencane.com/2014/09/02/understanding-exit-codes-and-how-to-use-them-in-bash-scripts/
-# Writing Robust BASH Scripts: http://www.davidpashley.com/articles/writing-robust-shell-scripts/
+## -=====[  BASH/Scripting GUIDES  ]=====- ##
+#   - https://lug.fh-swf.de/vim/vim-bash/StyleGuideShell.en.pdf
+#   - Google's Shell Styleguide: https://google.github.io/styleguide/shell.xml
+#   - Using Exit Codes: http://bencane.com/2014/09/02/understanding-exit-codes-and-how-to-use-them-in-bash-scripts/
+#   - Writing Robust BASH Scripts: http://www.davidpashley.com/articles/writing-robust-shell-scripts/
 #
+# -------------------------------
 # Shell Script Development Helper Projects
 #   https://github.com/alebcay/awesome-shell#shell-script-development
 #   https://github.com/jmcantrell/bashful
 #   https://github.com/lingtalfi/bashmanager
 #
-#
-# Debugging BASH scripts
+# ---------------------------------------------------------
+## =============[ Debugging BASH scripts ]============= ##
 #
 #   Run the script with debug mode enabled:
 #       bash -x script.sh
 #
 #
-# =============[ Styleguide Recommendations ]============ #
+## =============[ Styleguide Recommendations ]============= ##
 #   line length =   80 (I'm using 90-100 though)
 #   functions   =   lower-case with underscores, must use () after func, "function" optional, be consistent
 #                   Place all functions at top below constants, don't hide exec code between functions
@@ -299,12 +303,27 @@ trap finish EXIT
 #   return vals =   Always check return values and give informative return values
 #
 #
-# -===[ set options ]===-
+#
+## =============[ Colorize Output ]============= ##
+#   *NOTE: Formatting generally works, but Blink does not work on xfce4 terminals.
+#
+#   Code    Description
+#   1         Bold/Bright
+#   2         Dim
+#   3         Underlined
+#   5         Blink
+#   7         Reverse (invert fg and bg)
+#   8         Hidden
+
+
+
+
+## -===[ set options ]===- ##
 #
 # set -e
 # set -o pipefail  # Bashism
 #
-# =========[ Expression Cheat Sheet ]========= #
+## =========[  Expressions/Wildcards  ]========= ##
 #
 #   -d      file exists and is a directory
 #   -e      file exists
@@ -329,7 +348,7 @@ trap finish EXIT
 #   [[ $var_string ]]   true if var contains a string, false if null or empty
 #
 #
-# -======[ Booleans ]======-
+## -======[  Booleans  ]======- ##
 # The below examples are all ways you can check booleans
 #   bool=true
 #   if [ "$bool" = true ]; then
@@ -345,7 +364,7 @@ trap finish EXIT
 #
 #
 #
-# -====[ Output Suppression/Redirection ]====-
+## -====[  Output Suppression/Redirection  ]====- ##
 #   >/dev/null 1>&2         Supress all output (1), including errors (2)
 #
 #   Replace or Append content to files that require sudo privilege to modify:
@@ -360,7 +379,7 @@ trap finish EXIT
 #
 #
 #
-# ============[ Variables ]===============
+## -=====[  Variables  ]=====-
 #
 #   var1="stuff"
 #   readonly var1       Make variable readonly
@@ -368,7 +387,7 @@ trap finish EXIT
 #   unset var1          Delete var1
 #
 #
-# =========[ Loops ]========
+## -=====[  Loops  ]=====-
 #   For, While, Until, Select
 #
 #   For x in ___; do        done
@@ -379,7 +398,7 @@ trap finish EXIT
 #           :
 #       done
 #
-# ===============[   ARRAYS  (Index starts at [0])   ]==================
+## -=====[  ARRAYS (Index starts at [0])  ]=====-
 # Create arrays
 #   declare -a MYARRAY=(val1 val2 val3...)
 #   files=( "/etc/passwd" "/etc/group" "/etc/hosts" )
@@ -404,7 +423,7 @@ trap finish EXIT
 ## =================[ Template File Code Help :: Built-in Commands ]=================== ##
 #
 #
-# -=====[ cp (copy) ]=====-
+## -=====[  cp (copy)  ]=====-
 #   cp [OPTION]... SOURCE...DIRECTORY
 #       -a          archive. same as -dR --preserve=all
 #       -b          make a backup of each existing destination file
@@ -425,7 +444,7 @@ trap finish EXIT
 # TODO: Did this work? or does it fail like recent cp/mv operations have showed requiring setglobopt's
 #       cp -a . $HOME/
 #
-# -=====[ ECHO/PRINTF Commands ]=====-
+## -=====[  ECHO/PRINTF  ]=====-
 #   echo -n         Print without a newline
 #
 # Run echo and cat commands through sudo (notice the single quotes)
@@ -436,7 +455,7 @@ trap finish EXIT
 #
 #
 #
-# ===============[ READ / READLINE Commands ]=============== #
+## -=====[  READ / READLINE  ]=====-
 #   Ref: http://wiki.bash-hackers.org/commands/builtin/read
 #
 #   The read command reads a line of input and separates the line into individual words using the IFS
@@ -490,26 +509,23 @@ trap finish EXIT
 #   }
 #
 #
-# -==[ TOUCH ]==-
-#touch
-#touch "$file" 2>/dev/null || { echo "Cannot write to $file" >&2; exit 1; }
 #
-#
-#
-#
-#
-#
-# -==[ TIMEOUT ] ==-
+# -==[  TIMEOUT  ] ==-
 #
 # Launch executables from within a script and set a timeout so it also exits
 #   timeout 10 python /opt/sickrage/SickBeard.py
 #
 #
 #
+# -==[  TOUCH  ]==-
+#touch
+#touch "$file" 2>/dev/null || { echo "Cannot write to $file" >&2; exit 1; }
 #
 #
-# ===============[ STRING Parsing/Handling ]=============== #
-# -==[ GREP ]==-
+#
+#
+## =======================[  STRING Parsing/Handling  ]======================= #
+# -==[  GREP  ]==-
 #
 #
 #
@@ -544,7 +560,7 @@ trap finish EXIT
 #
 #
 #
-### ==================================================================================== ##
+### =================================================================================== ###
 ## ================[ Template File Code Help :: Create Files Recipes ]================== ##
 #
 ### Workaround to create files within scripts and still use $SUDO
@@ -563,7 +579,7 @@ trap finish EXIT
 #   $SUDO chmod -f 0555 "${file}"
 #
 #
-# -==[ Parse/Read a config file using whitelisting ]==-
+# -=====[  Parse/Read a config file using whitelisting  ]=====-
 #
 #   CONFIG_FILE="/path/here"
 #   # Declare a whitelist
@@ -587,3 +603,37 @@ trap finish EXIT
 #   ls -t setup-*.sh | head -n 1
 # Or we can run the file returned from this pattern
 #   java -Xmx4G "$(ls -t setup-*.sh | head -n 1)"
+#
+#
+#
+#
+# Create a desktop shortcut
+#   Method #1: If a .desktop file already exists. Make it executable to avoid a warning popup
+#     cp /usr/share/applications/geany.desktop ~/Desktop/
+#     chmod +x ~/Desktop/geany.desktop
+#
+#   Method #2: Create one from scratch and point to a shell script and an icon
+#     # Copy the PyCharm Icon over to our default applications pool
+#     cp /opt/pycharm-community/bin/pycharm.png /usr/share/applications/
+#
+#     # Setup desktop icon if you wish
+#     file="${HOME}/Desktop/pycharm.desktop"
+#     if [[ ! -f "${file}" ]]; then
+#       cat <<EOF > ${HOME}/Desktop/pycharm.desktop
+##!/usr/bin/env xdg-open
+#[Desktop Entry]
+#Name=PyCharm
+#Encoding=UTF-8
+#Exec=/opt/pycharm-community/bin/pycharm.sh
+# Point this to /usr/share/applications/ or just point to it within its product bundle path
+#Icon=/opt/pycharm-community/bin/pycharm.png
+#StartupNotify=false
+#Terminal=false
+#Type=Application
+#EOF
+#     fi
+#     chmod +x "${file}"
+#
+#
+#
+## ==================================================================================== ##
