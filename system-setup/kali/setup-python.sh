@@ -110,8 +110,15 @@ pip install lxml --upgrade
 if [ $INSTALL_PY3 == "true" ]; then
     echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET} Installing Python 3..."
     $SUDO apt-get -y -qq update
-    $SUDO apt-get -y install python3 python3-all python3-dev
+    # TODO: Are the "-all" and "-dev" necessary at this point?
+    $SUDO apt-get -y install python3 python3-all python3-dev python3-pip
+
+    # pip3 --version
+    # Can also install pip packages on a per-user basis instead using: pip install --user <pkg>
+    # NOTE: On kali, most base pip pkgs are already installed
+    pip3 install requests
 fi
+
 
 
 echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET} Creating Virtual Environments"
