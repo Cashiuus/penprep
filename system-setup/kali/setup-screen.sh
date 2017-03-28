@@ -94,24 +94,15 @@ install_screen
 
 
 
+# NOTE: If you use screen, your configuration file is ~/.screenrc.
+# If you want screen to record history, you just need to set it to use a
+# login shell which will source your bash startup files (and record your history).
+# use bash, make it a login shell
+#defshell -bash
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Reading Conf files
 
 
 

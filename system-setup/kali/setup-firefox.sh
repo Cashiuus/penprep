@@ -43,14 +43,8 @@ APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_ARGS=$@
-
 DEBUG=false
 LOG_FILE="${APP_BASE}/debug.log"
-
-# These can be used to know height (LINES) and width (COLS) of current terminal in script
-LINES=$(tput lines)
-COLS=$(tput cols)
-HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
 
 
 # Launch it to generate first-run files

@@ -369,6 +369,27 @@ function enable_ext_show_ip() {
 #   gnome-shell --version
 #
 #
+# ===========[ gsettings ]==============
+# Syntax:
+#   gsettings [--schemadir SCHEMADIR] COMMAND [ARGS..]
+#
+#   gsettings list-keys org.gnome.shell
+#   gsettings list-children org.gnome.shell
+#
+# Get a list of enabled extensions
+#   gsettings get org.gnome.shell enabled-extensions
+#
+#
+# Get a list of keys or key values
+#   gconftool-2 -a /apps/gnome-terminal/profiles/Default
+#   gconftool-2 --get /apps/gnome-terminal/profiles/Default/background_color
+#
+# Dump your current terminal preferences
+#   gconftool-2 --dump '/apps/gnome-terminal' > gnome-terminal-conf.xml
+# Modify the file, then load it back into settings
+#   gconftool-2 --load gnome-terminal-conf.xml
+#
+#
 # ==========[ GNOME Extensions ]=============
 # Help: http://bernaerts.dyndns.org/linux/76-gnome/283-gnome-shell-install-extension-command-line-script
 #
@@ -385,23 +406,11 @@ function enable_ext_show_ip() {
 # wget -O /tmp/extension.zip "https:extensions.gnome.org/download-extension/removeaccesibility@lomegor.shell-extension.zip?version_tag=2847"
 # mkdir -p "/usr/share/gnome-shell/extensions/removeaccesibility@lomegor"
 # unzip /tmp/extension.zip -d "/usr/share/gnome-shell/extensions/removeaccesibility@lomegor"
-
-# ===========[ gsettings ]==============
-# gsettings [--schemadir SCHEMADIR] COMMAND [ARGS..]
 #
-# gsettings list-keys org.gnome.shell
-# gsettings list-children org.gnome.shell
 #
-# Get a list of keys or key values
-# gconftool-2 -a /apps/gnome-terminal/profiles/Default
-# gconftool-2 --get /apps/gnome-terminal/profiles/Default/background_color
 #
-# Dump your current terminal preferences
-# gconftool-2 --dump '/apps/gnome-terminal' > gnome-terminal-conf.xml
-# Modify the file, then load it back into settings
-# gconftool-2 --load gnome-terminal-conf.xml
-#
+# =================[ Kali Default Enabled GNOME Extensions ]================= #
 # Kali 2016 Default Enabled Extensions (via: gsettings get org.gnome.shell enabled-extensions)
 # ['apps-menu@gnome-shell-extensions.gcampax.github.com', 'places-menu@gnome-shell-extensions.gcampax.github.com', 'workspace-indicator@gnome-shell-extensions.gcampax.github.com', 'dash-to-dock@micxgx.gmail.com', 'ProxySwitcher@flannaghan.com', 'EasyScreenCast@iacopodeenosee.gmail.com', 'refresh-wifi@kgshank.net', 'user-theme@gnome-shell-extensions.gcampax.github.com']
-
+#
 # Kali 2016 Default Favorites (via: gsettings get org.gnome.shell favorite-apps)
