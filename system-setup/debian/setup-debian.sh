@@ -97,6 +97,14 @@ check_root
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
 
+# =========================[ Setup VM Tools ]============================ #
+# https://github.com/vmware/open-vm-tools
+if [[ ! $(which vmware-toolbox-cmd) ]]; then
+  echo -e "${YELLOW}[-] Now installing vm-tools. This will require a reboot. Re-run script after...${RESET}"
+  sleep 4
+  $SUDO apt-get -y install open-vm-tools-desktop fuse
+  $SUDO reboot
+fi
 
 # =============================[   APT   ]================================ #
 # https://wiki.debian.org/SourcesList
@@ -129,17 +137,20 @@ if [[ "$?" -ne 0 ]]; then
   exit 1
 fi
 
-# =============================[ Setup VM Tools ]================================ #
-# https://github.com/vmware/open-vm-tools
-if [[ ! $(which vmware-toolbox-cmd) ]]; then
-  echo -e "${YELLOW}[-] Now installing vm-tools. This will require a reboot. Re-run script after...${RESET}"
-  sleep 4
-  $SUDO apt-get -y install open-vm-tools-desktop fuse
-  $SUDO reboot
-fi
-
 # Increase idle delay which locks the screen (default is 300s)
 $SUDO gsettings set org.gnome.desktop.session idle-delay 0
+#$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-ac 0 
+#$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-battery 0 
+
+
+# Launch xscreensaver settings to auto-generate the config file we need to edit
+timeout 3 xscreensaver-demo >/dev/null 2>&1
+
+# Modify the ~/.xscreensaver file to disable screensaver from default "random"
+file=~/.xscreensaver
+sed -i "s/^mode.*/mode:		off/" "${file}"
+
+
 
 #--- Disable CD repositories - using a tmp file due to SUDO considerations
 #file="/etc/apt/sources.list"
@@ -164,7 +175,8 @@ $SUDO gsettings set org.gnome.desktop.session idle-delay 0
 #fi
 
 echo -e "${GREEN}[*] ${RESET}Now performing a distro upgrade and installing core pkgs..."
-$SUDO apt-get -qq update
+$SUDO apt-get -y dist-upgrade
+
 $SUDO apt-get -y install make gcc git build-essential
 $SUDO apt-get -y install conky geany unrar
 
@@ -229,3 +241,24 @@ trap finish EXIT
 #net.ipv6.conf.eth0.disable_ipv6 = 1
 
 # After editing sysctl.conf, you should run sysctl -p to activate changes or reboot system.
+
+# ============[ Xscreensaver ]============== #
+#
+# Settings are stored in one of three places:
+#	~/.xscreensaver file (primary)
+#		- Settings changed through GUI are written to this file, never the other two.
+#	or in the X resource database (secondary)
+#
+# System-wide defaults:
+#	/usr/lib/X11/app-defaults/XScreenSaver
+#
+#
+#
+#	File Settings Syntax (*NOTE: Must reload xscreensaver for changes to take effect)
+#		For the .xscreensaver file, you'd write it as: timeout: 5
+#		For .Xdefaults file, you'd write as: xscreensaver.timeout: 5
+#
+# Reload the .Xdefaults file and Restart xscreensaver immediately:
+#	xrdb < ~/.Xdefaults
+#	xscreensaver-command -restart
+
