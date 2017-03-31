@@ -3,7 +3,7 @@
 # File:     setup-debian.sh
 #
 # Author:   Cashiuus
-# Created:  15-Jan-2016		Revised:	10-Mar-2017
+# Created:  15-Jan-2016		Revised:	31-Mar-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup a fresh Debian 8 server, typically within a Virtual Machine.
@@ -24,7 +24,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.0"
+__version__="1.1"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 GREEN="\033[01;32m"     # Success
@@ -108,6 +108,7 @@ fi
 
 # =============================[   APT   ]================================ #
 # https://wiki.debian.org/SourcesList
+echo -e "${GREEN}[*]${RESET} Setting sources.list to standard entries"
 if [[ $SUDO ]]; then
   echo "# Debian Jessie" | $SUDO tee /etc/apt/sources.list
   echo "deb http://httpredir.debian.org/debian jessie main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
@@ -130,7 +131,8 @@ else
   echo "deb-src http://security.debian.org/ jessie/updates main contrib non-free" >> /etc/apt/sources.list
 fi
 
-
+echo -e "${GREEN}[*]${RESET} Performing apt-get update, please wait..."
+$SUDO export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 if [[ "$?" -ne 0 ]]; then
   echo -e "${RED} [ERROR]${RESET} Network issues preventing apt-get. Check and try again."
@@ -144,6 +146,7 @@ $SUDO gsettings set org.gnome.desktop.session idle-delay 0
 
 
 # Launch xscreensaver settings to auto-generate the config file we need to edit
+echo -e "${GREEN}[*]${RESET} Launching and fixing ${GREEN}xscreensaver${RESET}, please wait..."
 timeout 3 xscreensaver-demo >/dev/null 2>&1
 
 # Modify the ~/.xscreensaver file to disable screensaver from default "random"
@@ -151,30 +154,7 @@ file=~/.xscreensaver
 sed -i "s/^mode.*/mode:		off/" "${file}"
 
 
-
-#--- Disable CD repositories - using a tmp file due to SUDO considerations
-#file="/etc/apt/sources.list"
-#$SUDO sed -i 's/^\( \|\t\|\)deb cdrom/#deb cdrom/g' "${file}"
-
-#if [[ $(grep -q "deb cdrom" '/etc/apt/sources.list') ]]; then
-  # Adding "non-free" to the end of all the default debian entries in sources.list.
-  # This is to get the proper 'unrar' package
-#  file="/tmp/sources.list"
-#  cat <<EOF > "${file}"
-#deb http://ftp.us.debian.org/debian/ jessie main non-free
-#deb-src http://ftp.us.debian.org/debian/ jessie main non-free
-
-#deb http://security.debian.org/ jessie/updates main non-free
-#deb-src http://security.debian.org/ jessie/updates main non-free
-
-# jessie-updates, previously known as 'volatile'
-#deb http://ftp.us.debian.org/debian/ jessie-updates main non-free
-#deb-src http://ftp.us.debian.org/debian/ jessie-updates main non-free
-#EOF
-#  $SUDO mv "${file}" /etc/apt/sources.list
-#fi
-
-echo -e "${GREEN}[*] ${RESET}Now performing a distro upgrade and installing core pkgs..."
+echo -e "${GREEN}[*]${RESET} Performing a distro upgrade and installing core pkgs..."
 $SUDO apt-get -y dist-upgrade
 
 $SUDO apt-get -y install make gcc git build-essential
@@ -195,11 +175,11 @@ $SUDO systemctl stop exim4.service
 $SUDO systemctl disable exim4.service
 
 # ====[ Remove Bloat ]======
-$SUDO apt-get -y remove libreoffice libreoffice-base
-$SUDO apt-get -y autoremove
+#$SUDO apt-get -y remove libreoffice libreoffice-base
+#$SUDO apt-get -y autoremove
 
 
-# Create desktop shortcuts in case they are needed
+# Create desktop shortcuts -- just delete if you don't want them
 cp /usr/share/applications/xfce4-terminal.desktop ~/Desktop/xfce4-terminal.desktop
 cp /usr/share/applications/geany.desktop ~/Desktop/geany.desktop
 chmod +x ~/Desktop/xfce4-terminal.desktop
@@ -209,9 +189,9 @@ chmod +x ~/Desktop/geany.desktop
 function finish() {
 	# Clean system
 	echo -e "\n\n${GREEN}[*] ${RESET}Cleaning up the aptitude pkg system"
-	$SUDO apt -y -qq clean && $SUDO apt -y -qq autoremove
+	$SUDO apt-get -y -qq clean && $SUDO apt-get -y -qq autoremove
 	# Remove purged packages from system
-	$SUDO apt -y purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')
+	$SUDO apt-get -y -qq purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')
 	cd ~/ &>/dev/null
 	history -c 2>/dev/null
 
