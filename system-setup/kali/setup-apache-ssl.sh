@@ -12,6 +12,8 @@
 # Reference Tut:
 #   https://www.linode.com/docs/security/ssl/ssl-apache2-debian-ubuntu/
 #   apache2 docs: /usr/share/doc/apache2/README.Debian.gz
+#	Apache Hardening: http://www.thegeekstuff.com/2011/03/apache-hardening
+#
 ## =============================================================================
 __version__="0.9"
 __author__="Cashiuus"
@@ -35,25 +37,25 @@ LOG_FILE="${APP_BASE}/debug.log"
 ## ========================================================================== ##
 # ===============================[  BEGIN  ]================================== #
 
-apt-get -qq update
-apt-get -y -qq install apache2 openssl
+$SUDO apt-get -qq update
+$SUDO apt-get -y -qq install apache2 openssl
 
 # Enable headers mod for hardening
-a2enmod headers
+$SUDO a2enmod headers
 
 # Edit the security file to reduce response Header information and add protections
 echo -e "Edit the following config file to reduce response Header details and app protections..."
 sleep 5s
 file="/etc/apache2/conf-enabled/security.conf"
-nano /etc/apache2/conf-enabled/security.conf
+$SUDO nano /etc/apache2/conf-enabled/security.conf
 # Change ServerTokens to "Minimal"
-sed -i 's|^ServerTokens.*|ServerTokens Minimal|g' "${file}"
+$SUDO sed -i 's|^ServerTokens.*|ServerTokens Minimal|g' "${file}"
 # -- ServerSignature
-sed -i 's|^ServerSignature.*|ServerSignature Off|g' "${file}"
+$SUDO sed -i 's|^ServerSignature.*|ServerSignature Off|g' "${file}"
 
-sed -i 's|^#Header set X-Content-Type-Options.*|Header set X-Content-Type-Options: "nosniff"|g' "${file}"
+$SUDO sed -i 's|^#Header set X-Content-Type-Options.*|Header set X-Content-Type-Options: "nosniff"|g' "${file}"
 
-sed -i 's|^#Header set X-Frame-Options.*|Header set X-Frame-Options: "sameorigin"|g' "${file}"
+$SUDO sed -i 's|^#Header set X-Frame-Options.*|Header set X-Frame-Options: "sameorigin"|g' "${file}"
 
 # Enforce a strong cipherlist, as copied from: https://cipherli.st/
 file=/etc/apache2/conf-enabled/harden-ssl.conf
@@ -76,22 +78,21 @@ cat << EOF > ${file}
 EOF
 
 # Enable SSL for Apache
-a2enmod ssl
+$SUDO a2enmod ssl
 
 # Generate SSL certs
-mkdir /etc/apache2/ssl/ && cd /etc/apache2/ssl/
+$SUDO mkdir /etc/apache2/ssl/ && cd /etc/apache2/ssl/
 # Auto-generate, accepting defaults
 echo -e '\n' | timeout 30 openssl req -x509 -nodes -days 365 -newkey rsa:2048  -keyout apache.key -out apache.crt
 # Protect the files
-chmod 600 /etc/apache2/ssl/*
+$SUDO chmod 600 /etc/apache2/ssl/*
 
 # enable SSL site
-a2ensite default-ssl
+$SUDO a2ensite default-ssl
 # select "default-ssl" at interactive prompt
 
 # Configure Apache to use SSL
-nano /etc/apache2/sites-enabled/default-ssl.conf
-
+$SUDO nano /etc/apache2/sites-enabled/default-ssl.conf
 
 
 # Look for the VirtualHost section for port 443, and modify it
@@ -102,4 +103,4 @@ nano /etc/apache2/sites-enabled/default-ssl.conf
     #SSLCertificateKeyFile /etc/apache2/ssl/apache.key
 
 # Finish
-service apache2 restart
+$SUDO systemctl restart apache2

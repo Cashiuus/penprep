@@ -42,8 +42,9 @@ APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 
-
 INSTALL_USER="user1"
+## ============[ CONSTANTS ]================ ##
+
 
 #======[ ROOT PRE-CHECK ]=======#
 function install_sudo() {
@@ -95,8 +96,32 @@ function check_root() {
 }
 check_root
 ## ========================================================================== ##
-# ================================[  BEGIN  ]================================ #
+function configure_bash_systemwide() {
+	echo -e "[*] Configuring systemwide BASH history settings"
+    file=/etc/bash.bashrc
+	
+    grep -q "HISTSIZE" "${file}" \
+        || echo "HISTSIZE=10000" >> "${file}"               # Bash history (memory scroll back)
+    sed -i 's/^HISTSIZE=.*/HISTSIZE=10000/' "${file}"
+    grep -q "HISTFILESIZE" "${file}" \
+        || echo "HISTFILESIZE=10000" >> "${file}"           # Bash history (file .bash_history)
+    sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=10000/' "${file}"
 
+    # If last line of file is not blank, add a blank spacer line
+    ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
+    sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
+    grep -q '^force_color_prompt' "${file}" 2>/dev/null \
+      || echo 'force_color_prompt=yes' >> "${file}"
+    sed -i 's#PS1='"'"'.*'"'"'#PS1='"'"'${debian_chroot:+($debian_chroot)}\\[\\033\[01;31m\\]\\u@\\h\\\[\\033\[00m\\]:\\[\\033\[01;34m\\]\\w\\[\\033\[00m\\]\\$ '"'"'#' "${file}"
+    grep -q "^export LS_OPTIONS='--color=auto'" "${file}" 2>/dev/null \
+      || echo "export LS_OPTIONS='--color=auto'" >> "${file}"
+
+    # All other users that are made afterwards
+    file=/etc/skel/.bashrc
+    sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
+}
+# ================================[  BEGIN  ]================================ #
+echo -e ""
 # =========================[ Setup VM Tools ]============================ #
 # https://github.com/vmware/open-vm-tools
 if [[ ! $(which vmware-toolbox-cmd) ]]; then
@@ -108,7 +133,7 @@ fi
 
 # =============================[   APT   ]================================ #
 # https://wiki.debian.org/SourcesList
-echo -e "${GREEN}[*]${RESET} Setting sources.list to standard entries"
+echo -e "\n${GREEN}[*]${RESET} Setting sources.list to standard entries"
 if [[ $SUDO ]]; then
   echo "# Debian Jessie" | $SUDO tee /etc/apt/sources.list
   echo "deb http://httpredir.debian.org/debian jessie main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
@@ -132,7 +157,7 @@ else
 fi
 
 echo -e "${GREEN}[*]${RESET} Performing apt-get update, please wait..."
-$SUDO export DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 if [[ "$?" -ne 0 ]]; then
   echo -e "${RED} [ERROR]${RESET} Network issues preventing apt-get. Check and try again."
@@ -155,7 +180,8 @@ sed -i "s/^mode.*/mode:		off/" "${file}"
 
 
 echo -e "${GREEN}[*]${RESET} Performing a distro upgrade and installing core pkgs..."
-$SUDO apt-get -y dist-upgrade
+$SUDO apt-get -qy upgrade
+$SUDO apt-get -qy dist-upgrade
 
 $SUDO apt-get -y install make gcc git build-essential
 $SUDO apt-get -y install conky geany unrar

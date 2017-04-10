@@ -70,7 +70,7 @@ $SUDO apt-get -y install libxml2-dev libxslt1-dev zlib1g-dev
 $SUDO apt-get -y install libpq-dev
 
 # =====[ Pip Setup ]===== #
-pip install --upgrade pip
+$SUDO pip install --upgrade pip
 # This method would be used on Windows
 # Source: https://pip.pypa.io/en/stable/installing/#upgrading-pip
 #python -m pip install --upgrade pip
@@ -97,9 +97,9 @@ Scrapy
 six
 wheel
 EOF
-pip install -r /tmp/requirements.txt
+$SUDO pip install -r /tmp/requirements.txt
 
-pip install lxml --upgrade
+$SUDO pip install lxml --upgrade
 #pip install argparse --upgrade
 
 # Figure out which outdated $(pip list --oudated) pip packages are apt pkgs and which are not
@@ -116,7 +116,7 @@ if [ $INSTALL_PY3 == "true" ]; then
     # pip3 --version
     # Can also install pip packages on a per-user basis instead using: pip install --user <pkg>
     # NOTE: On kali, most base pip pkgs are already installed
-    pip3 install requests
+    $SUDO pip3 install requests
 fi
 
 
@@ -157,11 +157,15 @@ EOF
 if [[ $INSTALL_PY3 == "true" ]]; then
     #/usr/local/opt/python-${py3version}/bin/pyvenv env-${py3version}
     mkvirtualenv env-${py3version} -p /usr/bin/python${py3version}
+    pip install --upgrade pip
+    pip install setuptools
     deactivate
 fi
 
 # Virtual Environment Setup - Python 2.7.x
 mkvirtualenv env-${py2version} -p /usr/bin/python${py2version}
+pip install --upgrade pip
+pip install setuptools
 deactivate
 
 # Add lines to shell dot-file if they aren't there
@@ -222,7 +226,6 @@ deactivate
 
 function finish {
     # Any script-termination routines go here, but function cannot be empty
-    clear
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
     echo -e "\t\t${GREEN}[*] ${RESET}Python Setup Complete!\n\n"
     echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
