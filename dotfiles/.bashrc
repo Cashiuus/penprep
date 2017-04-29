@@ -123,7 +123,7 @@ export EDITOR=nano
 # This line loads rvm and ensures that scripts can call 'rvm' in them
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
 
-# RVM Loading for Kali
+# RVM Loading for Kali and will override the previous line
 [[ -s "/etc/profile.d/rvm.sh" ]] && source "/etc/profile.d/rvm.sh"
 
 ### Load Python Virtualenvwrapper Script helper

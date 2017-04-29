@@ -30,3 +30,24 @@ fi
 
 ### Initial Custom Prompt
 export PS1="\[\033[31m\]\u\[\033[m\]@\[\033[32m\]\h:\[\033[36m\]\w\[\033[m\]\$ "
+
+
+# Show git branch in PS1 when working in a git repository directory
+function git-current-branch {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1) /'
+}
+export PS1="\$(git-current-branch)$PS1"
+
+# Establish virtualenv loading via venv files within project directories
+check_virtualenv() {
+    if [[ -e .venv ]]; then
+        env=`cat .venv`
+        if [[ "$env" != "${VIRTUAL_ENV##*/}" ]]; then
+            echo "Found .venv in directory. Calling: workon ${env}"
+            workon "$env"
+        fi
+    fi
+}
+# Call function directly in case opening directly into a directory
+# (e.g. opening a new tab in Terminal)
+check_virtualenv
