@@ -3,7 +3,7 @@
 # File:     setup-debian.sh
 #
 # Author:   Cashiuus
-# Created:  15-Jan-2016		Revised:	31-Mar-2017
+# Created:  15-Jan-2016         Revised:        31-Mar-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup a fresh Debian 8 server, typically within a Virtual Machine.
@@ -11,8 +11,8 @@
 #
 #-[ Notes ]-------------------------------------------------------------------------------
 #
-#	1. 	Below, set the constant "INSTALL_USER" to your primary account you are using
-#		If you don't, it'll default to 'user1'
+#       1.      Below, set the constant "INSTALL_USER" to your primary account you are using
+#               If you don't, it'll default to 'user1'
 #
 #
 #-[ Links/Credit ]------------------------------------------------------------------------
@@ -42,62 +42,26 @@ APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 
-INSTALL_USER="user1"
 ## ============[ CONSTANTS ]================ ##
 
-
-#======[ ROOT PRE-CHECK ]=======#
-function install_sudo() {
-    # If
-    [[ ${INSTALL_USER} ]] || INSTALL_USER=${USER}
-    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] Running 'install_sudo' function${RESET}"
-    echo -e "${GREEN}[*]${RESET} Now installing 'sudo' package via apt-get, elevating to root..."
-
-    su root
-    [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to su root${RESET}" && exit 1
-    apt-get -y install sudo
-    [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to install sudo pkg via apt-get${RESET}" && exit 1
-    # Use stored USER value to add our originating user account to the sudoers group
-    # TODO: Will this break if script run using sudo? Env var likely will be root if so...test this...
-    #usermod -a -G sudo ${ACTUAL_USER}
-    usermod -a -G sudo ${INSTALL_USER}
-    [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to add original user to sudoers${RESET}" && exit 1
-
-    echo -e "${YELLOW}[WARN] ${RESET}Now logging off to take effect. Restart this script after login!"
-    sleep 4
-    # First logout command will logout from su root elevation
-    logout
+## =========================[ START :: LOAD FILES ]========================= ##
+if [[ -s "${APP_BASE}/../common.sh" ]]; then
+    source "${APP_BASE}/../common.sh"
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: success${RESET}"
+else
+    echo -e "${RED} [ERROR]${RESET} common.sh functions file is missing."
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: fail${RESET}"
     exit 1
-}
+fi
+## ==========================[ END :: LOAD FILES ]]========================== ##
 
-function check_root() {
-
-    # There is an env var that is $USER. This is regular user if in normal state, root in sudo state
-    #   CURRENT_USER=${USER}
-    #   ACTUAL_USER=$(env | grep SUDO_USER | cut -d= -f 2)
-         # This would only be run if within sudo state
-         # This variable serves as the original user when in a sudo state
-
-    if [[ $EUID -ne 0 ]];then
-        # If not root, check if sudo package is installed and leverage it
-        # TODO: Will this work if current user doesn't have sudo rights, but sudo is already installed?
-        if [[ $(dpkg-query -s sudo) ]];then
-            export SUDO="sudo"
-            # This accounts for both root and sudo. If normal user, it'll use sudo.
-            # If you run script as root, $SUDO is blank and script will soldier on.
-        else
-            echo -e "${YELLOW}[WARN] ${RESET}The 'sudo' package is not installed. Press any key to install it (*must enter sudo password), or cancel now"
-            read -r -t 10
-            install_sudo
-            # TODO: This error check necessary, since the function "install_sudo" exits 1 anyway?
-            [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Please install sudo or run this as root. Exiting.${RESET}" && exit 1
-        fi
-    fi
-}
+# Check root/sudo rights and fix it before continuing
 check_root
+
+
 ## ========================================================================== ##
 function configure_bash_systemwide() {
-	echo -e "[*] Configuring systemwide BASH history settings"
+        echo -e "[*] Configuring systemwide BASH history settings"
     file=/etc/bash.bashrc
 
     grep -q "HISTSIZE" "${file}" \
@@ -144,10 +108,10 @@ if [[ $SUDO ]]; then
 
   echo "deb http://security.debian.org/ jessie/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
   echo "deb-src http://security.debian.org/ jessie/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-	# Backports repo for newer pkgs
-	echo "" | $SUDO tee -a /etc/apt/sources.list
-	echo "# Backports Repository" | $SUDO tee -a /etc/apt/sources.list
-	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+        # Backports repo for newer pkgs
+        echo "" | $SUDO tee -a /etc/apt/sources.list
+        echo "# Backports Repository" | $SUDO tee -a /etc/apt/sources.list
+        echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
 else
   echo "# Debian Jessie" > /etc/apt/sources.list
   echo "deb http://httpredir.debian.org/debian jessie main contrib non-free" >> /etc/apt/sources.list
@@ -158,10 +122,10 @@ else
 
   echo "deb http://security.debian.org/ jessie/updates main contrib non-free" >> /etc/apt/sources.list
   echo "deb-src http://security.debian.org/ jessie/updates main contrib non-free" >> /etc/apt/sources.list
-	# Backports repo for newer pkgs
-	echo "" >> /etc/apt/sources.list
-	echo "# Backports Repository" >> /etc/apt/sources.list
-	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
+        # Backports repo for newer pkgs
+        echo "" >> /etc/apt/sources.list
+        echo "# Backports Repository" >> /etc/apt/sources.list
+        echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
 fi
 
 
@@ -185,7 +149,7 @@ timeout 3 xscreensaver-demo >/dev/null 2>&1
 
 # Modify the ~/.xscreensaver file to disable screensaver from default "random"
 file=~/.xscreensaver
-sed -i "s/^mode.*/mode:		off/" "${file}"
+sed -i "s/^mode.*/mode:         off/" "${file}"
 
 
 echo -e "${GREEN}[*]${RESET} Performing a distro upgrade and installing core pkgs..."
@@ -226,7 +190,7 @@ chmod +x ~/Desktop/geany.desktop
 
 # =============[ CONKY via Backports Repo ]===============
 # This is how you can see a list of all installed backports:
-#	dpkg-query -W | grep ~bpo
+#       dpkg-query -W | grep ~bpo
 
 echo -e "${GREEN}[*]${RESET} Installing Conky pkg..."
 $SUDO apt-get -y -t jessie-backports install conky
@@ -249,20 +213,20 @@ function pause() {
 
 
 function finish() {
-	# Clean system
-	echo -e "\n\n${GREEN}[*] ${RESET}Cleaning up the aptitude pkg system"
-	$SUDO apt-get -y -qq clean && $SUDO apt-get -y -qq autoremove
-	# Remove purged packages from system
-	$SUDO apt-get -y -qq purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')
-	cd ~/ &>/dev/null
-	history -c 2>/dev/null
+        # Clean system
+        echo -e "\n\n${GREEN}[*] ${RESET}Cleaning up the aptitude pkg system"
+        $SUDO apt-get -y -qq clean && $SUDO apt-get -y -qq autoremove
+        # Remove purged packages from system
+        $SUDO apt-get -y -qq purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')
+        cd ~/ &>/dev/null
+        history -c 2>/dev/null
 
-	echo -e "\n\n${GREEN}[*] ${RESET}Updating the locate database"
-	$SUDO updatedb
+        echo -e "\n\n${GREEN}[*] ${RESET}Updating the locate database"
+        $SUDO updatedb
 
-	FINISH_TIME=$(date +%s)
-	echo -e "${GREEN}[*] ${RESET}Base setup is now complete, goodbye!"
-	echo -e "${GREEN}[*] (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}"
+        FINISH_TIME=$(date +%s)
+        echo -e "${GREEN}[*] ${RESET}Base setup is now complete, goodbye!"
+        echo -e "${GREEN}[*] (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}"
 }
 trap finish EXIT
 
@@ -287,20 +251,20 @@ trap finish EXIT
 # ============[ Xscreensaver ]============== #
 #
 # Settings are stored in one of three places:
-#	~/.xscreensaver file (primary)
-#		- Settings changed through GUI are written to this file, never the other two.
-#	or in the X resource database (secondary)
+#       ~/.xscreensaver file (primary)
+#               - Settings changed through GUI are written to this file, never the other two.
+#       or in the X resource database (secondary)
 #
 # System-wide defaults:
-#	/usr/lib/X11/app-defaults/XScreenSaver
+#       /usr/lib/X11/app-defaults/XScreenSaver
 #
 #
 #
-#	File Settings Syntax (*NOTE: Must reload xscreensaver for changes to take effect)
-#		For the .xscreensaver file, you'd write it as: timeout: 5
-#		For .Xdefaults file, you'd write as: xscreensaver.timeout: 5
+#       File Settings Syntax (*NOTE: Must reload xscreensaver for changes to take effect)
+#               For the .xscreensaver file, you'd write it as: timeout: 5
+#               For .Xdefaults file, you'd write as: xscreensaver.timeout: 5
 #
 # Reload the .Xdefaults file and Restart xscreensaver immediately:
-#	xrdb < ~/.Xdefaults
-#	xscreensaver-command -restart
+#       xrdb < ~/.Xdefaults
+#       xscreensaver-command -restart
 
