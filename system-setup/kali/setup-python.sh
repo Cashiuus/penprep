@@ -3,7 +3,7 @@
 # File:     setup-python.sh
 #
 # Author:   Cashiuus
-# Created:  10-Mar-2016  -  Revised: 16-Dec-2016
+# Created:  10-Mar-2016  -  Revised: 27-Mar-2017
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -69,6 +69,10 @@ $SUDO apt-get -y install libxml2-dev libxslt1-dev zlib1g-dev
 # Postgresql and psycopg2 depends
 $SUDO apt-get -y install libpq-dev
 
+# Scrapy depends
+$SUDO apt-get -y install openssl libssl-dev
+
+
 # =====[ Pip Setup ]===== #
 $SUDO pip install --upgrade pip
 # This method would be used on Windows
@@ -93,7 +97,6 @@ pygeoip
 python-Levenshtein
 python-libnmap
 requests
-Scrapy
 six
 wheel
 EOF
@@ -196,7 +199,6 @@ else
 fi
 
 
-
 # Install or upgrade (-U) a package to ALL virtualenvs
 #allvirtualenv pip install django
 #allvirtualenv pip install -U django
@@ -214,13 +216,7 @@ fi
 
 mkvirtualenv py3-scrapy -p /usr/bin/python${py3version}
 pip install Scrapy
-
 deactivate
-
-
-
-
-
 
 
 

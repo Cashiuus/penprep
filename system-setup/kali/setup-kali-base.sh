@@ -222,8 +222,22 @@ elif [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
   echo -e "${YELLOW}[INFO]${RESET} Light Desktop Manager detected, skipping GNOME tweaks..."
   dconf write /org/gnome/nautilus/preferences/show-hidden-files true
   # Configure Thunar File Browser
+  xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
   xfconf-query -n -c thunar -p /last-details-view-column-widths -t string -s "50,133,50,50,178,50,50,73,70"
   xfconf-query -n -c thunar -p /last-view -t string -s "ThunarDetailsView"
+
+  # Configure XFCE4 Terminal defaults in its config file
+  file="${HOME}/.config/xfce4/terminal/terminalrc"
+  if [[ -s "${file}" ]]; then
+    # TODO: Not sure if this file is present on a vanilla install and/or if
+    # these 'scrolling' settings were only present because I had tweaked them.
+    sed -i 's/^ScrollingLines=.*/ScrollingLines=9000/' "${file}"
+    sed -i 's/^ScrollingOnOutput=.*/ScrollingOnOutput=FALSE/' "${file}"
+    echo "FontName=Monospace 11" >> "${file}"
+    echo "BackgroundMode=TERMINAL_BACKGROUND_TRANSPARENT" >> "${file}"
+    echo "BackgroundDarkness=0.970000" >> "${file}"
+  fi
+
 fi
 
 
@@ -309,38 +323,52 @@ EOF
 
 
 function configure_bash_systemwide() {
-    file=/etc/bash.bashrc
-    grep -q "cdspell" "${file}" \
-        || echo "shopt -sq cdspell" >> "${file}"            # Spell check 'cd' commands
-    grep -q "autocd" "${file}" \
-        || echo "shopt -s autocd" >> "${file}"              # So you don't have to 'cd' before a folder
+  ### BASH HISTORY DIRECTIVES
+  #   HISTSIZE              Bash command history (Default: 500)
+  #   HISTFILESIZE          No. lines the .bash_history file will contain max (Default: 500)
+  #   HISTFILE              Change history file (rarely used)
+  #   HISTTIMEFORMAT        Enable timestamps with each history entry
+  #                           (e.g. HISTTIMEFORMAT="%h %d %H:%M:S ")
+  #   shopt -s histappend   Append to .bash_history instead of overwrite every session
+  #   HISTCONTROL           Control how commands are saved or filtered to history
+  #                           export HISTCONTROL=ignoredups:erasedups
+  #   HISTIGNORE            Patterns to decide which commands to save/ignoredups
+  #                           Ex1: Don't save ls,ps,history cmds: HISTIGNORE="ls:ps:history"
+  #                           Ex2: Don't save cmds starting with 's': HISTIGNORE="s*"
+  #   shopt -s cmdhist      Store multi-line commands in history as one entry.
 
-    # TODO: Test to see if this sed works
-    grep -q "checkwinsize" "${file}" \
-        || echo "shopt -sq checkwinsize" >> "${file}"       # Wrap lines correctly after resizing
-    sed -i 's/^shopt -sq? checkwinsize/shopt -sq checkwinsize/' "${file}"
+  file=/etc/bash.bashrc
+  grep -q "cdspell" "${file}" \
+      || echo "shopt -sq cdspell" >> "${file}"            # Spell check 'cd' commands
+  grep -q "autocd" "${file}" \
+      || echo "shopt -s autocd" >> "${file}"              # So you don't have to 'cd' before a folder
 
-    grep -q "nocaseglob" "${file}" \
-        || echo "shopt -sq nocaseglob" >> "${file}"         # Case insensitive pathname expansion
-    grep -q "HISTSIZE" "${file}" \
-        || echo "HISTSIZE=10000" >> "${file}"               # Bash history (memory scroll back)
-    sed -i 's/^HISTSIZE=.*/HISTSIZE=10000/' "${file}"
-    grep -q "HISTFILESIZE" "${file}" \
-        || echo "HISTFILESIZE=10000" >> "${file}"           # Bash history (file .bash_history)
-    sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=10000/' "${file}"
+  # TODO: Test to see if this sed works
+  grep -q "checkwinsize" "${file}" \
+      || echo "shopt -sq checkwinsize" >> "${file}"       # Wrap lines correctly after resizing
+  sed -i 's/^shopt -sq? checkwinsize/shopt -sq checkwinsize/' "${file}"
 
-    # If last line of file is not blank, add a blank spacer line
-    ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
-    sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
-    grep -q '^force_color_prompt' "${file}" 2>/dev/null \
-      || echo 'force_color_prompt=yes' >> "${file}"
-    sed -i 's#PS1='"'"'.*'"'"'#PS1='"'"'${debian_chroot:+($debian_chroot)}\\[\\033\[01;31m\\]\\u@\\h\\\[\\033\[00m\\]:\\[\\033\[01;34m\\]\\w\\[\\033\[00m\\]\\$ '"'"'#' "${file}"
-    grep -q "^export LS_OPTIONS='--color=auto'" "${file}" 2>/dev/null \
-      || echo "export LS_OPTIONS='--color=auto'" >> "${file}"
+  grep -q "nocaseglob" "${file}" \
+      || echo "shopt -sq nocaseglob" >> "${file}"         # Case insensitive pathname expansion
+  grep -q "HISTSIZE" "${file}" \
+      || echo "HISTSIZE=10000" >> "${file}"               # Bash history (memory scroll back)
+  sed -i 's/^HISTSIZE=.*/HISTSIZE=10000/' "${file}"
+  grep -q "HISTFILESIZE" "${file}" \
+      || echo "HISTFILESIZE=10000" >> "${file}"           # Bash history (file .bash_history)
+  sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=10000/' "${file}"
 
-    # All other users that are made afterwards
-    file=/etc/skel/.bashrc
-    sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
+  # If last line of file is not blank, add a blank spacer line
+  ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
+  sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
+  grep -q '^force_color_prompt' "${file}" 2>/dev/null \
+    || echo 'force_color_prompt=yes' >> "${file}"
+  sed -i 's#PS1='"'"'.*'"'"'#PS1='"'"'${debian_chroot:+($debian_chroot)}\\[\\033\[01;31m\\]\\u@\\h\\\[\\033\[00m\\]:\\[\\033\[01;34m\\]\\w\\[\\033\[00m\\]\\$ '"'"'#' "${file}"
+  grep -q "^export LS_OPTIONS='--color=auto'" "${file}" 2>/dev/null \
+    || echo "export LS_OPTIONS='--color=auto'" >> "${file}"
+
+  # All other users that are made afterwards
+  file=/etc/skel/.bashrc
+  sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
 }
 
 

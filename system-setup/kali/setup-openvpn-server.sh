@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 ## =======================================================================================
 # File:     setup-openvpn-server.sh
-#
 # Author:   Cashiuus
-# Created:  12-NOV-2015   -   (Revised: 15-Jan-2017)
+# Created:  12-NOV-2015   -   (Revised: 10-May-2017)
 #
 #-[ Usage ]-------------------------------------------------------------------------------
 #
@@ -25,39 +24,69 @@
 #-[ Copyright ]-----------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =============================================================================
-__version__="1.21"
+__version__="1.22"
 __author__="Cashiuus"
-## ========[ TEXT COLORS ]=============== ##
-GREEN="\033[01;32m"    # Success
-YELLOW="\033[01;33m"   # Warnings/Information
-RED="\033[01;31m"      # Issues/Errors
-BLUE="\033[01;34m"     # Heading
-PURPLE="\033[01;35m"   # Other
-ORANGE="\033[38;5;208m" # Debugging
-BOLD="\033[01;01m"     # Highlight
-RESET="\033[00m"       # Normal
-## =========[ CONSTANTS / DEFAULTS ]================ ##
+## =============[ CONSTANTS ]============= ##
 START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
-DEBUG=false
+APP_ARGS=$@
+LINES=$(tput lines)
+COLS=$(tput cols)
+HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
+
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 LOG_FILE="${APP_BASE}/debug.log"
+DEBUG=true
+DO_LOGGING=false
 
-#======[ ROOT PRE-CHECK ]=======#
-function check_root() {
-    if [[ $EUID -ne 0 ]];then
-        if [[ $(dpkg-query -s sudo) ]];then
-            export SUDO="sudo"
-            # $SUDO - run commands with this prefix now to account for either scenario.
-        else
-            echo -e "${RED}[ERROR] Please install sudo or run this as root. Exiting.${RESET}"
-            exit 1
-        fi
-    fi
-}
+
+## =========================[ START :: LOAD FILES ]========================= ##
+if [[ -s "${APP_BASE}/../common.sh" ]]; then
+    source "${APP_BASE}/../common.sh"
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: success${RESET}"
+else
+    echo -e "${RED} [ERROR]${RESET} common.sh functions file is missing."
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: fail${RESET}"
+    exit 1
+fi
+## ==========================[ END :: LOAD FILES ]]========================== ##
+
 check_root
+
+
+## ========================================================================== ##
+# =======================[  START :: HELPER FUNCTIONS  ]====================== #
+function pause() {
+  # Simple function to pause a script mid-stride
+  #
+  local dummy
+  read -s -r -p "Press any key to continue..." -n 1 dummy
+}
+
+
+function asksure() {
+  ###
+  # Usage:
+  #   if asksure; then
+  #        echo "Okay, performing rm -rf / then, master...."
+  #   else
+  #        echo "Awww, why not :("
+  #   fi
+  ###
+  echo -n "Are you sure (Y/N)? "
+  while read -r -n 1 -s answer; do
+    if [[ $answer = [YyNn] ]]; then
+      [[ $answer = [Yy] ]] && retval=0
+      [[ $answer = [Nn] ]] && retval=1
+      break
+    fi
+  done
+  echo
+  return $retval
+}
+
 # ============================[ Preparations / Settings ]=========================== #
 function init_settings() {
     ###
@@ -127,20 +156,19 @@ if [[ ! $VPN_SERVER ]]; then
     echo "VPN_SERVER=${VPN_SERVER}" >> "${APP_SETTINGS}"
 fi
 
-
-# ==================================[ Begin Script ]================================= #
+## ========================================================================== ##
+# ================================[  BEGIN  ]================================ #
 $SUDO apt-get -y install openvpn openssl
 
 # If openvpn is currently running, stop the service first
 if [[ $(which openvpn) ]]; then
     #service openvpn stop
-    systemctl stop openvpn
-    #openvpn --version
+    $SUDO systemctl stop openvpn
+    #$SUDO openvpn --version
     sleep 2
 fi
 
-
-# -==[ Setup Easy-RSA Package ]==-
+# -==  Setup Easy-RSA Package  ==-
 filedir="${HOME}/git/easy-rsa"
 if [[ ! -d "${filedir}" ]]; then
     mkdir -p "${filedir}"
@@ -464,15 +492,20 @@ echo -e "${GREEN}============================================================${R
 echo -e "\t\t${GREEN}[*]${RESET} OpenVPN Setup Complete!\n\n"
 
 
-function finish {
-    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
-    echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
-    # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
-    # cmd_here 2>&1 | tee -a "${LOG_FILE}"
+function finish() {
+  ###
+  # finish function: Any script-termination routines go here, but function cannot be empty
+  #
+  ###
+  #clear
+  [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
+  echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
+
+  FINISH_TIME=$(date +%s)
+  echo -e "${BLUE} -=[ Penbuilder${RESET} :: ${BLUE}$APP_NAME ${BLUE}]=- ${GREEN}Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
 }
 # End of script
 trap finish EXIT
-
 
 
 # =========================[ RELEASE NOTES / CHANGES ] ======================

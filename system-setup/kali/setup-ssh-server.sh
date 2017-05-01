@@ -224,7 +224,8 @@ chmod 0400 "${HOME}/.ssh/id_rsa"
 cat "${SSH_USER_DIR}/id_rsa.pub" "${SSH_AUTH_KEYS}" > "${SSH_USER_DIR}/auth.tmp"
 file="${SSH_AUTH_KEYS}"; [[ -e $file ]] && cp -n $file{,.bkup}
 mv "${SSH_USER_DIR}/auth.tmp" "${SSH_AUTH_KEYS}"
-# NOTE: authorized_keys file should be set to 644 according to google, which is never wrong ever amirite?
+# NOTE: authorized_keys file should be set to 644 according to google,
+# which is never wrong ever amirite?
 chmod 644 "${file}"
 
 
@@ -357,8 +358,6 @@ else
 ###########################++++++++++###########################
 EOF
 fi
-
-
 
 
 

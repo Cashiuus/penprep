@@ -466,8 +466,12 @@ EOF
 # Disable idle timeout to screensaver
 gsettings set org.gnome.desktop.session idle-delay 0
 echo -e "${GREEN}[*]${RESET} Installing xfce from apt-get..."
-apt-get -y -qq install curl terminator xfce4 xfce4-mount-plugin xfce4-notifyd \
+apt-get -y install curl terminator xfce4 xfce4-mount-plugin xfce4-notifyd \
     xfce4-places-plugin xfce4-battery-plugin
+
+# Additional optional depends
+# NOTE: accountsservice isn't mandatory but I've seen issues w/o it and errors in syslog
+apt-get -y install accountsservice
 
 # Create directory structure
 mkdir -p ~/.config/xfce4/{desktop,menu,panel,xfconf,xfwm4}/
