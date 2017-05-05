@@ -26,7 +26,7 @@ BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 ENABLE_XFCE=true              # Thereby disabling Gnome as the default?
-BROWSER_SHORTCUT="iceweasel"  # Use "iceweasel" or "firefox"?
+BROWSER_SHORTCUT="firefox"  # Use "iceweasel" or "firefox"?
 EDITOR_SHORTCUT="geany"       # Use "geany" or "gedit" for panel shortcut icon?
 
 
@@ -37,14 +37,14 @@ function configure_panel_applications {
 
   ln -sf /usr/share/applications/exo-terminal-emulator.desktop ~/.config/xfce4/panel/launcher-2/exo-terminal-emulator.desktop
   ln -sf /usr/share/applications/kali-wireshark.desktop    ~/.config/xfce4/panel/launcher-4/kali-wireshark.desktop
-  if [[ "$BROWSER_SHORTCUT}" == "firefox" ]]; then
+  if [[ "$BROWSER_SHORTCUT" == "firefox" ]]; then
     ln -sf /usr/share/applications/firefox-esr.desktop     ~/.config/xfce4/panel/launcher-5/browser.desktop
   else
     ln -sf /usr/share/applications/iceweasel.desktop       ~/.config/xfce4/panel/launcher-5/browser.desktop
   fi
   ln -sf /usr/share/applications/kali-burpsuite.desktop    ~/.config/xfce4/panel/launcher-6/kali-burpsuite.desktop
   ln -sf /usr/share/applications/kali-msfconsole.desktop   ~/.config/xfce4/panel/launcher-7/kali-msfconsole.desktop
-  if [[ "$EDITOR_SHORTCUT}" == "gedit" ]]; then
+  if [[ "$EDITOR_SHORTCUT" == "gedit" ]]; then
     ln -sf /usr/share/applications/org.gnome.gedit.desktop ~/.config/xfce4/panel/launcher-8/textedit.desktop
   else
     ln -sf /usr/share/applications/geany.desktop           ~/.config/xfce4/panel/launcher-8/textedit.desktop
@@ -366,10 +366,10 @@ function setup_themes {
     || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali_blue_splat.png" 1>&2
   echo -n '[5/10]'; timeout 30 curl --progress -k -L -f "http://wallpaperstock.net/kali-linux_wallpapers_39530_1920x1080.jpg" > /usr/share/wallpapers/kali-linux_wallpapers_39530.png \
     || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali-linux_wallpapers_39530.png" 1>&2
-  echo -n '[6/10]'; timeout 30 curl --progress -k -L -f "http://em3rgency.com/wp-content/uploads/2012/12/Kali-Linux-faded-no-Dragon-small-text.png" > /usr/share/wallpapers/kali_black_clean.png \
-    || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali_black_clean.png" 1>&2
-  #echo -n '[7/10]'; timeout 30 curl --progress -k -L -f "http://www.hdwallpapers.im/download/kali_linux-wallpaper.jpg" > /usr/share/wallpapers/kali_black_stripes.jpg \
-    || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali_black_stripes.jpg" 1>&2
+  #echo -n '[6/10]'; timeout 30 curl --progress -k -L -f "http://em3rgency.com/wp-content/uploads/2012/12/Kali-Linux-faded-no-Dragon-small-text.png" > /usr/share/wallpapers/kali_black_clean.png \
+  #  || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali_black_clean.png" 1>&2
+  #echo -n '[7/10]'; timeout 30 curl --progress -k -L -f "http://www.hdwallpapers.im/download/kali_linux-wallpaper.jpg" > #/usr/share/wallpapers/kali_black_stripes.jpg \
+  #  || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali_black_stripes.jpg" 1>&2
   echo -n '[8/10]'; timeout 30 curl --progress -k -L -f "http://fc01.deviantart.net/fs71/f/2011/118/e/3/bt___edb_wallpaper_by_xxdigipxx-d3f4nxv.png" > /usr/share/wallpapers/kali_bt_edb.jpg \
     || echo -e ' '${RED}'[!]'${RESET}" Issue downloading kali_bt_edb.jpg" 1>&2
   echo -n '[9/10]'; timeout 30 curl --progress -k -L -f "http://pre07.deviantart.net/58d1/th/pre/i/2015/223/4/8/kali_2_0_alternate_wallpaper_by_xxdigipxx-d95800s.png" > /usr/share/wallpapers/kali_2_0_alternate_wallpaper.png \
@@ -466,6 +466,9 @@ EOF
 # Disable idle timeout to screensaver
 gsettings set org.gnome.desktop.session idle-delay 0
 echo -e "${GREEN}[*]${RESET} Installing xfce from apt-get..."
+apt-get -qq update
+apt-get -y upgrade
+apt-get -y autoremove --purge
 apt-get -y install curl terminator xfce4 xfce4-mount-plugin xfce4-notifyd \
     xfce4-places-plugin xfce4-battery-plugin
 
@@ -498,4 +501,7 @@ set_terminator_default
 #mkdir -p ~/.config/autostart/
 #rm -f ~/.config/autostart/tracker-*.desktop
 #rm -f /etc/xdg/autostart/tracker-*.desktop
+
+updatedb
+apt-get clean
 exit 0

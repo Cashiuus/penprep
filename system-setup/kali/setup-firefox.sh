@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 ## =======================================================================================
 # File:     setup-firefox.sh
-#
 # Author:   Cashiuus
-# Revised:  09-Mar-2017
-# Created:  10-Apr-2016
+# Created:  10-Apr-2016   -   Revised:  14-May-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup and set First-Run Configuration Tweaks to Firefox web browser
@@ -23,7 +21,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="0.2"
+__version__="0.3"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -123,14 +121,12 @@ cat << EOF > "${file}"
             <DT><A HREF="http://127.0.0.1:5984/reports/_design/reports/index.html#/dashboard/ws/testing_home">Dashboard | Faraday</A>
             <DT><A HREF="http://localhost:9200/">ElasticSearch</A>
             <DT><A HREF="http://localhost:5601/#>Kibana 4</A>
-
         </DL><p>
         <DT><H3 ADD_DATE="1441327947" LAST_MODIFIED="1441327958">Pentest</H3>
         <DL><p>
             <DT><A HREF="https://www.exploit-db.com/">Exploit-DB</A>
             <DT><A HREF="https://hackvertor.co.uk/public">HackVertor</A>
             <DT><A HREF="http://offset-db.com/">Offset-DB</A>
-
         </DL><p>
         <DT><H3 ADD_DATE="1441726295" LAST_MODIFIED="1441742317">Engagements</H3>
         <DL><p>
