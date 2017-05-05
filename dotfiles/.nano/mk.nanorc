@@ -1,0 +1,50 @@
+# GNU makefile highlighting
+
+syntax "mk" "(\.mk|(^|/)(GNU)?[Mm]akefile)$"
+
+# default text
+color magenta "^.*$"
+# rules: command
+color brightblack "^ *[^:=' ][^:=']+*::?[^=;][^;]*;\s*@"
+# rules: dependency list
+icolor yellow "^ *[^:=' ][^:=']+*::?[^=;][^;]*(;|$)"
+# rules: target list
+icolor brightyellow "^ *[^:=' ][^:=']*:"
+color brightgreen "^ *\.(PHONY|SUFFIXES|DEFAULT|PRECIOUS|IGNORE|SILENT|EXPORT_ALL_VARIABLES)\s*:"
+# variable definitions
+icolor brightcyan "^ *(override )?[a-z0-9_][a-z0-9_-]*\s*[:+]?="
+color brightblue "^ *((AR|AS|C0|CPP|CXX|LD)(FLAGS)?|(C|F|G|L|P|R|Y)FLAGS|BISON|CC|C?TANGLE|C?WEAVE|FC|FLEX|GET|INSTALL|LEX|MAKE(INFO|FILES|LEVEL|FLAGS)?|PC|RANLIB|RM|SHELL|SUFFIXES|TEX|TEXI2DVI|VPATH|YACCR?)\s*[:+]?="
+icolor magenta START="^ *(override )?define" END="endef"
+icolor brightcyan "^ *(override( define)?|define) [a-z0-9_-]+"
+# directives
+icolor cyan "^ *ifdef [a-z0-9_-]+"
+color brightblack "^ *ifn?eq \(.*\)\s*$"
+color magenta "^ *ifn?eq \(([^(){}]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])+"
+color brightblack "^ *ifn?eq \(([^(){},]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])*,"
+color magenta "^ *ifn?eq \(([^(){},]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])+"
+color brightblack "^ *(include|ifn?(eq|def)|else|end(e|i)f|override( define)?|define|vpath)( \(?|$)"
+# punctuation
+color brightwhite "[:+=;]"
+# rules: command
+icolor magenta "^[^a-z0-9_., $§'"´`\\(){}/+~*%&^°=?-].*$"
+color brightblack "^\s*@"
+# function calls
+icolor green "\$[({][a-z-]+ ([^(){}]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])+[)}]"
+icolor magenta "\$[({][a-z-]+ ([^(){}]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])+"
+icolor green "\$[({](foreach|subst) ([^(){},]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])+,([^(){},]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])*,"
+icolor magenta "\$[({](foreach|subst) ([^(){},]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])*,([^(){},]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])*"
+icolor green "\$[({][a-z-]+ ([^(){},]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])*,"
+icolor magenta "\$[({][a-z-]+ ([^(){},]|[({]([^(){}]|[({][^(){}]+[)}])+[)}])*"
+icolor cyan "\$[({](foreach|origin) [a-z0-9_-]+"
+icolor green "\$[({]"
+color green "\$[({](subst|patsubst|strip|findstring|filter(-out)?|sort|(not)?dir|suffix|basename|add(suf|pre)fix|join|words?|firstword|wildcard|foreach|origin|shell) "
+# variable references
+icolor cyan "\$[a-z_][a-z0-9_]*" "\$\([a-z0-9_-]+\)" "\$\{[a-z0-9_-]+\}"
+icolor magenta "\$\$[a-z_][a-z0-9_]*" "\$\$\([a-z0-9_-]+\)" "\$\$\{[a-z0-9_-]+\}"
+icolor cyan "\$[({]\$[({][a-z0-9_-]+[)}][)}]"
+color blue "\$([@%<?^+*]|\([@*%<^?][DF]\))"
+color blue "\$[({]((AR|AS|C0|CPP|CXX|LD)(FLAGS)?|(C|F|G|L|P|R|Y)FLAGS|BISON|CC|C?TANGLE|C?WEAVE|FC|FLEX|GET|INSTALL|LEX|MAKE(INFO|FILES|LEVEL|FLAGS)?|PC|RANLIB|RM|SHELL|SUFFIXES|TEX|TEXI2DVI|VPATH|YACCR?)[)}]"
+color blue "\$((AR|AS|C0|CPP|CXX|LD)(FLAGS)?|(C|F|G|L|P|R|Y)FLAGS|BISON|CC|C?TANGLE|C?WEAVE|FC|FLEX|GET|INSTALL|LEX|MAKE(INFO|FILES|LEVEL|FLAGS)?|PC|RANLIB|RM|SHELL|SUFFIXES|TEX|TEXI2DVI|VPATH|YACCR?)"
+# comments
+color white "^\s*#.*$"
+color white "#([^"'\\]|"[^"\\]*(\\.[^"\\]*)*"|['`][^']*'||\>'\<)*$"
