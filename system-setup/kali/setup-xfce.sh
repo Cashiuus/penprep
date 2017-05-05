@@ -61,9 +61,9 @@ function configure_panel_applications {
   xfconf-query -n -c xfce4-panel -p /panels/panel-0/size -t int -s 30
   xfconf-query -n -c xfce4-panel -p /panels/panel-0/position -t string -s "p=6;x=0;y=0"
   xfconf-query -n -c xfce4-panel -p /panels/panel-0/position-locked -t bool -s true
+
   #=====[ PANEL COMPONENTS ]====== #
   ### Edit these later via GUI by typing: xfce4-settings-manager or xfce4-settings-editor
-
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-1 -t string -s applicationsmenu     # application menu
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-2 -t string -s launcher             # terminal   ID: exo-terminal-emulator
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-3 -t string -s places               # places
@@ -469,7 +469,9 @@ echo -e "${GREEN}[*]${RESET} Installing xfce from apt-get..."
 apt-get -qq update
 apt-get -y upgrade
 apt-get -y autoremove --purge
-apt-get -y install curl terminator xfce4 xfce4-mount-plugin xfce4-notifyd \
+apt-get -y install curl terminator xfce4
+# TODO: Do I need these extras?
+#apt-get -y install xfce4-mount-plugin xfce4-notifyd \
     xfce4-places-plugin xfce4-battery-plugin
 
 # Additional optional depends

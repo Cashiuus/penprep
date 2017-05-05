@@ -2,14 +2,10 @@
 ## =======================================================================================
 # File:     setup-firefox.sh
 # Author:   Cashiuus
-# Created:  10-Apr-2016   -   Revised:  14-May-2017
+# Created:  10-Apr-2016   -   Revised:  15-May-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup and set First-Run Configuration Tweaks to Firefox web browser
-#
-#
-#-[ Notes ]-------------------------------------------------------------------------------
-#
 #
 #
 #
@@ -17,11 +13,10 @@
 #
 #
 #
-#
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="0.3"
+__version__="1.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -46,7 +41,7 @@ LOG_FILE="${APP_BASE}/debug.log"
 
 
 # Launch it to generate first-run files
-echo -e "\n${GREEN}[+]${RESET} Installing ${GREEN}Mozilla Firefox${RESET} web browser"
+echo -e "\n${GREEN}[*]${RESET} Installing ${GREEN}Mozilla Firefox${RESET} web browser"
 apt-get -y -qq install unzip curl firefox-esr
 
 export DISPLAY=:0.0
