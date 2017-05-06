@@ -71,9 +71,18 @@ alias openvas="openvas-stop; openvas-start; sleep 3s; xdg-open https://127.0.0.1
 alias mana-toolkit-start="a2ensite 000-mana-toolkit;a2dissite 000-default;systemctl apache2 restart"
 alias mana-toolkit-stop="a2dissite 000-mana-toolkit;a2ensite 000-default;systemctl apache2 restart"
 
+### Git: Spelling Error Variants
+alias got='git '
+alias get='git '
+
 ### Git Custom Commands
 alias git-owner="cat .git/config | grep 'url' || echo 'You do not appear to be in a git repo folder'"
 
+# Ref: http://stackoverflow.com/questions/39797471/git-clone-all-branches-bash-script-as-git-alias/39797536
+# Create an alias that runs a script
+alias git-clone-all-branches=$(git config --global alias.clone-all-branches '!git branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -L1 git checkout -t')
+# The script: git config --global alias.clone-all-branches '!git branch -a | sed -n "/\/HEAD /d; /\/master$/d; /remotes/p;" | xargs -L1 git checkout -t'
+# NOTE: Must prefix git with '!' if it's not a subcommand for this alias command as per the link's comments
 
 ### Checksums
 alias sha1="openssl sha1"
@@ -130,6 +139,3 @@ if [ $UID -ne 0 ]; then
     alias halt='sudo halt'
 fi
 
-### Spelling Error Variants
-alias got='git '
-alias get='git '

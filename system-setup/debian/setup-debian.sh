@@ -99,7 +99,7 @@ check_root
 function configure_bash_systemwide() {
 	echo -e "[*] Configuring systemwide BASH history settings"
     file=/etc/bash.bashrc
-	
+
     grep -q "HISTSIZE" "${file}" \
         || echo "HISTSIZE=10000" >> "${file}"               # Bash history (memory scroll back)
     sed -i 's/^HISTSIZE=.*/HISTSIZE=10000/' "${file}"
@@ -175,8 +175,8 @@ fi
 
 # Increase idle delay which locks the screen (default is 300s)
 $SUDO gsettings set org.gnome.desktop.session idle-delay 0
-#$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-ac 0 
-#$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-battery 0 
+#$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-ac 0
+#$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-battery 0
 
 
 # Launch xscreensaver settings to auto-generate the config file we need to edit
@@ -216,8 +216,10 @@ $SUDO systemctl disable exim4.service
 
 # Create desktop shortcuts -- just delete if you don't want them
 cp /usr/share/applications/xfce4-terminal.desktop ~/Desktop/xfce4-terminal.desktop
+cp /usr/share/applications/firefox-esr.desktop ~/Desktop/
 cp /usr/share/applications/geany.desktop ~/Desktop/geany.desktop
 chmod +x ~/Desktop/xfce4-terminal.desktop
+chmod +x ~/Desktop/firefox-esr.desktop
 chmod +x ~/Desktop/geany.desktop
 
 
@@ -257,7 +259,7 @@ function finish() {
 
 	echo -e "\n\n${GREEN}[*] ${RESET}Updating the locate database"
 	$SUDO updatedb
-	
+
 	FINISH_TIME=$(date +%s)
 	echo -e "${GREEN}[*] ${RESET}Base setup is now complete, goodbye!"
 	echo -e "${GREEN}[*] (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}"

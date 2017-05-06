@@ -1,25 +1,18 @@
 #!/usr/bin/env bash
 ## =======================================================================================
 # File:     setup-kali-base.sh
-#
 # Author:   Cashiuus
-# Created:  27-Jan-2016  - Revised: 10-Mar-2017
+# Created:  27-Jan-2016  - Revised: 19-Apr-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup bare bones kali with reasonable default options & packages
 #           This script will perform a required reboot if vm-tools is not installed.
 #
 #
-#-[ Notes ]-------------------------------------------------------------------------------
-#
-#   -
+# Notes:
 #   - Setup defaults to DHCP networking with boilerplate text in 'interfaces' file.
 #
-#
-#
 #-[ Links/Credit ]------------------------------------------------------------------------
-#
-#
 #
 #
 #-[ Copyright ]---------------------------------------------------------------------------
@@ -27,7 +20,7 @@
 ## =======================================================================================
 __version__="1.0"
 __author__="Cashiuus"
-## ========[ TEXT COLORS ]================= ##
+## ==========[ TEXT COLORS ]============= ##
 GREEN="\033[01;32m"     # Success
 YELLOW="\033[01;33m"    # Warnings/Information
 RED="\033[01;31m"       # Issues/Errors
@@ -36,7 +29,7 @@ PURPLE="\033[01;35m"    # Other
 ORANGE="\033[38;5;208m" # Debugging
 BOLD="\033[01;01m"      # Highlight
 RESET="\033[00m"        # Normal
-## =============[ CONSTANTS ]============== ##
+## =============[ CONSTANTS ]============= ##
 START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
 APP_BASE=$(dirname "${APP_PATH}")
@@ -57,7 +50,19 @@ CREATE_USER_DIRECTORIES=(Backups engagements git git-dev pendrop .virtualenvs wo
 CREATE_OPT_DIRECTORIES=(git pentest)
 
 
-# =============================[  BEGIN APPLICATION  ]================================ #
+## =============================[ Load Helpers ]============================= ##
+if [[ -s "${APP_BASE}/../common.sh" ]]; then
+    source "${APP_BASE}/../common.sh"
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source common :: success${RESET}"
+else
+    echo -e "${RED} [ERROR]${RESET} common.sh functions file is missing."
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source common :: fail${RESET}"
+    exit 1
+fi
+## ========================================================================== ##
+
+
+# ==========================[  BEGIN APPLICATION  ]=========================== #
 xset s 0 0
 xset s off
 
@@ -87,13 +92,14 @@ fi
 
 
 # (Re-)configure hostname
-echo -e -n "${GREEN}[+]${RESET}"
-read -e -t 10 -p " Enter new hostname or just press enter : " RESPONSE
-echo -e
-if [[ $RESPONSE != "" ]]; then
-    $SUDO hostname $RESPONSE
-    echo "$response" > /etc/hostname
-fi
+# TODO: Need to also update /etc/hosts to avoid host lookup errors later.
+#echo -e -n "${GREEN}[+]${RESET}"
+#read -e -t 10 -p " Enter new hostname or just press enter : " RESPONSE
+#echo -e
+#if [[ $RESPONSE != "" ]]; then
+#    $SUDO hostname $RESPONSE
+#    echo "$response" > /etc/hostname
+#fi
 
 # =============================[ Dotfiles ]================================ #
 if [[ -d "${APP_BASE}/../../dotfiles" ]]; then
@@ -111,7 +117,7 @@ fi
 
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
-echo -e "${GREEN}[*] ${RESET}Restting sources.list to the 2 preferred kali entries"
+echo -e "${GREEN}[*] ${RESET}Resetting sources.list to the 2 preferred kali entries"
 if [[ $SUDO ]]; then
   echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
   echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
@@ -125,7 +131,9 @@ fi
 echo -e "${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
 export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
-$SUDO apt-get -y dist-upgrade
+$SUDO apt-get -y upgrade
+# TODO: Skipping for now because XFCE dist upgrade causes black screen of death loops
+#$SUDO apt-get -y dist-upgrade
 $SUDO apt-get -y install bash-completion build-essential curl locate sudo gcc git make
 # Extra Packages - Utilities
 $SUDO apt-get -y install geany htop sysv-rc-conf
@@ -137,7 +145,8 @@ $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
 # Extra packages - just in case they are missing
 $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
   mitmproxy nikto openssh-server openssl proxychains rdesktop responder \
-  screen shellter sqlmap tmux tshark vlan whatweb wifite windows-binaries wpscan yersinia zsh
+  screen shellter sqlmap swftools tmux tshark vlan whatweb wifite windows-binaries \
+  wpscan yersinia zsh
 
 
 # =============================[ System Configurations]================================ #
@@ -362,6 +371,42 @@ iface eth0 inet dhcp
 #    gateway
 #    network
 EOF
+
+
+
+
+# ==========[ Configure GIT ]=========== #
+
+echo -e "${GREEN}[+]${RESET} Now setting up Git, you will be prompted to enter your name for commits."
+
+
+
+
+# Git Aliases Ref: https://git-scm.com/book/en/v2/Git-Basics-Git-Aliases
+# Other settings/standard alias helpers
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+git config --global alias.st status
+
+# Create custom unstage alias - Type: git unstage fileA (same as: git reset HEAD -- fileA)
+git config --global alias.unstage 'reset HEAD --'
+
+# Show the last commit (Type: git last)
+git config --global alias.last 'log -1 HEAD'
+
+# My Custom Git Aliases
+# TODO: Test if this works correctly, it should simply add --recursive to every clone
+# The reason for --recursive is for git projects with submodules, which don't clone by default
+git config --global alias.clone 'clone --recursive'
+
+
+# Other alias ideas:
+#   https://majewsky.wordpress.com/2010/11/29/tip-of-the-day-dont-remember-git-clone-urls/
+
+# Git short status
+git config --global alias.s 'status -s'
+
 
 
 # ===================================[ FINISH ]====================================== #
