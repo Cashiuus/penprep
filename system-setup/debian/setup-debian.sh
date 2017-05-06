@@ -144,6 +144,10 @@ if [[ $SUDO ]]; then
 
   echo "deb http://security.debian.org/ jessie/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
   echo "deb-src http://security.debian.org/ jessie/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+	# Backports repo for newer pkgs
+	echo "" | $SUDO tee -a /etc/apt/sources.list
+	echo "# Backports Repository" | $SUDO tee -a /etc/apt/sources.list
+	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
 else
   echo "# Debian Jessie" > /etc/apt/sources.list
   echo "deb http://httpredir.debian.org/debian jessie main contrib non-free" >> /etc/apt/sources.list
@@ -154,7 +158,12 @@ else
 
   echo "deb http://security.debian.org/ jessie/updates main contrib non-free" >> /etc/apt/sources.list
   echo "deb-src http://security.debian.org/ jessie/updates main contrib non-free" >> /etc/apt/sources.list
+	# Backports repo for newer pkgs
+	echo "" >> /etc/apt/sources.list
+	echo "# Backports Repository" >> /etc/apt/sources.list
+	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
 fi
+
 
 echo -e "${GREEN}[*]${RESET} Performing apt-get update, please wait..."
 export DEBIAN_FRONTEND=noninteractive
@@ -210,6 +219,31 @@ cp /usr/share/applications/xfce4-terminal.desktop ~/Desktop/xfce4-terminal.deskt
 cp /usr/share/applications/geany.desktop ~/Desktop/geany.desktop
 chmod +x ~/Desktop/xfce4-terminal.desktop
 chmod +x ~/Desktop/geany.desktop
+
+
+
+# =============[ CONKY via Backports Repo ]===============
+# This is how you can see a list of all installed backports:
+#	dpkg-query -W | grep ~bpo
+
+echo -e "${GREEN}[*]${RESET} Installing Conky pkg..."
+$SUDO apt-get -y -t jessie-backports install conky
+
+
+
+
+
+
+
+
+
+
+function pause() {
+  # Simple function to pause a script mid-stride
+  #
+  local dummy
+  read -s -r -p "Press any key to continue..." -n 1 dummy
+}
 
 
 function finish() {
