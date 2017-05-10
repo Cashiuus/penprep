@@ -107,21 +107,21 @@ export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y install software-properties-common
 
-echo -e "${GREEN}[*]${RESET} Adding ansible repo, you may need to hit ENTER to confirm..."
+echo -e "\n\n${GREEN}[*]${RESET} Adding ansible repo, you may need to hit ENTER to confirm..."
 $SUDO apt-add-repository ppa:ansible/ansible
 # This will add a repo file in /sources.list.d/
 
-file=/etc/apt/sources.list.d/ansible-ansible-jessie.list
-#$SUDO sh -c "echo deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main > ${file}"
-
 # This tutorial says to use "xenial" - https://martinlanner.com/2016/10/07/install-ansible-on-debian-8-jessie/
 # But official docs say to use "trusty" - https://docs.ansible.com/ansible/intro_installation.html
-
 
 # Currently, the available versions are (viewed via: apt-cache policy ansible):
 #   ansible "trusty" repo has version - 2.3.0.0
 #   debian jessie-backports repo - 2.2.1.0--1
 #   debian stable repo - 1.7.2
+
+file=/etc/apt/sources.list.d/ansible-ansible-jessie.list
+$SUDO sh -c "echo deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main > ${file}"
+
 
 $SUDO apt-get -qq update
 $SUDO apt-get -y install ansible
@@ -153,4 +153,31 @@ function finish() {
 }
 # End of script
 trap finish EXIT
+## ==================================================================================== ##
+
+# ========[ ansible commands ]===========
+#	List of commands:
+#	ansible, ansible-connection, ansible-console, ansible-doc
+#	ansible-galaxy, ansible-playbook, ansible-pull, ansible-vault
+
+
+# Ansible Vault
+# 	http://docs.ansible.com/ansible/playbooks_vault.html
+
+
+
+# -== Running a Playbook With Vault ==-
+# To run a playbook that contains vault-encrypted data files, you must pass one of two flags. To specify the vault-password interactively:
+#
+#	ansible-playbook site.yml --ask-vault-pass
+#
+# This prompt will then be used to decrypt (in memory only) any vault encrypted files that are accessed. Currently this requires that all files be encrypted with the same password.
+#
+# Alternatively, passwords can be specified with a file or a script, the script version will require Ansible 1.7 or later. When using this flag, ensure permissions on the file are such that no one else can access your key and do not add your key to source control:
+#
+#	ansible-playbook site.yml --vault-password-file ~/.vault_pass.txt
+#	ansible-playbook site.yml --vault-password-file ~/.vault_pass.py
+# 
+# The password should be a string stored as a single line in the file.
+
 ## ==================================================================================== ##

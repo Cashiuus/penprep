@@ -54,82 +54,6 @@ fi
 check_root
 
 
-## ========================================================================== ##
-# ================================[  BEGIN  ]================================ #
-$SUDO apt-get -qq update
-$SUDO apt-get remove --purge docker
-# This one may fail so running them separately
-$SUDO apt-get remove --purge docker-engine
-
-
-# Contents of previously installations may be in /var/lib/docker/
-
-
-# Enable the backports repository
-echo -e "${GREEN}[*]${RESET} Creating backports repo file in /sources.list.d/"
-file=/etc/apt/sources.list.d/backports.list
-# TODO: Check if file exists first
-sudo sh -c "echo deb http://ftp.debian.org/debian jessie-backports main > ${file}"
-
-
-export DEBIAN_FRONTEND=noninteractive
-$SUDO apt-get -qq update
-$SUDO apt-get -y install apt-transport-https ca-certificates \
-  curl gnupg2 software-properties-common
-
-#TODO: Does this work?
-curl -fsSL https://download.docker.com/linux/debian/gpg | $SUDO apt-key add -
-
-# Key should be: 9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88
-# Verify via: sudo apt-key fingerprint
-
-
-$SUDO add-apt-repository \
-  "deb [arch=amd64] https://download.docker.com/linux/debian \
-  $(lsb_release -cs) \
-  stable"
-# The above will output as "https://download.docker.com/linux/debian jessie stable"
-
-
-$SUDO apt-get -qq update
-# If you don't specify a version, it will install the latest release
-# On production systems, you should install a specific version of Docker
-# instead of defaulting to the latest.
-#   List available versions: apt-cache madison docker-ce
-#   Better: $(apt-cache madison docker-ce | cut -d '|' -f2)
-#   Specify Install Version: "sudo apt-get -y install docker-ce=17.03.1~ce-0~debian-jessie"
-$SUDO apt-get -y install docker-ce
-
-# Verify it's working
-sudo docker run hello-world
-
-
-
-### =========[ Manage Docker as a Non-Root User ]======== ###
-# Ref: https://docs.docker.com/engine/installation/linux/linux-postinstall/#manage-docker-as-a-non-root-user
-
-# Create group 'docker' -- may already exist
-$SUDO groupadd docker
-
-# Add user to group 'docker'
-$SUDO usermod -aG docker $USER
-
-echo -e "[*] User has been added to to the docker group. Logout and back in to take effect!"
-echo -e "[*] After doing so, you should be able to run 'docker run hello-world' without sudo"
-
-
-# Start the service
-$SUDO systemctl start docker
-# Set it for autostart
-$SUDO systemctl enable docker
-
-
-# Customize Docker daemon (e.g. add HTTP proxy, different directory, etc.)
-# Ref: https://docs.docker.com/engine/admin/systemd/
-
-
-
-
 function pause() {
   # Simple function to pause a script mid-stride
   #
@@ -170,6 +94,86 @@ function is_process_alive() {
   local pid="$1" # IN
   ps -p $pid | grep $pid > /dev/null 2>&1
 }
+## ========================================================================== ##
+# ================================[  BEGIN  ]================================ #
+$SUDO apt-get -qq update
+$SUDO apt-get remove --purge docker
+# This one may fail so running them separately
+$SUDO apt-get remove --purge docker-engine
+
+
+# Contents of previously installations may be in /var/lib/docker/
+
+
+# Enable the backports repository
+#echo -e "${GREEN}[*]${RESET} Creating backports repo file in /sources.list.d/"
+file=/etc/apt/sources.list.d/backports.list
+[[ ! -s "${file}" ]]; then
+	$SUDO sh -c "echo deb http://httpredir.debian.org/debian jessie-backports main contrib non-free > ${file}"
+fi
+
+export DEBIAN_FRONTEND=noninteractive
+$SUDO apt-get -qq update
+$SUDO apt-get -y install apt-transport-https ca-certificates \
+  curl gnupg2 software-properties-common
+
+#TODO: Does this work?
+curl -fsSL https://download.docker.com/linux/debian/gpg | $SUDO apt-key add -
+
+# Key should be: 9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88
+# Verify via: sudo apt-key fingerprint
+
+echo -e "${GREEN}[*]${RESET} Adding docker repository"
+$SUDO add-apt-repository \
+  "deb [arch=amd64] https://download.docker.com/linux/debian \
+  $(lsb_release -cs) \
+  stable"
+# The above will output as "https://download.docker.com/linux/debian jessie stable"
+
+
+$SUDO apt-get -qq update
+# If you don't specify a version, it will install the latest release
+# On production systems, you should install a specific version of Docker
+# instead of defaulting to the latest.
+#   List available versions: apt-cache madison docker-ce
+#   Better: $(apt-cache madison docker-ce | cut -d '|' -f2)
+#   Specify Install Version: "sudo apt-get -y install docker-ce=17.03.1~ce-0~debian-jessie"
+echo -e "${GREEN}[*]${RESET} Installing Docker-CE via apt-get"
+$SUDO apt-get -y install docker-ce
+
+# Verify it's working
+echo -e "\n\n${GREEN}[*]${RESET} Verifying install. You should see the hello-world docker run below..."
+sudo docker run hello-world
+
+
+
+### =========[ Manage Docker as a Non-Root User ]======== ###
+# Ref: https://docs.docker.com/engine/installation/linux/linux-postinstall/#manage-docker-as-a-non-root-user
+
+# Create group 'docker' -- may already exist
+echo -e "${GREEN}[*]${RESET} Configuring user ${USER} into the docker group"
+$SUDO groupadd docker
+
+# Add user to group 'docker'
+$SUDO usermod -aG docker $USER
+
+echo -e "${GREEN}[*]${RESET} User has been added to to the docker group"
+echo -e "${GREEN}[*]${RESET} Logout and back in. Then, you should be able to run 'docker run hello-world' without sudo"
+
+
+# Start the service
+echo -e "${GREEN}[*]${RESET} Starting Docker daemon service"
+$SUDO systemctl start docker
+# Set it for autostart
+echo -e "${GREEN}[*]${RESET} Setting Docker service to autostart on boot"
+$SUDO systemctl enable docker
+
+# Default Ubuntu container for testing
+#docker run -it ubuntu bash
+
+# Customize Docker daemon (e.g. add HTTP proxy, different directory, etc.)
+# Ref: https://docs.docker.com/engine/admin/systemd/
+
 
 
 function finish() {
