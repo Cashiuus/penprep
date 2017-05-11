@@ -27,7 +27,7 @@ USER_NAME = os.environ.get('USERNAME')
 PATH_USER_HOME = os.environ.get('USERPROFILE')
 PATH_APPDATA = os.environ.get('APPDATA')
 PATH_LOCALAPPDATA = os.environ.get('LOCALAPPDATA')
-
+#PATH_ONEDRIVE = os.environ.get('ONEDRIVE')
 
 # List of directories to exclude from the archive.
 # This is to prevent unneeded junk from making our archive size too large.
