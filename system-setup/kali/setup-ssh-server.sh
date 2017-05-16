@@ -237,7 +237,7 @@ if [[ "$DO_PUBKEY_AUTH" = true ]]; then
     $SUDO sed -i 's|^#\?AuthorizedKeysFile.*|AuthorizedKeysFile  %h/.ssh/authorized_keys|' "${file}"
 
     # -- Disable Password Logins if using Pub Key Auth - default is commented yes
-    $SUDO sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' "${file}"
+    #$SUDO sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' "${file}"
     #$SUDO sed -i -e 's|\(PasswordAuthentication\) no|\1 yes|' "${file}"
 else
     $SUDO sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication no/' "${file}"
@@ -258,12 +258,13 @@ fi
 $SUDO sed -i -e 's|\(ServerKeyBits\) 1024|\1 2048|' "${file}"
 
 # -==[ LoginGraceTime (Default: 120)
-$SUDO sed -i 's/^LoginGraceTime.*/LoginGraceTime 30/' "${file}"
+#$SUDO sed -i 's/^LoginGraceTime.*/LoginGraceTime 30/' "${file}"
 
 
-# -==[ X11 Forwarding - not changing this from its default of 10 for now
-#$SUDO sed -i 's/X11Forwarding.*/X11Forwarding no/' >> "${file}"
-#$SUDO sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 15/' "${file}"
+# -==[ X11 Forwarding
+$SUDO sed -i 's/X11Forwarding.*/X11Forwarding yes/' >> "${file}"
+# X11DisplayOffset (Default: 10)))
+#$SUDO sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 10/' "${file}"
 
 
 # ==[ Ciphers - https://cipherli.st/
@@ -411,7 +412,8 @@ else
 fi
 EOF
   $SUDO mv "${file}" "${file_dest}"
-  $SUDO chmod 775 "${file}"
+  $SUDO mv "${file}" "${file_dest}"
+  $SUDO chmod 0755 "${file_dest}"
 
   # Set the default to deny all
   grep -q "sshd: ALL" "${file}" 2>/dev/null \
@@ -440,7 +442,7 @@ else
     echo -e "[ERROR] The GeoIP library could not be downloaded and updated"
 fi
 EOF
-    chmod u+x "${file}"
+    chmod 0755 "${file}"
     # Setup a monthly cron job to keep your Geo-IP Database updated - 1st of month at Noon.
     # TODO: This method doesn't work for 'root' user
     #(crontab -l ; echo "00 12 1 * * ${file}") | crontab

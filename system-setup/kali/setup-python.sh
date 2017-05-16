@@ -230,3 +230,15 @@ function finish {
 }
 # End of script
 trap finish EXIT
+
+
+#
+# Virtualenvs
+#----------------
+#py2-django-strikeforce
+#py2-django-wordlist
+#py3-django-wordlist
+#py3-scrapy
+#pysheet
+#
+#

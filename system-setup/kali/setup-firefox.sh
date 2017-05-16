@@ -8,6 +8,8 @@
 # Purpose:  Setup and set First-Run Configuration Tweaks to Firefox web browser
 #
 #
+# TODO:
+#   1. Add the "Wappalyzer" extension
 #
 #-[ Links/Credit ]------------------------------------------------------------------------
 #

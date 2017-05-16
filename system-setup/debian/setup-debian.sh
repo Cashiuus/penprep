@@ -114,7 +114,6 @@ $SUDO apt-get -qq update
 # -== Gnome & XFCE default tweaks ==- #
 # xfce4-settings-editor will show settings in GUI window
 
-
 # Configure XFCE4 Terminal defaults in its config file
 file="${HOME}/.config/xfce4/terminal/terminalrc"
 if [[ -s "${file}" ]]; then
@@ -145,14 +144,12 @@ function xfce_setup_thunar {
 }
 xfce_setup_thunar
 
-
 #$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-ac 0
 #$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-battery 0
 
 # Launch xscreensaver settings to auto-generate the config file we need to edit
 echo -e "${GREEN}[*]${RESET} Launching and fixing ${GREEN}xscreensaver${RESET}, please wait..."
 timeout 3 xscreensaver-demo >/dev/null 2>&1
-
 # Modify the ~/.xscreensaver file to disable screensaver from default "random"
 file=~/.xscreensaver
 sed -i "s/^mode.*/mode:         off/" "${file}"
@@ -173,43 +170,47 @@ $SUDO apt-get -y install openvpn openssl openssh-server
 $SUDO apt-get -y install baobab
 
 # Initializing them disabled to prevent insecure remote services to be cautious
-$SUDO systemctl stop ssh.service
-$SUDO systemctl disable ssh.service
+$SUDO systemctl stop ssh.service || $SUDO service ssh stop
+$SUDO systemctl disable ssh.service || $SUDO service ssh disable
 
-$SUDO systemctl stop exim4.service
-$SUDO systemctl disable exim4.service
+$SUDO systemctl stop exim4.service || $SUDO service exim4 stop
+$SUDO systemctl disable exim4.service || $SUDO service exim4 disable
 
-$SUDO systemctl stop apache2.service
-$SUDO systemctl disable apache2.service
+$SUDO systemctl stop apache2.service || $SUDO service apache2 stop
+$SUDO systemctl disable apache2.service || $SUDO service apache2.disable
 
 # ====[ Remove Bloat ]======
-#$SUDO apt-get -y remove libreoffice libreoffice-base
+#$SUDO apt-get -y remove --purge libreoffice libreoffice-base
 #$SUDO apt-get -y autoremove
 
 
 # ====[ Create desktop shortcuts -- just delete if you don't want them
-cp /usr/share/applications/xfce4-terminal.desktop ~/Desktop/xfce4-terminal.desktop
-cp /usr/share/applications/firefox-esr.desktop ~/Desktop/
-cp /usr/share/applications/geany.desktop ~/Desktop/geany.desktop
-chmod +x ~/Desktop/xfce4-terminal.desktop
-chmod +x ~/Desktop/firefox-esr.desktop
-chmod +x ~/Desktop/geany.desktop
+cp /usr/share/applications/gnome-terminal.desktop ~/Desktop/gnome-terminal.desktop 2>/dev/null
+cp /usr/share/applications/xfce4-terminal.desktop ~/Desktop/xfce4-terminal.desktop 2>/dev/null
+cp /usr/share/applications/firefox-esr.desktop ~/Desktop/ 2>/dev/null
+cp /usr/share/applications/geany.desktop ~/Desktop/geany.desktop 2>/dev/null
+chmod u+x ~/Desktop/gnomel-terminal.desktop 2>/dev/null
+chmod u+x ~/Desktop/xfce4-terminal.desktop 2>/dev/null
+chmod u+x ~/Desktop/firefox-esr.desktop 2>/dev/null
+chmod u+x ~/Desktop/geany.desktop 2>/dev/null
 
 
 
 ## -============[ Debian Jessie Backports Repository ]=============- #
-file=/etc/apt/sources.list.d/backports.list
-$SUDO sh -c "echo ### Debian Jessie Backports > ${file}"
-$SUDO sh -c "echo deb http://httpredir.debian.org/debian jessie-backports main contrib non-free >> ${file}"
 
-# This is how you can see a list of all installed backports:
-#   dpkg-query -W | grep ~bpo
-# View list of all potential packages:
-#   apt-cache policy <pkg>
+if [[ ${DEBIAN_VERSION} == 'jessie' ]]; then
+  file=/etc/apt/sources.list.d/backports.list
+  $SUDO sh -c "echo ### Debian Jessie Backports > ${file}"
+  $SUDO sh -c "echo deb http://httpredir.debian.org/debian jessie-backports main contrib non-free >> ${file}"
 
-echo -e "${GREEN}[*]${RESET} Installing Conky pkg..."
-$SUDO apt-get -y -t jessie-backports install conky
+  # This is how you can see a list of all installed backports:
+  #   dpkg-query -W | grep ~bpo
+  # View list of all potential packages:
+  #   apt-cache policy <pkg>
 
+  echo -e "${GREEN}[*]${RESET} Installing Conky pkg..."
+  $SUDO apt-get -y -t jessie-backports install conky
+fi
 
 
 # -== Git global config settings ==- #

@@ -1,17 +1,17 @@
 #
-# =============[ Constants ]============== #
+## =============[ Constants ]============== ##
 #APP_PATH=$(readlink -f $0)
 #APP_BASE=$(dirname "${APP_PATH}")
 #APP_NAME=$(basename "${APP_PATH}")
-APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
-INSTALL_USER=${USER}   # Can specify the user account for installation scripts, but not needed.
 LINES=$(tput lines)
 COLS=$(tput cols)
+## =============[ Default Settings ]============== ##
+APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
+APP_SETTINGS_DIR=$(dirname ${APP_SETTINGS})
+# Can specify the user account for installation scripts, but not needed.
+INSTALL_USER=${USER}
 
 ## ==========[ TEXT COLORS ]============= ##
-# [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
-# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
-# [https://en.wikipedia.org/wiki/ANSI_escape_code]
 GREEN="\033[01;32m"     # Success
 YELLOW="\033[01;33m"    # Warnings/Information
 RED="\033[01;31m"       # Issues/Errors
@@ -24,8 +24,7 @@ RESET="\033[00m"        # Normal
 ## ========================================================================== ##
 
 
-
-# =================[  START :: INIT/PROJECT SETUP FUNCTIONS  ]================= #
+## ===============[  START :: INIT/PROJECT SETUP FUNCTIONS  ]=============== ##
 function init_settings() {
   #
   #
@@ -36,17 +35,16 @@ function init_settings() {
     mkdir -p $(dirname ${APP_SETTINGS})
     echo -e "${GREEN}[*]${RESET} Creating personal settings file"
     cat <<EOF > "${APP_SETTINGS}"
-### PERSONAL BUILD SETTINGS
+### PERSONAL SYSTEM BUILD SETTINGS ###
 #
 #
 
-SSH_SERVER_IP="0.0.0.0"
-SSH_SERVER_PORT=22
 EOF
+  else
+    echo -e "${GREEN}[*]${RESET} Reading from settings file, please wait..."
+    source "${APP_SETTINGS}"
+    [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
   fi
-  echo -e "${GREEN}[*]${RESET} Reading from settings file, please wait..."
-  source "${APP_SETTINGS}"
-  [[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG] App Settings Path: ${APP_SETTINGS}${RESET}"
 }
 # ==================[  END :: INIT/PROJECT SETUP FUNCTIONS  ]================== #
 
@@ -153,10 +151,10 @@ function print_banner() {
   length=${#1}
 
 
-  echo -e "\n${BLUE}===================[  ${RESET}${BOLD}$1  ${RESET}${BLUE}]===================${RESET}"
+  echo -e "\n${BLUE}===================[  ${RESET}${BOLD}$1  ${RESET}${BLUE}]===================${RESET}\n"
 
 
-  echo -e "${BLUE}===========================<${RESET} version: ${__version__} ${BLUE}>===========================\n${RESET}"
+  echo -e "${BLUE}================================<${RESET} version: ${__version__} ${BLUE}>================================${RESET}\n"
 }
 
 
@@ -195,3 +193,43 @@ function install_git() {
 }
 
 # ==============================[  END :: GIT  ]============================== #
+
+
+
+
+
+function version () {
+  echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
+}
+
+function version_check () {
+  # Compare to versions and return 0 if newer, 1 if older
+  #
+  # In this case, I'm checking the installed version of OpenSSH
+  #
+  # Usage: version_check 7.5 6.5 (or) version_check $openssh_version 6.5
+  #
+
+  if [ $(version $1) -ge $(version $2) ]; then
+    echo "$1 is newer than $2" >/dev/null
+    return 0
+  elif [ $(version $1) -lt $(version $2) ]; then
+    echo "$1 is older than $2" >/dev/null
+    return 1
+  fi
+}
+
+function md5_compare() {
+  # Compare MD5 Hash of 2 files
+  #
+  # Usage: md5_compare <file1> <file2>
+  #
+  echo -e "\t-- ${RED}OLD KEYS${RESET} --"
+  #openssl md5 /etc/ssh/insecure_original_kali_keys/ssh_host_*
+  openssl md5 ${1}
+  echo -e "\n\t-- ${GREEN}NEW KEYS${RESET} --"
+  #openssl md5 /etc/ssh/ssh_host_*
+  openssl md5 ${2}
+  echo -e "\n\n"
+  sleep 10
+}

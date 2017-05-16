@@ -36,7 +36,7 @@ APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_ARGS=$@
-DEBUG=true
+DEBUG=false
 LOG_FILE="${APP_BASE}/debug.log"
 
 ## =======[ EDIT THESE SETTINGS ]======= ##
@@ -133,8 +133,8 @@ export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y upgrade
 # TODO: Skipping for now because XFCE dist upgrade causes black screen of death loops
-#$SUDO apt-get -y dist-upgrade
-$SUDO apt-get -y install bash-completion build-essential curl locate sudo gcc git make
+$SUDO apt-get -y -q dist-upgrade
+$SUDO apt-get -y install bash-completion build-essential curl locate gcc git make net-tools sudo
 # Extra Packages - Utilities
 $SUDO apt-get -y install geany htop sysv-rc-conf
 
@@ -160,8 +160,6 @@ $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
 
 if [[ ${GDMSESSION} == 'default' ]]; then
   echo -e "${GREEN}[*] ${RESET}Reconfiguring GNOME and related app settings"
-
-
   # ====[ Configure - Top bar ]==== #
   gsettings set org.gnome.desktop.datetime automatic-timezone true
   gsettings set org.gnome.desktop.interface clock-show-date true                    # Default: false
@@ -236,8 +234,12 @@ elif [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
     echo "FontName=Monospace 11" >> "${file}"
     echo "BackgroundMode=TERMINAL_BACKGROUND_TRANSPARENT" >> "${file}"
     echo "BackgroundDarkness=0.970000" >> "${file}"
-  fi
+  else
+    mkdir -p "${HOME}/.config/xfce4/terminal/"
+    cat <<EOF > "${file}"
 
+
+EOF
 fi
 
 
@@ -296,7 +298,10 @@ ln -s /usr/share/wordlists /wordlists
 echo -e "${GREEN}[*] ${RESET}Initializing Metasploit"
 msfdb init
 sleep 3s
-# Another method of init is doing: msfdb reinit
+
+# NOTE: Another method of init is doing: msfdb reinit
+# NOTE: Another method of loading a metasploit config .yml file:
+#   $SUDO sh -c "echo export MSF_DATABASE_CONFIG=/opt/metasploit-framework/config/database.yml >> /etc/profile"
 
 echo -e "${GREEN}[*] ${RESET} Moving MSF config file to '~/.msf4/database.yml'"
 mv /usr/share/metasploit-framework/config/database.yml ${HOME}/.msf4/database.yml
@@ -401,13 +406,9 @@ iface eth0 inet dhcp
 EOF
 
 
-
-
 # ==========[ Configure GIT ]=========== #
 
 echo -e "${GREEN}[+]${RESET} Now setting up Git, you will be prompted to enter your name for commits."
-
-
 
 
 # Git Aliases Ref: https://git-scm.com/book/en/v2/Git-Basics-Git-Aliases
@@ -434,7 +435,6 @@ git config --global alias.clone 'clone --recursive'
 
 # Git short status
 git config --global alias.s 'status -s'
-
 
 
 # ===================================[ FINISH ]====================================== #

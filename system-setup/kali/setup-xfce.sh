@@ -1,15 +1,17 @@
 #!/bin/bash
 ## =================================================================================
 # File:     setup-xfce.sh
-#
 # Author:   Cashiuus
-# Created:  25-JAN-2016         (Synced with g0tmi1k's kali-rolling.sh: 09-APR-2016)
+# Created:  25-JAN-2016     -     Revised:  16-May-2017
 #
 # Purpose:  Perform a baseline setup of the xfce window manager to replace Gnome
 #           This is a lightweight desktop designed to be low on resource use.
 #
+# TODO:
+#   1. Add a launcher shortcut for Thunar file explorer
 #
 #
+# Links:
 #   XFCE Site: http://www.xfce.org/
 #   XFCE Debian Packaging Site: http://pkg-xfce.alioth.debian.org/
 #
@@ -26,15 +28,17 @@ BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 ENABLE_XFCE=true              # Thereby disabling Gnome as the default?
-BROWSER_SHORTCUT="firefox"  # Use "iceweasel" or "firefox"?
+BROWSER_SHORTCUT="firefox"
 EDITOR_SHORTCUT="geany"       # Use "geany" or "gedit" for panel shortcut icon?
 
 
 # =============================[  FUNCTIONS ]================================ #
 
 function configure_panel_applications {
-  apt-get -y install burpsuite metasploit-framework wireshark
-
+  ###
+  #   This function configures a specific set of quick launchers for top-used applications
+  #   on the xfce4 panel and sets it at the top of the desktop.
+  ###
   ln -sf /usr/share/applications/exo-terminal-emulator.desktop ~/.config/xfce4/panel/launcher-2/exo-terminal-emulator.desktop
   ln -sf /usr/share/applications/kali-wireshark.desktop    ~/.config/xfce4/panel/launcher-4/kali-wireshark.desktop
   if [[ "$BROWSER_SHORTCUT" == "firefox" ]]; then
@@ -97,7 +101,7 @@ function configure_panel_applications {
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-6/items -t string -s "kali-burpsuite.desktop" -a
   #--- metasploit
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-7/items -t string -s "kali-msfconsole.desktop" -a
-  #--- geany/gedit/atom
+  #--- geany/gedit
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "textedit.desktop" -a
   #--- search
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "xfce4-appfinder.desktop" -a
@@ -464,15 +468,17 @@ EOF
 
 ## =============================[ MAIN ]================================== ##
 # Disable idle timeout to screensaver
-gsettings set org.gnome.desktop.session idle-delay 0
+$SUDO gsettings set org.gnome.desktop.session idle-delay 0
 echo -e "${GREEN}[*]${RESET} Installing xfce from apt-get..."
-apt-get -qq update
-apt-get -y upgrade
-apt-get -y autoremove --purge
-apt-get -y install curl terminator xfce4
+$SUDO apt-get -qq update
+$SUDO apt-get -y upgrade
+$SUDO apt-get -y autoremove --purge
+$SUDO apt-get -y install curl terminator xfce4
 # TODO: Do I need these extras?
-#apt-get -y install xfce4-mount-plugin xfce4-notifyd \
-    xfce4-places-plugin xfce4-battery-plugin
+#apt-get -y install xfce4-mount-plugin xfce4-notifyd xfce4-places-plugin xfce4-battery-plugin
+
+# Install Necessary apps for which we'll create desktop panel shortcuts
+$SUDO apt-get -y install burpsuite geany gedit metasploit-framework wireshark
 
 # Additional optional depends
 # NOTE: accountsservice isn't mandatory but I've seen issues w/o it and errors in syslog
