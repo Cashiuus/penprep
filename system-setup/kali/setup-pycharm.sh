@@ -3,7 +3,7 @@
 # File:     setup-pycharm.sh
 #
 # Author:   Cashiuus
-# Created:  10-Dec-2016     Revised: 10-Mar-2017
+# Created:  10-Dec-2016     Revised: 10-Aug-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Download, setup pycharm, backup original pycharm settings if applicable,
@@ -26,7 +26,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="0.1"
+__version__="0.2"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]========== ##
 GREEN="\033[01;32m"     # Success
@@ -48,7 +48,7 @@ DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
 BACKUPS_PATH="${HOME}/Backups"
 # TODO: Get latest pycharm version programmatically
-PYCHARM_VERSION="2016.3.2"
+PYCHARM_VERSION="2017.2"
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]];then
@@ -69,9 +69,7 @@ java -version >/dev/null 2>&1
 
 if [[ $? -ne 0 ]]; then
     echo -e "${YELLOW}[*] ${RESET}Java not found, attempting to install"
-    apt-get install openjdk-8-jdk
-    # Fix any dependency issues
-    apt-get -f install
+    $SUDO apt-get install openjdk-8-jdk || $SUDO apt-get -f install openjdk-8-jdk # Fix any dependency issues
 else
     echo -e "${GREEN}[*] ${RESET} Java detected, continuing with installation"
 fi
@@ -82,31 +80,37 @@ echo -e "${GREEN}[*] ${RESET}Checking for previous versions to backup settings"
 [[ ! -d "${BACKUPS_PATH}" ]] && mkdir -p "${BACKUPS_PATH}"
 if [[ -d ${HOME}/.PyCharm2016.2 ]]; then
     cp ${HOME}/.PyCharm2016.2/config/settings.jar "${BACKUPS_PATH}/"
-elif [[ -d ${HOME}/.PyCharm2016.3 ]]; then
-    cp ${HOME}/.PyCharmCE2016.3/config/settings.jar "${BACKUPS_PATH}/"
+elif [[ -d ${HOME}/.PyCharm2017.2 ]]; then
+    cp ${HOME}/.PyCharmCE2017.2/config/settings.jar "${BACKUPS_PATH}/"
 fi
 
-# https://confluence.jetbrains.com/display/PYH/Previous+PyCharm+Releases
-# https://www.jetbrains.com/pycharm/download/download-thanks.html?platform=linux
+
 echo -e "${GREEN}[*] ${RESET}Downloading PyCharm package, please wait..."
 cd /tmp
+
+# TODO: Parse here for d/l link - http://www.jetbrains.com/pycharm/download/#section=linux
+# http://www.jetbrains.com/pycharm/download/download-thanks.html?platform=linux&code=PCC
+# https://download-cf.jetbrains.com/python/pycharm-community-2017.2.1.tar.gz
 wget --no-verbose http://download.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
 #wget -q https://download-cf.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
 tar xzf pycharm-community-${PYCHARM_VERSION}.tar.gz
-rm /tmp/pycharm-community-${PYCHARM_VERSION}.tar.gz
 
 # TODO: Can we simply overwrite the files, or should we delete the old folder first?
-rm -rf /opt/pycharm-community/
+$SUDO rm -rf /opt/pycharm-community/ 2>/dev/null
+
+# Clean up the archive file
+$SUDO rm /tmp/pycharm-community-${PYCHARM_VERSION}.tar.gz
 
 # Move into permanent install path and then delete tmp files
-mv /tmp/pycharm-community* /opt/pycharm-community
+$SUDO mkdir /opt/pycharm-community
+$SUDO mv /tmp/pycharm-community* /opt/pycharm-community
 
 
 # Create permanent symlinks so we can easily open pycharm going forward
 echo -e "${GREEN}[*] ${RESET}Creating symlinks for PyCharm"
-[[ ! -d /usr/local/bin ]] && mkdir -p /usr/local/bin
-[[ ! -f /usr/local/bin/pycharm ]] && ln -s /opt/pycharm-community/bin/pycharm.sh /usr/local/bin/pycharm
-[[ ! -f /usr/local/bin/inspect ]] && ln -s /opt/pycharm-community/bin/inspect.sh /usr/local/bin/inspect
+[[ ! -d /usr/local/bin ]] && $SUDO mkdir -p /usr/local/bin
+[[ ! -f /usr/local/bin/pycharm ]] && $SUDO ln -s /opt/pycharm-community/bin/pycharm.sh /usr/local/bin/pycharm
+[[ ! -f /usr/local/bin/inspect ]] && $SUDO ln -s /opt/pycharm-community/bin/inspect.sh /usr/local/bin/inspect
 
 
 # This site mentions a server for a server key that will validate Professional versions licensing
