@@ -28,9 +28,13 @@ alias ping='ping -c 2'
 alias webserv='python -m SimpleHTTPServer'
 alias header="curl -I"
 dns=$(grep 'nameserver' /etc/resolv.conf | awk '{print $2}')
-interface=$(ifconfig | grep -B1 'inet addr' | egrep -v '(-|inet addr|Loopback)' | cut -d ' ' -f1)
-ip=$(ifconfig | grep 'Bcast' | awk '{print$2}' | cut -d ':' -f2)
-mac=$(ifconfig | grep -B1 'inet addr' | egrep -v '(-|inet addr|Loopback)' | awk '{print$5}')
+if [[ `id -u` -eq 0 ]]; then
+    # Checking if root first, else these cmds fail under a regular
+    # user every time they open a terminal window.
+    interface=$(ifconfig | grep -B1 'inet addr' | egrep -v '(-|inet addr|Loopback)' | cut -d ' ' -f1)
+    ip=$(ifconfig | grep 'Bcast' | awk '{print$2}' | cut -d ':' -f2)
+    mac=$(ifconfig | grep -B1 'inet addr' | egrep -v '(-|inet addr|Loopback)' | awk '{print$5}')
+fi
 
 alias n='echo ; netstat -antup | egrep -v "Active" ; echo ;
 echo -n "Interface:    "$interface ; echo ;

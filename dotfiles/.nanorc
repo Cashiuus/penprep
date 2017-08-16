@@ -1,19 +1,26 @@
 ### -== User nanorc settings ==- ###
+# Other good nano configs: https://github.com/scopatz/nanorc
+#
+###
 
 # Include custom syntax highlighting files
-#include "/root/.nano/dotfiles.nanorc"
-#include "/root/.nano/conf.nanorc"
-include "${HOME}/.dotfiles/nano/conf.nanorc"
-include "${HOME}/.dotfiles/nano/dotfiles.nanorc"
-include "${HOME}/.dotfiles/nano/mk.nanorc"
+include "~/.dotfiles/nano/conf.nanorc"
+include "~/.dotfiles/nano/dotfiles.nanorc"
+include "~/.dotfiles/nano/mk.nanorc"
 
 
 ### General settings
 set smooth
 set autoindent
 
+# Remove blank line just below titlecar for more editing space
+set morespace
+# Hide help shortcut list from bottom
+#set nohelp
+
 ### Tabbing settings
 # tabsize default: 8
 set tabsize 4
+# Convert tabs to spaces
 #set tabstospaces
 

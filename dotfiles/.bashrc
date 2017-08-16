@@ -5,7 +5,8 @@
 ###     .bash_profile   Executes for all login BASH shells
 ###     .profile        Executes for all login shells, not just BASH
 ###
-### Ref: http://www.linuxfromscratch.org/blfs/view/stable/postlfs/profile.html
+### Refs:
+#       http://www.linuxfromscratch.org/blfs/view/stable/postlfs/profile.html
 ###
 ### ------------------------------------------------------------------------ ###
 
@@ -31,30 +32,31 @@ elif [[ -s "${HOME}/.bash_sshagent" ]]; then
     source "${HOME}/.bash_sshagent"
 fi
 
-############-[ HISTORY CONFIGS ]-#############
-### Don't overwrite GNU Midnight Commander's setting of `ignorespace'.
-#export HISTCONTROL=$HISTCONTROL${HISTCONTROL+,}ignoredups
-### Don't put duplicate lines or lines starting with space in the history.
-HISTCONTROL=ignoreboth
+### ----------[ MISC CONFIGS ]---------- ###
+### Don't try to complete if it's empty, helpful with performance
+shopt -s no_empty_cmd_completion
+### check the window size after each command and, if necessary,
+### update the values of LINES and COLUMNS.
+shopt -sq checkwinsize
+### If set, the pattern "**" used in a pathname expansion context will
+### match all files and zero or more directories and subdirectories.
+shopt -s globstar
+
+### ----------[ HISTORY CONFIGS ]---------- ###
 ### Store command history as one line, regardless if input as multi-line
 shopt -s cmdhist
 ### Append history so that multiple terminals will not overwrite each other
 shopt -s histappend
-### Don't try to complete if it's empty, helpful with performance
-shopt -s no_empty_cmd_completion
+### Don't overwrite GNU Midnight Commander's setting of `ignorespace'.
+#export HISTCONTROL=$HISTCONTROL${HISTCONTROL+,}ignoredups
+### Don't put duplicate lines or lines starting with space in the history.
+HISTCONTROL=ignoreboth
 ### For setting history length see HISTSIZE and HISTFILESIZE
 # HISTSIZE (Default: 1000) For memory scrollback
 HISTSIZE=9000
 # HISTFILESIZE (Default: 2000) For history file (e.g. bash_history)
 HISTFILESIZE=10000
 
-### check the window size after each command and, if necessary,
-### update the values of LINES and COLUMNS.
-shopt -sq checkwinsize
-
-### If set, the pattern "**" used in a pathname expansion context will
-### match all files and zero or more directories and subdirectories.
-shopt -s globstar
 
 ### set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
@@ -64,7 +66,7 @@ fi
 ### make less more friendly for non-text input files, see lesspipe(1)
 #[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
-###########-[ COLORS & PROMPTS ]-##############
+### ----------[ COLORS & PROMPTS ]---------- ###
 ### set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
     xterm-color) color_prompt=yes;;
@@ -114,7 +116,7 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# Set a default editor
+### Set a default editor
 export EDITOR=nano
 
 ### Load RVM to PATH for scripting
