@@ -3,7 +3,7 @@
 # File:     setup-conky.sh
 #
 # Author:   Cashiuus
-# Created:  27-Jan-2016          Revised:    16-Mar-2017
+# Created:  27-Jan-2016          Revised:    23-Aug-2017
 #
 #-[ Usage ]-------------------------------------------------------------------------------
 # Purpose:  Setup conky monitor dashboard on desktop with pre-configured style
@@ -15,7 +15,7 @@
 #   Conky Colors:   https://en.wikipedia.org/wiki/X11_color_names
 #                   http://www.graphviz.org/doc/info/colors.html
 ## =======================================================================================
-__version__="1.3"
+__version__="1.4"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"     # Success
@@ -40,6 +40,9 @@ USE_OLD_CONKY=0
 OLD_CONKY_CONF="${HOME}/.conkyrc"
 NEW_CONKY_CONF="${HOME}/.config/conky/conky.conf"
 
+LSB_RELEASE=$(lsb_release -cs)
+CONKY_VERSION=$(dpkg-query -f '${Version}' -W conky)
+
 #======[ ROOT PRE-CHECK ]=======#
 function check_root() {
     if [[ $EUID -ne 0 ]];then
@@ -56,19 +59,43 @@ check_root
 
 # =============================[ Install & Setup ]================================ #
 
-# NOTE: Do not install "conky", it is deprecated, instead you install it as "conky-all"
-# This might be due to which repo the latest conky gets served from. On Debian, latest
-# conky version (v1.10+) comes from the next release after Jessie ("sid" as of right now).
-$SUDO apt-get -y install conky-all
 
+if [[ ${LSB_RELEASE} == 'jessie' ]]; then
+  file=/etc/apt/sources.list.d/backports.list
+  if [[ ! -e "${file}" ]]; then
+	  $SUDO sh -c "echo ### Debian Jessie Backports > ${file}"
+	  $SUDO sh -c "echo deb http://httpredir.debian.org/debian jessie-backports main contrib non-free >> ${file}"
+  fi
+  # This is how you can see a list of all installed backports:
+  #   dpkg-query -W | grep ~bpo
+  # View list of all potential packages:
+  #   apt-cache policy <pkg>
+
+  echo -e "${GREEN}[*]${RESET} Installing latest Conky pkg..."
+  export DEBIAN_FRONTEND=noninteractive
+  $SUDO apt-get -y -t jessie-backports install conky
+fi
+
+
+# ----- XFCE Installs - Enable Compositing -------
+
+if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
+	# NOTE: Another env var that could be used is: XDG_CURRENT_DESKTOP=XFCE
+  echo -e "${YELLOW}[INFO]${RESET}  detected, skipping GNOME tweaks..."
+  $SUDO xfconf-query -n -c xfwm4 -p /general/use_compositing -t bool -s true
+  $SUDO xfconf-query -n -c xfwm4 -p /general/frame_opacity -t int -s 85
+
+fi
+
+
+# -----------------------------------
 
 # NOTE: Debian 8 "jessie" still uses conky 1.9, unless you enable unstable "sid" distro instead.
 # Conky < 1.9 uses old config style we are used to using
 # Conky >= 1.10 uses new Lua-based configuration style
 
-# TODO: Determine currently-installed Conky version rather than guessing
-CONKY_VERSION=$(dpkg-query -f '${Version}' -W conky)
 
+# TODO: Determine currently-installed Conky version rather than guessing
 if [[ ${USE_OLD_CONKY} -eq 1 ]]; then
   # If we've set this variable to 1, we want old conky.
   echo -e "${GREEN}[*]${RESET} Performing setup of OLD version Conky..."
@@ -161,7 +188,9 @@ else
   [[ ! -d "${filedir}" ]] && mkdir -p "${filedir}"
   cat <<EOF > "${NEW_CONKY_CONF}"
 conky.config = {
-    -- Ref: https://wiki.archlinux.org/index.php/conky
+    -- References: 
+    --    https://wiki.archlinux.org/index.php/conky
+    --    https://github.com/brndnmtthws/conky/wiki/Configuration-Settings
     gap_x = 12,
     gap_y = 35,
     alignment = 'bottom_right',
@@ -263,7 +292,6 @@ fi
 echo -e "${GREEN}[*] ${RESET}Adding conky-start script"
 file="/usr/local/bin/conky-start"
 [[ ! -d "/usr/local/bin" ]] && $SUDO mkdir -p "/usr/local/bin"
-
 # Create file and make it readable so we can build it
 $SUDO touch "${file}"
 $SUDO chmod -f 0666 "${file}"
@@ -274,11 +302,11 @@ $(which timeout) 10 $(which killall) -9 -q -w conky
 $(which sleep) 15s
 $(which conky) &
 EOF
-# Now make file launchable by all users
-$SUDO chmod -f 0755 "${file}"
+# Now make file launchable
+#$SUDO chmod -f 0500 "${file}"
+$SUDO chmod -f 0555 "${file}"
 
-
-echo -e "${GREEN}[*] ${RESET}Adding conky autostart file"
+echo -e "${GREEN}[*]${RESET} Adding conky autostart file"
 mkdir -p "${HOME}/.config/autostart"
 file="${HOME}/.config/autostart/conkyscript.desktop"
 cat <<EOF > "${file}"
@@ -297,6 +325,15 @@ Comment=
 EOF
 
 
+# Launch it now
+bash /usr/local/bin/conky-start >/dev/null 2>&1 &
+echo -e "${GREEN}[*]${RESET} Conky install complete!"
+
+# An easy way to force reload your ~/.conkyrc config:
+#$SUDO killall -SIGUSR1 conky
+
+
+
 # =========[ Keyboard Shortcut (Alt+F2) to 'conky-refresh' ]======= #
 #file="${HOME}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml"
 #if [[ -e "${file}" ]]; then
@@ -308,20 +345,11 @@ EOF
 ### TODO: It is possible to create a configuration to show basic specs at the bottom of a screen console session
 # Info: https://github.com/brndnmtthws/conky/wiki/ConkyAndGnuScreen
 
-#apt-get -y install screen
+#$SUDO apt-get -y install screen
 
 # Check if conky was compiled with X11 support by parsing output of this command
 #conky -v | grep "X11"
 
-
-
-
-# End of script
-bash $SUDO /usr/local/bin/conky-start >/dev/null 2>&1 &
-echo -e "${GREEN}[*]${RESET} Conky install complete!"
-
-# An easy way to force reload your ~/.conkyrc config:
-#$SUDO killall -SIGUSR1 conky
 
 
 # ============================ [  NOTES  ] ================================= #

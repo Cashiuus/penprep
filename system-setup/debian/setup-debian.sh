@@ -34,7 +34,7 @@ APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 
 ## ============[ CONSTANTS ]================ ##
 
-DEBIAN_VERSION=$(lsb_release -cs)
+LSB_RELEASE=$(lsb_release -cs)
 
 ## =========================[ START :: LOAD FILES ]========================= ##
 if [[ -s "${APP_BASE}/../common.sh" ]]; then
@@ -45,7 +45,7 @@ else
   [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: fail${RESET}"
   exit 1
 fi
-## ==========================[ END :: LOAD FILES ]]========================== ##
+## ==========================[ END :: LOAD FILES ]========================== ##
 
 # Check root/sudo rights and fix it before continuing
 check_root
@@ -82,7 +82,7 @@ $SUDO gsettings set org.gnome.desktop.session idle-delay 0
 # -==   APT   ==- #
 # https://wiki.debian.org/SourcesList
 # Only modify the sources.list if we are on a 'jessie' system, else stick with defaults
-if [[ ${DEBIAN_VERSION} == 'jessie' ]]; then
+if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   echo -e "\n${GREEN}[*]${RESET} Setting sources.list to standard entries"
   if [[ $SUDO ]]; then
     echo "# Debian Jessie" | $SUDO tee /etc/apt/sources.list
@@ -159,7 +159,7 @@ echo -e "${GREEN}[*]${RESET} Performing a distro upgrade and installing core pkg
 $SUDO apt-get -qy upgrade
 $SUDO apt-get -qy dist-upgrade
 
-$SUDO apt-get -y install make gcc git build-essential
+$SUDO apt-get -y install build-essential gcc git make screen
 $SUDO apt-get -y install conky geany unrar
 
 # Optional remote access services
@@ -198,7 +198,7 @@ chmod u+x ~/Desktop/geany.desktop 2>/dev/null
 
 ## -============[ Debian Jessie Backports Repository ]=============- #
 
-if [[ ${DEBIAN_VERSION} == 'jessie' ]]; then
+if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   file=/etc/apt/sources.list.d/backports.list
   $SUDO sh -c "echo ### Debian Jessie Backports > ${file}"
   $SUDO sh -c "echo deb http://httpredir.debian.org/debian jessie-backports main contrib non-free >> ${file}"
