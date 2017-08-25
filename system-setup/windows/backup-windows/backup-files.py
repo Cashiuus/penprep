@@ -70,7 +70,6 @@ except ImportError:
 
 def check_ccleaner():
     # If the .ini file does not exist, run the command to create them
-
     os.system('CCleaner.exe /EXPORT')
 
 
@@ -210,8 +209,8 @@ def create_input_list(input_list):
                 filenames = [f for f in filenames if not re.match(excludes, f)]
                 #filenames = [f for f in filenames if re.match(includes, f)]
 
-                for filename in filenames:
-                    verified_list.append(os.path.join(root, filename))
+                for f in filenames:
+                    verified_list.append(os.path.join(root, f))
         else:
             verified_list.append(item)
 
@@ -288,8 +287,10 @@ def copy_files_with_progress(files, dst):
                 copy_error.append(file)
                 files.remove(file)
                 numfiles -= 1
-                pass
+                if DEBUG:
+                    print(" [DEBUG :: copy_files_with_progress] Copy failed exception, file: {}".format(str(file)))
             p.calculate_update(numcopied, numfiles)
+
         print("\n")
         for f in copy_error:
             print("# ----[ Error copying file: {}".format(f))
@@ -306,9 +307,9 @@ def prune_old_backups(search_path, archive_pattern, keep_archives=10):
     """
     matches = []
     for root, dirs, filenames in os.walk(search_path):
-        for filename in filenames:
-            if filename.endswith(('.zip')):
-                matches.append(os.path.join(root, filename))
+        for f in filenames:
+            if f.endswith(('.zip')):
+                matches.append(os.path.join(root, f))
 
     # TODO: Process this list of identified backup archives to
     #       1) identify valid ones based on our naming variable, and
