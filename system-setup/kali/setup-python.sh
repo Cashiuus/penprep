@@ -29,10 +29,10 @@ APP_NAME=$(basename "${APP_PATH}")
 APP_ARGS=$@
 LOG_FILE="${APP_BASE}/debug.log"
 # --------------- #
-INSTALL_PY3="true"
+INSTALL_PY3=true
 DEFAULT_VERSION="2"     # Set this to 3 for py3; Determines which is activated at the end
 py2version="2.7"
-py3version="3.5"
+py3version="3"
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]]; then
@@ -102,15 +102,15 @@ wheel
 EOF
 $SUDO pip install -r /tmp/requirements.txt
 
-$SUDO pip install lxml --upgrade
-#pip install argparse --upgrade
+$SUDO pip install --upgrade lxml
+#pip install --upgrade argparse
 
 # Figure out which outdated $(pip list --oudated) pip packages are apt pkgs and which are not
 # update the ones that are not so we don't break apt repo package installs.
 
 
 # Install Python 3.x
-if [ $INSTALL_PY3 == "true" ]; then
+if [ "$INSTALL_PY3" = true ]; then
     echo -e "\n${GREEN}[*] ${PURPLE}[penprep]${RESET} Installing Python 3..."
     $SUDO apt-get -y -qq update
     # TODO: Are the "-all" and "-dev" necessary at this point?
@@ -146,7 +146,7 @@ file="${WORKON_HOME}/django-requirements.txt"
 cat <<EOF > "${file}"
 cookiecutter
 django
-djang-debug-toolbar
+django-debug-toolbar
 django-environ
 django-extensions
 django-import-export
@@ -156,19 +156,24 @@ pygraphviz
 six
 EOF
 
-# Virtual Environment Setup - Python 3.5.x
-if [[ $INSTALL_PY3 == "true" ]]; then
+# Virtual Environment Setup - Python 3.x
+if [[ "$INSTALL_PY3" = true ]]; then
     #/usr/local/opt/python-${py3version}/bin/pyvenv env-${py3version}
+    echo -e "{GREEN}[*] ${PURPLE}[penprep]${RESET} Creating a Python 3 standard virtualenv..."
     mkvirtualenv env-${py3version} -p /usr/bin/python${py3version}
-    pip install --upgrade pip
-    pip install setuptools
-    deactivate
+    if [[ $? -eq 0 ]]; then
+		pip install --upgrade pip
+		pip install --upgrade setuptools
+		# TODO: this resulted in 'command not found' on a debian system
+		#deactivate
+	fi
 fi
 
 # Virtual Environment Setup - Python 2.7.x
+echo -e "{GREEN}[*] ${PURPLE}[penprep]${RESET} Creating a Python 2 standard virtualenv..."
 mkvirtualenv env-${py2version} -p /usr/bin/python${py2version}
 pip install --upgrade pip
-pip install setuptools
+pip install --upgrade setuptools
 deactivate
 
 # Add lines to shell dot-file if they aren't there
@@ -188,43 +193,38 @@ grep -q 'export WORKON_HOME=' "${file}" 2>/dev/null \
 
 source "${file}"
 
+
+echo -e "{GREEN}[*] ${PURPLE}[penprep]${RESET} Creating a virtualenv for Django..."
+mkvirtualenv py3-django -p /usr/bin/python${py3version}
+if [[ $? -eq 0 ]] && [[ -e "${WORKON_HOME}/django-requirements.txt" ]]; then
+	echo -e "{GREEN}[*] ${PURPLE}[penprep]${RESET} Creating a virtualenv for Django..."
+	pip install -r "${WORKON_HOME}/django-requirements.txt"
+fi
+deactivate
+
+#echo -e "{GREEN}[*] ${PURPLE}[penprep]${RESET} Creating a virtualenv for Scrapy..."
+#mkvirtualenv py3-scrapy -p /usr/bin/python${py3version}
+#pip install Scrapy
+#deactivate
+
+
 # Finally, activate the desired default
 # TODO: This doesn't actually work because source and workon end with the script process
 #   User will still have to manually do this themselves after script exits
-echo -e "\n ${GREEN}-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup Complete - Activating Environment ]${GREEN}-----------${RESET}"
-if [[ $DEFAULT_VERSION == "3" ]]; then
-    workon env-${py3version}
-else
-    workon env-${py2version}
-fi
-
-
-# Install or upgrade (-U) a package to ALL virtualenvs
-#allvirtualenv pip install django
-#allvirtualenv pip install -U django
-
-
-# ---- virtualenwrapper helpers ------
-#virtualenvwrapper_get_python_version
-
-
-# new tool called autoenv that will auto-activate a virtualenv when you cd into a folder
-# that contains a .env file
-# Project:https://github.com/kennethreitz/autoenv
-
-
-
-mkvirtualenv py3-scrapy -p /usr/bin/python${py3version}
-pip install Scrapy
-deactivate
-
+#echo -e "\n ${GREEN}-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup Complete - Activating Environment ]${GREEN}-----------${RESET}"
+#if [[ $DEFAULT_VERSION == "3" ]]; then
+#    workon env-${py3version}
+#else
+#    workon env-${py2version}
+#fi
 
 
 function finish {
     # Any script-termination routines go here, but function cannot be empty
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
-    echo -e "\t\t${GREEN}[*] ${RESET}Python Setup Complete!\n\n"
+    echo -e "\n\t\t${GREEN}[*] ${RESET}Python system setup is now complete!\n\n"
     echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
+    echo -e ""
     # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
     # cmd_here 2>&1 | tee -a "${LOG_FILE}"
 }
@@ -232,6 +232,8 @@ function finish {
 trap finish EXIT
 
 
+## ===================================================================================== ##
+## =====================[ Template File Code Help :: Core Notes ]======================= ##
 #
 # Virtualenvs
 #----------------
@@ -242,3 +244,14 @@ trap finish EXIT
 #pysheet
 #
 #
+# Install or upgrade (-U) a package to ALL virtualenvs
+#allvirtualenv pip install django
+#allvirtualenv pip install -U django
+
+
+# ---- virtualenwrapper helpers ------
+#virtualenvwrapper_get_python_version
+
+# new tool called autoenv that will auto-activate a virtualenv when you cd into a folder
+# that contains a .env file
+# Project:https://github.com/kennethreitz/autoenv
