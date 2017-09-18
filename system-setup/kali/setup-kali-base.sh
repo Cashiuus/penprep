@@ -93,13 +93,15 @@ fi
 
 # (Re-)configure hostname
 # TODO: Need to also update /etc/hosts to avoid host lookup errors later.
-#echo -e -n "${GREEN}[+]${RESET}"
-#read -e -t 10 -p " Enter new hostname or just press enter : " RESPONSE
-#echo -e
-#if [[ $RESPONSE != "" ]]; then
-#    $SUDO hostname $RESPONSE
-#    echo "$response" > /etc/hostname
-#fi
+echo -e -n "${GREEN}[+]${RESET}"
+read -e -t 10 -p " Enter new hostname or just press enter : " RESPONSE
+echo -e
+if [[ $RESPONSE != "" ]]; then
+  $SUDO hostname $RESPONSE
+  echo "$RESPONSE" > /etc/hostname
+  file=/etc/hosts
+  #sed -i 's|^127\.0\.0\.1.*|127.0.1.1 $RESPONSE|' "${file}"
+fi
 
 # =============================[ Dotfiles ]================================ #
 if [[ -d "${APP_BASE}/../../dotfiles" ]]; then
@@ -160,6 +162,10 @@ $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
 
 if [[ ${GDMSESSION} == 'default' ]]; then
   echo -e "${GREEN}[*] ${RESET}Reconfiguring GNOME and related app settings"
+
+  gsettings set org.gtk.settings.file-chooser show-hidden true
+
+
   # ====[ Configure - Top bar ]==== #
   gsettings set org.gnome.desktop.datetime automatic-timezone true
   gsettings set org.gnome.desktop.interface clock-show-date true                    # Default: false
