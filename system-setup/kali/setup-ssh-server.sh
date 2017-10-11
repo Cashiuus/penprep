@@ -190,7 +190,7 @@ chmod 0400 "${HOME}/.ssh/id_rsa"
 # Copy user's public key to authorized_keys file
 # Print both files to tmp file, backup orig
 if [[ -e "${SSH_AUTH_KEYS_FILE}" ]]; then
-  cp -n $file{,.bkup}
+  cp -n "${SSH_AUTH_KEYS_FILE}"{,.bkup}
   cat "${SSH_USER_DIR}/id_rsa.pub" "${SSH_AUTH_KEYS_FILE}" > "${SSH_USER_DIR}/auth.tmp"
 else
   cat "${SSH_USER_DIR}/id_rsa.pub" > "${SSH_USER_DIR}/auth.tmp"
@@ -255,14 +255,20 @@ fi
 #$SUDO sed -i 's|^HostKey /etc/ssh/ssh_host_ed25519_key|#HostKey /etc/ssh/ssh_host_ed25519_key|' "${file}"
 
 # -==[ ServerKeyBits (Default: 1024)
-$SUDO sed -i -e 's|\(ServerKeyBits\) 1024|\1 2048|' "${file}"
+# This may have been removed in newest version
+#$SUDO sed -i -e 's|\(ServerKeyBits\) 1024|\1 2048|' "${file}"
 
-# -==[ LoginGraceTime (Default: 120)
+# -==[ LoginGraceTime (Default: 2m)
 #$SUDO sed -i 's/^LoginGraceTime.*/LoginGraceTime 30/' "${file}"
+
+# --= Max Auth Tries =--
+# Default: #MaxAuthTries 6
+$SUDO sed -i 's/^#\?MaxAuthTries.*/MaxAuthTries 3/' "${file}"
 
 
 # -==[ X11 Forwarding
-$SUDO sed -i 's/X11Forwarding.*/X11Forwarding yes/' >> "${file}"
+$SUDO sed -i 's/^X11Forwarding.*/X11Forwarding yes/' "${file}"
+
 # X11DisplayOffset (Default: 10)))
 #$SUDO sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 10/' "${file}"
 
@@ -291,7 +297,7 @@ grep -q '^Compression delayed' "${file}" 2>/dev/null \
 #sed -i 's|^ClientAliveInterval.*|ClientAliveInterval 600|' "${file}"
 
 # ClientAliveCountMax = total no. of checkalive msgs sent by ssh server w/o getting response from client.
-#   Default is 3
+#   Default: 3
 $SUDO sed -i 's|^ClientAliveCountMax.*|ClientAliveCountMax 3|' "${file}"
 
 
@@ -494,9 +500,6 @@ function setup_ssh_over_tor() {
 
     # Ensure that tor is setup and running
 
-
-
-
     # Bind only to localhost
     #ListenAddress 127.0.0.1:22
 
@@ -520,7 +523,7 @@ function setup_ssh_over_tor() {
 #service ssh restart
 #update-rc.d -f ssh enable
 $SUDO systemctl start ssh >/dev/null 2>&1
-[[ "$SSH_AUTOSTART" = true ]] && $SUDO systemctl enable ssh >/dev/null 2>&1
+[[ "$SSH_AUTOSTART" = true ]] && $SUDO systemctl enable ssh.service >/dev/null 2>&1
 
 
 echo -e "\n${GREEN}=================================================================${RESET}"

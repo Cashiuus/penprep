@@ -8,8 +8,11 @@ COLS=$(tput cols)
 ## =============[ Default Settings ]============== ##
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_SETTINGS_DIR=$(dirname ${APP_SETTINGS})
+
+### SYSTEM SHAPING VARIABLES
 # Can specify the user account for installation scripts, but not needed.
 INSTALL_USER=${USER}
+LSB_RELEASE=$(lsb_release -cs)
 
 ## ==========[ TEXT COLORS ]============= ##
 GREEN="\033[01;32m"     # Success
@@ -113,7 +116,7 @@ function check_root_old() {
       export SUDO="sudo"
       # $SUDO - run commands with this prefix now to account for either scenario.
     else
-      echo "Please install sudo or run this as root."
+      echo -e "[ERROR] Please install sudo or run this as root."
       exit 1
     fi
   fi
@@ -125,7 +128,7 @@ function check_root_kali() {
       export SUDO="sudo"
       # $SUDO - run commands with this prefix now to account for either scenario.
     else
-      echo "Please install sudo or run this as root."
+      echo -e "[ERROR] Please install sudo or run this as root."
       exit 1
     fi
   fi
@@ -140,6 +143,14 @@ function check_root_kali() {
 
 # --------- All functions below this line need to be verified ---------------
 
+
+function test_networking() {
+  $SUDO apt-get -qq update
+  if [[ "$?" -ne 0 ]]; then
+    echo -e "${RED} [ERROR]${RESET} Network issues preventing apt-get. Check and try again."
+    exit 1
+  fi
+}
 
 # =====================[  START :: STYLING/FORMATTING  ]===================== #
 function print_banner() {
