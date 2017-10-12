@@ -3,10 +3,10 @@
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Created:  10-Oct-2015     Revised:  10-Mar-2017
+# Created:  10-Oct-2015     Revised:  11-Oct-2017
 #
 #-[ Info ]-------------------------------------------------------------------------------
-# Purpose:  Install Geany IDE tool, configure custom settings, and copy in file templates.
+# Purpose:  Install Geany IDE tool, configure custom settings, and copy in templates.
 #
 #
 #-[ Notes ]-------------------------------------------------------------------------------
@@ -25,7 +25,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.5"
+__version__="1.6"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -104,7 +104,8 @@ check_root
 $SUDO apt-get -y install python-pip geany
 $SUDO pip install flake8 pep8-naming
 
-if [[ $(dconf read /org/gnome/gnome-panel/layout/object-id-list) ]]; then
+# TODO: Refactor this so if 'dconf' command is not found, it moves on
+if [[ $($SUDO dconf read /org/gnome/gnome-panel/layout/object-id-list) ]]; then
     # NOTE: Debian 8 default install has no "gnome-panel" key folder
     # Skipping the 'else' clause for now because if the key isn't there, writing fails
 
@@ -124,6 +125,7 @@ EOF
     $SUDO dconf write /org/gnome/gnome-panel/layout/object-id-list "$($SUDO dconf read /org/gnome/gnome-panel/layout/object-id-list | sed "s/]/, 'geany']/")"
 
 fi
+
 
 # =============================[ CONFIGURE GEANY ]================================ #
 $SUDO timeout 5 geany >/dev/null 2>&1
@@ -345,10 +347,9 @@ function finish() {
   ###
   #clear
   [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
-  echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
-
   FINISH_TIME=$(date +%s)
-  echo -e "${GREEN}[*] Penbuilder Setup :: $0 :: Completed Successfully ${YELLOW} --(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)--\n${RESET}"
+  echo -e "${GREEN}[*] Penbuilder Setup :: $APP_NAME :: Completed Successfully ${YELLOW} --(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)--\n${RESET}"
+  echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
 }
 # End of script
 trap finish EXIT

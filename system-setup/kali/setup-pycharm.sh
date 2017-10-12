@@ -71,7 +71,7 @@ if [[ $? -ne 0 ]]; then
     echo -e "${YELLOW}[*] ${RESET}Java not found, attempting to install"
     $SUDO apt-get install openjdk-8-jdk || $SUDO apt-get -f install openjdk-8-jdk # Fix any dependency issues
 else
-    echo -e "${GREEN}[*] ${RESET} Java detected, continuing with installation"
+    echo -e "${GREEN}[*]${RESET} Java detected, continuing with installation"
 fi
 
 
@@ -103,7 +103,7 @@ $SUDO rm /tmp/pycharm-community-${PYCHARM_VERSION}.tar.gz
 
 # Move into permanent install path and then delete tmp files
 $SUDO mkdir /opt/pycharm-community
-$SUDO mv /tmp/pycharm-community* /opt/pycharm-community
+$SUDO mv /tmp/pycharm-community/* /opt/pycharm-community/
 
 
 # Create permanent symlinks so we can easily open pycharm going forward
