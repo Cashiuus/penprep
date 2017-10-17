@@ -85,7 +85,7 @@ $SUDO gsettings set org.gnome.desktop.session idle-delay 0
 if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   echo -e "\n${GREEN}[*]${RESET} Setting sources.list to standard entries"
   if [[ $SUDO ]]; then
-    echo "# Debian Jessie" | $SUDO tee /etc/apt/sources.list
+    echo "# Debian 8 Jessie" | $SUDO tee /etc/apt/sources.list
     echo "deb http://httpredir.debian.org/debian jessie main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
     echo "deb-src http://httpredir.debian.org/debian jessie main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
 
@@ -95,7 +95,7 @@ if [[ ${LSB_RELEASE} == 'jessie' ]]; then
     echo "deb http://security.debian.org/ jessie/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
     echo "deb-src http://security.debian.org/ jessie/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
   else
-    echo "# Debian Jessie" > /etc/apt/sources.list
+    echo "# Debian 8 Jessie" > /etc/apt/sources.list
     echo "deb http://httpredir.debian.org/debian jessie main contrib non-free" >> /etc/apt/sources.list
     echo "deb-src http://httpredir.debian.org/debian jessie main contrib non-free" >> /etc/apt/sources.list
 
@@ -105,7 +105,31 @@ if [[ ${LSB_RELEASE} == 'jessie' ]]; then
     echo "deb http://security.debian.org/ jessie/updates main contrib non-free" >> /etc/apt/sources.list
     echo "deb-src http://security.debian.org/ jessie/updates main contrib non-free" >> /etc/apt/sources.list
   fi
+elif [[ ${LSB_RELEASE} == 'stretch' ]]; then
+  echo -e "\n${GREEN}[*]${RESET} Setting sources.list to standard entries"
+  if [[ $SUDO ]]; then
+    echo "# Debian 9 Stretch" | $SUDO tee /etc/apt/sources.list
+    echo "deb http://httpredir.debian.org/debian stretch main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+    echo "deb-src http://httpredir.debian.org/debian stretch main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+
+    echo "deb http://httpredir.debian.org/debian stretch-updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+    echo "deb-src http://httpredir.debian.org/debian stretch-updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+
+    echo "deb http://security.debian.org/ stretch/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+    echo "deb-src http://security.debian.org/ stretch/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+  else
+    echo "# Debian 9 Stretch" > /etc/apt/sources.list
+    echo "deb http://httpredir.debian.org/debian stretch main contrib non-free" >> /etc/apt/sources.list
+    echo "deb-src http://httpredir.debian.org/debian stretch main contrib non-free" >> /etc/apt/sources.list
+
+    echo "deb http://httpredir.debian.org/debian stretch-updates main contrib non-free" >> /etc/apt/sources.list
+    echo "deb-src http://httpredir.debian.org/debian stretch-updates main contrib non-free" >> /etc/apt/sources.list
+
+    echo "deb http://security.debian.org/ stretch/updates main contrib non-free" >> /etc/apt/sources.list
+    echo "deb-src http://security.debian.org/ stretch/updates main contrib non-free" >> /etc/apt/sources.list
+  fi
 fi
+
 
 echo -e "${GREEN}[*]${RESET} Performing apt-get update, please wait..."
 export DEBIAN_FRONTEND=noninteractive
@@ -160,7 +184,7 @@ $SUDO apt-get -qy upgrade
 $SUDO apt-get -qy dist-upgrade
 
 $SUDO apt-get -y install build-essential gcc git make screen
-$SUDO apt-get -y install conky geany unrar
+$SUDO apt-get -y install geany unrar
 
 # Optional remote access services
 $SUDO apt-get -y install openvpn openssl openssh-server
@@ -189,7 +213,7 @@ cp /usr/share/applications/gnome-terminal.desktop ~/Desktop/gnome-terminal.deskt
 cp /usr/share/applications/xfce4-terminal.desktop ~/Desktop/xfce4-terminal.desktop 2>/dev/null
 cp /usr/share/applications/firefox-esr.desktop ~/Desktop/ 2>/dev/null
 cp /usr/share/applications/geany.desktop ~/Desktop/geany.desktop 2>/dev/null
-chmod u+x ~/Desktop/gnomel-terminal.desktop 2>/dev/null
+chmod u+x ~/Desktop/gnome-terminal.desktop 2>/dev/null
 chmod u+x ~/Desktop/xfce4-terminal.desktop 2>/dev/null
 chmod u+x ~/Desktop/firefox-esr.desktop 2>/dev/null
 chmod u+x ~/Desktop/geany.desktop 2>/dev/null
