@@ -63,33 +63,35 @@ check_root
 if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   file=/etc/apt/sources.list.d/backports.list
   if [[ ! -e "${file}" ]]; then
-	  $SUDO sh -c "echo ### Debian Jessie Backports > ${file}"
-	  $SUDO sh -c "echo deb http://httpredir.debian.org/debian jessie-backports main contrib non-free >> ${file}"
+    $SUDO sh -c "echo ### Debian Jessie Backports > ${file}"
+    $SUDO sh -c "echo deb http://httpredir.debian.org/debian jessie-backports main contrib non-free >> ${file}"
   fi
   # This is how you can see a list of all installed backports:
   #   dpkg-query -W | grep ~bpo
   # View list of all potential packages:
   #   apt-cache policy <pkg>
-
-  echo -e "${GREEN}[*]${RESET} Installing latest Conky pkg..."
+  
   export DEBIAN_FRONTEND=noninteractive
+  echo -e "${GREEN}[*]${RESET} Checking for and removing pre-existing conky installs..."
+  $SUDO apt-get -y remove --purge conky conky-std
+  echo -e "${GREEN}[*]${RESET} Installing latest Conky pkg using backports repo..."
   $SUDO apt-get -y -t jessie-backports install conky
 fi
 
 
 # ----- XFCE Installs - Enable Compositing -------
-
 if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
-	# NOTE: Another env var that could be used is: XDG_CURRENT_DESKTOP=XFCE
-  echo -e "${YELLOW}[INFO]${RESET}  detected, skipping GNOME tweaks..."
-  $SUDO xfconf-query -n -c xfwm4 -p /general/use_compositing -t bool -s true
-  $SUDO xfconf-query -n -c xfwm4 -p /general/frame_opacity -t int -s 85
-
+    # NOTE: Another env var that could be used is: XDG_CURRENT_DESKTOP=XFCE
+  echo -e "${YELLOW}[INFO]${RESET} ${GDMSESSION} detected, skipping GNOME tweaks..."
+  # NOTE: Don't need sudo for these commands, actually didn't seem to fix 
+  #       conky when I used sudo, but conky went transparent after running
+  #       these as user without sudo.
+  xfconf-query -n -c xfwm4 -p /general/use_compositing -t bool -s true
+  xfconf-query -n -c xfwm4 -p /general/frame_opacity -t int -s 85
 fi
 
 
 # -----------------------------------
-
 # NOTE: Debian 8 "jessie" still uses conky 1.9, unless you enable unstable "sid" distro instead.
 # Conky < 1.9 uses old config style we are used to using
 # Conky >= 1.10 uses new Lua-based configuration style
@@ -194,6 +196,8 @@ conky.config = {
     gap_x = 12,
     gap_y = 35,
     alignment = 'bottom_right',
+    minimum_width = 200,
+    maximum_width = 250,
 
     font = 'monospace:size=8',
     default_color = 'white',
@@ -299,7 +303,7 @@ cat <<EOF > "${file}"
 #!/bin/bash
 
 $(which timeout) 10 $(which killall) -9 -q -w conky
-$(which sleep) 15s
+$(which sleep) 10s
 $(which conky) &
 EOF
 # Now make file launchable
@@ -329,7 +333,7 @@ EOF
 bash /usr/local/bin/conky-start >/dev/null 2>&1 &
 echo -e "${GREEN}[*]${RESET} Conky install complete!"
 
-# An easy way to force reload your ~/.conkyrc config:
+# An easy way to force reload your conky config:
 #$SUDO killall -SIGUSR1 conky
 
 
