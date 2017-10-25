@@ -48,7 +48,7 @@ DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
 BACKUPS_PATH="${HOME}/Backups"
 # TODO: Get latest pycharm version programmatically
-PYCHARM_VERSION="2017.2"
+PYCHARM_VERSION="2017.2.3"
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]];then
@@ -90,20 +90,20 @@ cd /tmp
 
 # TODO: Parse here for d/l link - http://www.jetbrains.com/pycharm/download/#section=linux
 # http://www.jetbrains.com/pycharm/download/download-thanks.html?platform=linux&code=PCC
-# https://download-cf.jetbrains.com/python/pycharm-community-2017.2.1.tar.gz
+# https://download-cf.jetbrains.com/python/pycharm-community-2017.2.3.tar.gz
 wget --no-verbose http://download.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
 #wget -q https://download-cf.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
 tar xzf pycharm-community-${PYCHARM_VERSION}.tar.gz
 
 # TODO: Can we simply overwrite the files, or should we delete the old folder first?
-$SUDO rm -rf /opt/pycharm-community/ 2>/dev/null
+$SUDO rm -rf /opt/pycharm-community 2>/dev/null
 
 # Clean up the archive file
 $SUDO rm /tmp/pycharm-community-${PYCHARM_VERSION}.tar.gz
 
 # Move into permanent install path and then delete tmp files
-$SUDO mkdir /opt/pycharm-community
-$SUDO mv /tmp/pycharm-community/* /opt/pycharm-community/
+$SUDO mkdir -p /opt/pycharm-community 2>/dev/null
+$SUDO mv /tmp/pycharm-community-${PYCHARM_VERSION}/* /opt/pycharm-community/
 
 
 # Create permanent symlinks so we can easily open pycharm going forward
@@ -142,6 +142,7 @@ function finish {
     # Any script-termination routines go here, but function cannot be empty
     #clear
     echo -e "${GREEN}[$(date +"%F %T")] ${RESET}PyCharm Installer complete, goodbye!"
+    echo ""
     # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
     # cmd_here 2>&1 | tee -a "${LOG_FILE}"
 }
