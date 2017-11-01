@@ -27,6 +27,7 @@ cd discover/
 # Install SMBEXEC
 cd /opt
 git clone https://github.com/brav0hax/smbexec.git
+cd smbexec
 ./install.sh
 # Choose option #1 to install into /opt/
 ./install.sh

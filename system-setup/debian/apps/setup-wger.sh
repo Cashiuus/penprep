@@ -107,12 +107,18 @@ check_root
 
 
 # ========================[  Development Install  ]======================== #
-$SUDO apt-get -y install nodejs nodejs-legacy npm git \
+$SUDO apt-get -y install nodejs npm git \
 	python-virtualenv python3-dev \
 	zlib1g-dev libwebp-dev
 
 # This pkg 'libjpeg8-dev' states obsolete and to install this instead:
 $SUDO apt-get -y install libjpeg62-turbo-dev
+
+# Symlink nodejs so that legacy calls from bower will still work
+echo -e "[*] Symlinking nodejs to also shortcut at /usr/bin/node for bower compatibility"
+$SUDO ln -s /usr/bin/nodejs /usr/bin/node
+
+
 
 mkdir ~/git
 cd ~/git
@@ -123,8 +129,7 @@ cd wger
 mkvirtualenv py3-wger -p /usr/bin/python3
 # Upgrade pip inside virtualenv or you'll have errors with setuptools later
 pip install --upgrade pip
-pip install setuptools
-
+pip install --upgrade setuptools
 pip install --upgrade requests
 
 # TODO: wger error, missing 'six' pkg so install it here to avoid issue later

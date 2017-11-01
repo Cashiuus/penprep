@@ -107,17 +107,6 @@ function check_root() {
 check_root
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
-
-export DEBIAN_FRONTEND=noninteractive
-$SUDO apt-get -qq update
-$SUDO apt-get -y -q dist-upgrade
-$SUDO apt-get -y --purge autoremove
-$SUDO apt-get -y clean
-$SUDO updatedb
-logger updater.sh ran successfully. Rebooting system
-$SUDO init 6
-
-
 function pause() {
   # Simple function to pause a script mid-stride
   #
@@ -147,7 +136,15 @@ function asksure() {
   return $retval
 }
 
-
+export DEBIAN_FRONTEND=noninteractive
+$SUDO apt-get -qq update
+$SUDO apt-get -y -q dist-upgrade
+$SUDO apt-get -y --purge autoremove
+$SUDO apt-get -y clean
+$SUDO updatedb
+logger debian-updater.sh ran successfully. Rebooting system.
+$SUDO init 6
+exit 0
 ## ===================================================================================== ##
 # List of Actions:
 # Shell script to update Debian system via APT.
