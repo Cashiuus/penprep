@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     setup-ssh-server.sh
 # Author:   Cashiuus
-# Created:  01-Dec-2015 - (Revised: 11-May-2017)
+# Created:  01-Dec-2015 - (Revised: 09-Dec-2017)
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 #
@@ -27,7 +27,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.21"
+__version__="1.22"
 __author__='Cashiuus'
 ## =============[ CONSTANTS ]============= ##
 START_TIME=$(date +%s)
@@ -417,7 +417,6 @@ else
     exit 1
 fi
 EOF
-  $SUDO mv "${file}" "${file_dest}"
   $SUDO mv "${file}" "${file_dest}"
   $SUDO chmod 0755 "${file_dest}"
 
