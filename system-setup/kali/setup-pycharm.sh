@@ -26,7 +26,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="0.2"
+__version__="0.3"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]========== ##
 GREEN="\033[01;32m"     # Success
@@ -48,7 +48,7 @@ DEBUG=true
 LOG_FILE="${APP_BASE}/debug.log"
 BACKUPS_PATH="${HOME}/Backups"
 # TODO: Get latest pycharm version programmatically
-PYCHARM_VERSION="2017.2.3"
+PYCHARM_VERSION="2017.2.4"
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]];then
@@ -136,6 +136,20 @@ Type=Application
 EOF
 fi
 chmod 0500 "${file}"
+
+
+
+function reconfigure_inotify() {
+    # Increase the watch limit for inotify so pycharm works better and doesn't error
+
+    # file: /etc/sysctl.conf , or add a new file under /etc/sysctl.d/ directory
+    # fs.inotify.max_user_watches = 524288
+
+
+    # Then run:
+    $SUDO sysctl -p --system
+    # Lastly
+}
 
 
 function finish {
