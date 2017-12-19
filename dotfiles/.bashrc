@@ -119,6 +119,9 @@ fi
 ### Set a default editor
 export EDITOR=nano
 
+### Loading .bash_prompt customization here based on advice online
+[[ -s "$HOME/.bash_prompt" ]] && source "$HOME/.bash_prompt"
+
 ### Load RVM to PATH for scripting
 #TODO: Not sure which of these lines is correct
 #[[ -d "${HOME}/.rvm" ]] && export PATH="${HOME}/.rvm/bin:$PATH"

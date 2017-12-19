@@ -2,10 +2,13 @@
 #
 #
 
-function git-current-branch {
+
+git-current-branch() {
     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1) /'
 }
-export PS1="\$(git-current-branch)$PS1"
+PS1="\$(git-current-branch)$PS1"
+#export PS1="\$(git-current-branch)$PS1"
+#export PS1="$PS1 \$(git-current-branch) $"
 
 ### Python Virtualenv Helper
 # Call virtualenvwrapper's "workon" if .venv exists.
