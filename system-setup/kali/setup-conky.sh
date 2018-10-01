@@ -3,7 +3,7 @@
 # File:     setup-conky.sh
 #
 # Author:   Cashiuus
-# Created:  27-Jan-2016          Revised:    23-Aug-2017
+# Created:  27-Jan-2016          Revised:    01-Oct-2018
 #
 #-[ Usage ]-------------------------------------------------------------------------------
 # Purpose:  Setup conky monitor dashboard on desktop with pre-configured style
@@ -15,7 +15,7 @@
 #   Conky Colors:   https://en.wikipedia.org/wiki/X11_color_names
 #                   http://www.graphviz.org/doc/info/colors.html
 ## =======================================================================================
-__version__="1.4"
+__version__="1.5"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"     # Success
@@ -28,7 +28,7 @@ BOLD="\033[01;01m"      # Highlight
 RESET="\033[00m"        # Normal
 ## =========[ CONSTANTS ]================ ##
 START_TIME=$(date +%s)
-APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
+APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
@@ -65,6 +65,7 @@ if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   if [[ ! -e "${file}" ]]; then
     $SUDO sh -c "echo ### Debian Jessie Backports > ${file}"
     $SUDO sh -c "echo deb http://httpredir.debian.org/debian jessie-backports main contrib non-free >> ${file}"
+    $SUDO apt-get -q update
   fi
   # This is how you can see a list of all installed backports:
   #   dpkg-query -W | grep ~bpo
@@ -76,6 +77,9 @@ if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   $SUDO apt-get -y remove --purge conky conky-std
   echo -e "${GREEN}[*]${RESET} Installing latest Conky pkg using backports repo..."
   $SUDO apt-get -y -t jessie-backports install conky
+else
+  # This should mean we will get version 1.10+ by default so install standard way
+  $SUDO apt-get -y install conky
 fi
 
 
@@ -307,7 +311,6 @@ $(which sleep) 10s
 $(which conky) &
 EOF
 # Now make file launchable
-#$SUDO chmod -f 0500 "${file}"
 $SUDO chmod -f 0555 "${file}"
 
 echo -e "${GREEN}[*]${RESET} Adding conky autostart file"

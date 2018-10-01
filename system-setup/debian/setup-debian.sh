@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     setup-debian.sh
 # Author:   Cashiuus
-# Created:  15-Jan-2016         Revised:  10-May-2017
+# Created:  15-Jan-2016         Revised:  01-Oct-2018
 #
 #-[ Info ]-------------------------------------------------------------------------------
 #- Purpose:  Setup a fresh Debian 8 server, typically within a Virtual Machine.
@@ -22,7 +22,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.2"
+__version__="1.3"
 __author__="Cashiuus"
 
 ## ============[ CONSTANTS ]================ ##
@@ -183,7 +183,7 @@ echo -e "${GREEN}[*]${RESET} Performing a distro upgrade and installing core pkg
 $SUDO apt-get -qy upgrade
 $SUDO apt-get -qy dist-upgrade
 
-$SUDO apt-get -y install build-essential gcc git make screen
+$SUDO apt-get -y install build-essential gcc git make mlocate screen
 $SUDO apt-get -y install geany unrar
 
 # Optional remote access services
@@ -221,7 +221,7 @@ chmod u+x ~/Desktop/geany.desktop 2>/dev/null
 
 
 ## -============[ Debian Jessie Backports Repository ]=============- #
-
+echo -e "${GREEN}[*]${RESET} Installing Conky pkg..."
 if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   file=/etc/apt/sources.list.d/backports.list
   $SUDO sh -c "echo ### Debian Jessie Backports > ${file}"
@@ -232,18 +232,19 @@ if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   # View list of all potential packages:
   #   apt-cache policy <pkg>
 
-  echo -e "${GREEN}[*]${RESET} Installing Conky pkg..."
   $SUDO apt-get -y -t jessie-backports install conky
+else
+  $SUDO apt-get -y install conky
 fi
 
 
 # -== Git global config settings ==- #
 echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your name: "
-read $RES
-git config --global user.name $RES
+read $GITNAME
+git config --global user.name $GITNAME
 echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your email: "
-read $RES
-git config --global user.email $RES
+read $GITEMAIL
+git config --global user.email $GITEMAIL
 git config --global color.ui auto
 
 
@@ -283,7 +284,12 @@ trap finish EXIT
 #net.ipv6.conf.eth0.disable_ipv6 = 1
 
 # After editing sysctl.conf, you should run sysctl -p to activate changes or reboot system.
-
+#
+# -------[ locate/updatedb ]-------------- #
+# The locate command is part of the 'mlocate' package, not always installed by default
+# Once you install mlocate, run the `sudo updatedb` command to build the database.
+# The db is stored by default at: /var/lib/mlocate/mlocate.db
+#
 # ============[ Xscreensaver ]============== #
 #
 # Settings are stored in one of three places:

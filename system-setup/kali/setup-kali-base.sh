@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     setup-kali-base.sh
 # Author:   Cashiuus
-# Created:  27-Jan-2016  - Revised: 19-Apr-2017
+# Created:  27-Jan-2016  - Revised: 01-Oct-2018
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup bare bones kali with reasonable default options & packages
@@ -18,7 +18,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.0"
+__version__="1.1"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 GREEN="\033[01;32m"     # Success
@@ -415,7 +415,14 @@ EOF
 # ==========[ Configure GIT ]=========== #
 
 echo -e "${GREEN}[+]${RESET} Now setting up Git, you will be prompted to enter your name for commits."
-
+# -== Git global config settings ==- #
+echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your name: "
+read $GITNAME
+git config --global user.name $GITNAME
+echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your email: "
+read $GITEMAIL
+git config --global user.email $GITEMAIL
+git config --global color.ui auto
 
 # Git Aliases Ref: https://git-scm.com/book/en/v2/Git-Basics-Git-Aliases
 # Other settings/standard alias helpers
@@ -423,6 +430,8 @@ git config --global alias.co checkout
 git config --global alias.br branch
 git config --global alias.ci commit
 git config --global alias.st status
+# Git short status
+git config --global alias.s 'status -s'
 
 # Create custom unstage alias - Type: git unstage fileA (same as: git reset HEAD -- fileA)
 git config --global alias.unstage 'reset HEAD --'
@@ -435,12 +444,8 @@ git config --global alias.last 'log -1 HEAD'
 # The reason for --recursive is for git projects with submodules, which don't clone by default
 git config --global alias.clone 'clone --recursive'
 
-
 # Other alias ideas:
 #   https://majewsky.wordpress.com/2010/11/29/tip-of-the-day-dont-remember-git-clone-urls/
-
-# Git short status
-git config --global alias.s 'status -s'
 
 
 # ===================================[ FINISH ]====================================== #
