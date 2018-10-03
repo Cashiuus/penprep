@@ -77,7 +77,8 @@ if [[ ! $(which vmware-toolbox-cmd) ]]; then
 fi
 
 # Increase idle delay which locks the screen (default is 300s)
-$SUDO gsettings set org.gnome.desktop.session idle-delay 0
+# Don't need sudo for this command, user-specific setting
+gsettings set org.gnome.desktop.session idle-delay 0
 
 # -==   APT   ==- #
 # https://wiki.debian.org/SourcesList
@@ -145,7 +146,8 @@ if [[ -s "${file}" ]]; then
   # these 'scrolling' settings were only present because I had tweaked them.
   sed -i 's/^ScrollingLines=.*/ScrollingLines=9000/' "${file}"
   sed -i 's/^ScrollingOnOutput=.*/ScrollingOnOutput=FALSE/' "${file}"
-  echo "FontName=Monospace 11" >> "${file}"
+  sed -i 's/^FontName=.*/FontName=Monospace 10/' "${file}" || \
+    echo "FontName=Monospace 10" >> "${file}"
   echo "BackgroundMode=TERMINAL_BACKGROUND_TRANSPARENT" >> "${file}"
   echo "BackgroundDarkness=0.970000" >> "${file}"
 fi
@@ -176,7 +178,7 @@ echo -e "${GREEN}[*]${RESET} Launching and fixing ${GREEN}xscreensaver${RESET}, 
 timeout 3 xscreensaver-demo >/dev/null 2>&1
 # Modify the ~/.xscreensaver file to disable screensaver from default "random"
 file=~/.xscreensaver
-sed -i "s/^mode.*/mode:         off/" "${file}"
+sed -i 's/^mode.*/mode:         off/' "${file}"
 
 
 echo -e "${GREEN}[*]${RESET} Performing a distro upgrade and installing core pkgs..."
