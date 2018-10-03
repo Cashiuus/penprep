@@ -1,3 +1,18 @@
+
+
+
+function validate_port() {
+  # We don't want to allow an unusable port
+  if [ $sshport -lt 0 -o $sshport -gt 65535 ]; then
+    echo "Bad port number, must be between 0 and 65535."
+    exit 1
+  fi
+}
+
+
+
+
+
 function check_version_java() {
   ###
   #   Check the installed/active version of java

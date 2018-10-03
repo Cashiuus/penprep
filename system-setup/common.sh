@@ -89,7 +89,7 @@ function check_root() {
       # If you run script as root, $SUDO is blank and script will soldier on.
       export SUDO="sudo"
       # Test to ensure this user is able to use sudo
-      sudo -l
+      sudo -l >/dev/null
       if [[ $? -eq 1 ]]; then
         # sudo pkg is installed but current user is not in sudoers group to use it
         echo -e "${RED}[ERROR]${RESET} You are not able to use sudo. Running install to fix."
