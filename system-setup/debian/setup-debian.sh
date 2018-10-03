@@ -184,10 +184,6 @@ $SUDO systemctl disable exim4.service || $SUDO service exim4 disable
 $SUDO systemctl stop apache2.service || $SUDO service apache2 stop
 $SUDO systemctl disable apache2.service || $SUDO service apache2.disable
 
-# ====[ Remove Bloat ]======
-#$SUDO apt-get -y remove --purge libreoffice libreoffice-base
-#$SUDO apt-get -y autoremove
-
 
 # ====[ Create desktop shortcuts -- just delete if you don't want them
 cp /usr/share/applications/gnome-terminal.desktop ~/Desktop/gnome-terminal.desktop 2>/dev/null
@@ -249,7 +245,34 @@ function finish() {
 trap finish EXIT
 
 
+# ====[ Remove Bloat ]======
+#if [[ "$KEEP_LIBREOFFICE" = false ]]; then
+#	echo -e "#{GREEN}[*] Removing LibreOffice packages first..."
+#	$SUDO apt-get -qq remove --purge libreoffice*
+#fi
+#$SUDO apt-get -y remove libreoffice libreoffice-base
+#$SUDO apt-get -y autoremove
+
+
 # -==========================-[ Misc Debian Notes ]-==========================-#
+
+# -==========-[ Setup Mounted Share - NAS ]-============-#
+# Guide: https://wiki.ubuntu.com/MountWindowsSharesPermanently
+#$SUDO apt-get -y install cifs-utils
+#
+# Create a new directory for the mounted share to reside
+#$SUDO mkdir /media/musicshare
+#
+# Then, edit your fstab file to add a line for the share permissions
+#$SUDO nano /etc/fstab
+#
+# After you save and close, remount everything to get it to mount
+#$SUDO mount -a
+#
+# *NOTE: If you get a permission error, it's likely your share is 
+#        blocking you from accessing it as a guest
+#
+# ------------------------------------------------------------------------- #
 ### How to turn off IPv6
 
 # Append ipv6.disable=1 to the GRUB_CMDLINE_LINUX variable in /etc/default/grub.
