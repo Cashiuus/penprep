@@ -50,7 +50,7 @@ fi
 # Check root/sudo rights and fix it before continuing
 check_root
 
-echo -e "${GREEN}[*]${RESET} Debian Release: ${ORANGE}$(lsb_release -cs)${RESET}\n"
+echo -e "${GREEN}[*]${RESET} Debian Release: ${ORANGE}${LSB_RELEASE}${RESET}\n"
 # Try update first, because much of the script is useless without networking.
 $SUDO apt-get -qq update
 if [[ "$?" -ne 0 ]]; then
