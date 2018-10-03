@@ -61,8 +61,11 @@ curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 # If user already exists: usermod -a -G rvm $USER
 # If user doesn't yet exist: useradd -G rvm [username]
 
-source /etc/profile.d/rvm.sh
-#source ~/.rvm/scripts/rvm
+if [[ $EUID -ne 0 ]];then
+    source /etc/profile.d/rvm.sh
+else
+    source ~/.rvm/scripts/rvm
+fi
 
 # Fix Gnome terminal to play nice with RVM and launch as a login shell
 if [[ $(which gnome-shell) ]]; then

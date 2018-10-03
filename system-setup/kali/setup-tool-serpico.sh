@@ -47,7 +47,7 @@ fi
 # ===============================[  BEGIN  ]================================== #
 # RVM
 if [[ ! $(which rvm) ]]; then
-    echo -e "[-] Please first install RVM and run this setup again, goodbye!"
+    echo -e "[ERROR] Please first install RVM and run this setup again, goodbye!"
     exit 1
 fi
 
@@ -59,12 +59,12 @@ cd /opt
 git clone https://github.com/SerpicoProject/Serpico
 cd Serpico
 
-rvm install ruby-2.1-head
-rvm use ruby-2.1-head
+rvm install ruby-2.3.5
+rvm use 2.3.5
 
-# Something wrong with ruby 2.1.5, so changing req's to 2.1.10
+# Serpico currently uses version 2.3.5
 file='/opt/Serpico/Gemfile'
-sed -i s'|^ruby "2.1.5"|ruby "2.1.10"|' "${file}"
+#sed -i s'|^ruby "2.1.5"|ruby "2.1.10"|' "${file}"
 
 # Install proper gems
 gem install bundler
@@ -72,13 +72,16 @@ bundle install
 
 echo -e "[*] You will now setup a new user account..."
 # Run first-time setup script
-ruby scripts/first_time.rb
+#ruby scripts/first_time.rb
+$SUDO /opt/Serpico/init_serpico.sh
 
 echo -e "[*] Record password and press any key when ready to launch server"
 read
 
 # Launch serpico server
-ruby serpico.rb
+#ruby serpico.rb
+$SUDO /opt/Serpico/start_serpico.sh
+
 
 firefox https://127.0.0.1:8443/ &
 
