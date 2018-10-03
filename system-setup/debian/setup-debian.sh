@@ -50,7 +50,7 @@ fi
 # Check root/sudo rights and fix it before continuing
 check_root
 
-echo -e "${GREEN}[*]${RESET} Debian Release: ${ORANGE}$(lsb_release -cs)${RESET}"
+echo -e "${GREEN}[*]${RESET} Debian Release: ${ORANGE}$(lsb_release -cs)${RESET}\n"
 # Try update first, because much of the script is useless without networking.
 $SUDO apt-get -qq update
 if [[ "$?" -ne 0 ]]; then
@@ -89,55 +89,25 @@ gsettings set org.gnome.desktop.session idle-delay 0
 
 # -==   APT   ==- #
 # https://wiki.debian.org/SourcesList
-# Only modify the sources.list if we are on a 'jessie' system, else stick with defaults
-if [[ ${LSB_RELEASE} == 'jessie' ]]; then
-  echo -e "\n${GREEN}[*]${RESET} Setting sources.list to standard entries"
-  if [[ $SUDO ]]; then
-    echo "# Debian 8 Jessie" | $SUDO tee /etc/apt/sources.list
-    echo "deb http://httpredir.debian.org/debian jessie main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-    echo "deb-src http://httpredir.debian.org/debian jessie main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-
-    echo "deb http://httpredir.debian.org/debian jessie-updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-    echo "deb-src http://httpredir.debian.org/debian jessie-updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-
-    echo "deb http://security.debian.org/ jessie/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-    echo "deb-src http://security.debian.org/ jessie/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-  else
-    echo "# Debian 8 Jessie" > /etc/apt/sources.list
-    echo "deb http://httpredir.debian.org/debian jessie main contrib non-free" >> /etc/apt/sources.list
-    echo "deb-src http://httpredir.debian.org/debian jessie main contrib non-free" >> /etc/apt/sources.list
-
-    echo "deb http://httpredir.debian.org/debian jessie-updates main contrib non-free" >> /etc/apt/sources.list
-    echo "deb-src http://httpredir.debian.org/debian jessie-updates main contrib non-free" >> /etc/apt/sources.list
-
-    echo "deb http://security.debian.org/ jessie/updates main contrib non-free" >> /etc/apt/sources.list
-    echo "deb-src http://security.debian.org/ jessie/updates main contrib non-free" >> /etc/apt/sources.list
-  fi
-elif [[ ${LSB_RELEASE} == 'stretch' ]]; then
-  echo -e "\n${GREEN}[*]${RESET} Setting sources.list to standard entries"
-  if [[ $SUDO ]]; then
-    echo "# Debian 9 Stretch" | $SUDO tee /etc/apt/sources.list
-    echo "deb http://httpredir.debian.org/debian stretch main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-    echo "deb-src http://httpredir.debian.org/debian stretch main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-
-    echo "deb http://httpredir.debian.org/debian stretch-updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-    echo "deb-src http://httpredir.debian.org/debian stretch-updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-
-    echo "deb http://security.debian.org/ stretch/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-    echo "deb-src http://security.debian.org/ stretch/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-  else
-    echo "# Debian 9 Stretch" > /etc/apt/sources.list
-    echo "deb http://httpredir.debian.org/debian stretch main contrib non-free" >> /etc/apt/sources.list
-    echo "deb-src http://httpredir.debian.org/debian stretch main contrib non-free" >> /etc/apt/sources.list
-
-    echo "deb http://httpredir.debian.org/debian stretch-updates main contrib non-free" >> /etc/apt/sources.list
-    echo "deb-src http://httpredir.debian.org/debian stretch-updates main contrib non-free" >> /etc/apt/sources.list
-
-    echo "deb http://security.debian.org/ stretch/updates main contrib non-free" >> /etc/apt/sources.list
-    echo "deb-src http://security.debian.org/ stretch/updates main contrib non-free" >> /etc/apt/sources.list
-  fi
+echo -e "\n${GREEN}[*]${RESET} Setting sources.list to standard entries"
+if [[ $SUDO ]]; then
+  echo "# Debian - ${LSB_RELEASE}" | $SUDO tee /etc/apt/sources.list
+  echo "deb http://httpredir.debian.org/debian ${LSB_RELEASE} main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+  echo "deb-src http://httpredir.debian.org/debian ${LSB_RELEASE} main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+  echo "deb http://httpredir.debian.org/debian ${LSB_RELEASE}-updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+  echo "deb-src http://httpredir.debian.org/debian ${LSB_RELEASE}-updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+  echo "deb http://security.debian.org/ ${LSB_RELEASE}/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+  echo "deb-src http://security.debian.org/ ${LSB_RELEASE}/updates main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+else
+  echo "# Debian - ${LSB_RELEASE}" > /etc/apt/sources.list
+  echo "deb http://httpredir.debian.org/debian ${LSB_RELEASE} main contrib non-free" >> /etc/apt/sources.list
+  echo "deb-src http://httpredir.debian.org/debian ${LSB_RELEASE} main contrib non-free" >> /etc/apt/sources.list
+  echo "deb http://httpredir.debian.org/debian ${LSB_RELEASE}-updates main contrib non-free" >> /etc/apt/sources.list
+  echo "deb-src http://httpredir.debian.org/debian ${LSB_RELEASE}-updates main contrib non-free" >> /etc/apt/sources.list
+  echo "deb http://security.debian.org/ ${LSB_RELEASE}/updates main contrib non-free" >> /etc/apt/sources.list
+  echo "deb-src http://security.debian.org/ ${LSB_RELEASE}/updates main contrib non-free" >> /etc/apt/sources.list
 fi
-
+echo -e ""
 
 echo -e "${GREEN}[*]${RESET} Performing apt-get update, please wait..."
 export DEBIAN_FRONTEND=noninteractive
@@ -177,16 +147,17 @@ function xfce_setup_thunar {
 }
 xfce_setup_thunar
 
-#$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-ac 0
-#$SUDO gsettings set org.gnome.settings-daemon.plugins.power sleep-display-battery 0
+#gsettings set org.gnome.settings-daemon.plugins.power sleep-display-ac 0
+#gsettings set org.gnome.settings-daemon.plugins.power sleep-display-battery 0
 
 # Launch xscreensaver settings to auto-generate the config file we need to edit
-echo -e "${GREEN}[*]${RESET} Launching and fixing ${GREEN}xscreensaver${RESET}, please wait..."
-timeout 3 xscreensaver-demo >/dev/null 2>&1
-# Modify the ~/.xscreensaver file to disable screensaver from default "random"
-file=~/.xscreensaver
-sed -i 's/^mode.*/mode:         off/' "${file}"
-
+if [[ $(which xscreensaver) ]]; then
+  echo -e "${GREEN}[*]${RESET} Launching and fixing ${GREEN}xscreensaver${RESET}, please wait..."
+  timeout 3 xscreensaver-demo >/dev/null 2>&1
+  # Modify the ~/.xscreensaver file to disable screensaver from default "random"
+  file=~/.xscreensaver
+  sed -i 's/^mode.*/mode:         off/' "${file}"
+fi
 
 echo -e "${GREEN}[*]${RESET} Performing a distro upgrade and installing core pkgs..."
 $SUDO apt-get -qy upgrade
@@ -203,6 +174,7 @@ $SUDO apt-get -y install openvpn openssl openssh-server
 $SUDO apt-get -y install baobab
 
 # Initializing them disabled to prevent insecure remote services to be cautious
+echo -e "${GREEN}[*]${RESET} Disabling several network services for security hardening"
 $SUDO systemctl stop ssh.service || $SUDO service ssh stop
 $SUDO systemctl disable ssh.service || $SUDO service ssh disable
 
@@ -248,12 +220,12 @@ fi
 
 
 # -== Git global config settings ==- #
-echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your name: "
-read $GITNAME
-git config --global user.name $GITNAME
-echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your email: "
-read $GITEMAIL
-git config --global user.email $GITEMAIL
+echo -e -n "\n${YELLOW}[ INPUT ]${RESET} Git global config :: Enter your name: "
+read $GIT_NAME
+[[ ${GIT_NAME} ]] && git config --global user.name $GIT_NAME
+echo -e -n "\n${YELLOW}[ INPUT ]${RESET} Git global config :: Enter your email: "
+read $GIT_EMAIL 
+[[ ${GIT_EMAIL} ]] && git config --global user.email $GIT_EMAIL
 git config --global color.ui auto
 
 
