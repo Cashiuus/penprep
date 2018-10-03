@@ -69,13 +69,20 @@ function pause() {
 # ================================[  BEGIN  ]================================ #
 # -==  Setup VM Tools  ==- #
 # https://github.com/vmware/open-vm-tools
-if [[ ! $(which vmware-toolbox-cmd) ]]; then
-  echo -e "${YELLOW}[-] Now installing vm-tools. This will require a reboot. Re-run script after...${RESET}"
-  sleep 4
-  $SUDO apt-get -y install open-vm-tools-desktop fuse
-  $SUDO reboot
+SYSMANUF=$($SUDO dmidecode -s system-manufacturer)
+SYSPRODUCT=$($SUDO dmidecode -s system-product-name)
+if [[ $SYSMANUF == "Xen" ]] || [[ $SYSMANUF == "VMware, Inc." ]] || [[ $SYSPRODUCT == "VirtualBox" ]]; then
+  if [[ ! $(which vmware-toolbox-cmd) ]]; then
+    echo -e "${YELLOW}[ INFO ] Now installing vm-tools. This will require a reboot. Re-run script after...${RESET}"
+    sleep 4
+    $SUDO apt-get -y install open-vm-tools-desktop fuse
+    $SUDO reboot
+  else
+    echo -e "${GREEN}[*]${RESET} VM Tools already seem to be installed, moving along..."
+  fi
+else
+  echo -e "${GREEN}[*]${RESET} It looks like your system is bare hardware, skipping vm-tools install..."
 fi
-
 # Increase idle delay which locks the screen (default is 300s)
 # Don't need sudo for this command, user-specific setting
 gsettings set org.gnome.desktop.session idle-delay 0
