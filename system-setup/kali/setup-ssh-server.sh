@@ -553,11 +553,17 @@ echo -e
 echo -e "\tClient Template:\t/etc/ssh/openssh_client.template"
 echo -e "${GREEN}=================================================================${RESET}"
 
+echo -e "\n${GREEN}[*]${RESET} Outputting listening ports below to verify SSH service is running\n"
+ss -lutp
+echo -e ""
+# Display established ssh connections
+#ss -o state established '(dport=:ssh or sport=:ssh)'
+
 
 function finish {
     # Any script-termination routines go here, but function cannot be empty
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}" | tee -a "${LOG_FILE}"
-    echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
+    echo -e "\n${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait...\n\n" | tee -a "${LOG_FILE}"
 }
 # End of script
 trap finish EXIT
