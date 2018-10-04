@@ -237,10 +237,10 @@ function md5_compare() {
   #
   echo -e "\t-- ${RED}OLD KEYS${RESET} --"
   #openssl md5 /etc/ssh/insecure_original_kali_keys/ssh_host_*
-  openssl md5 ${1}
+  $SUDO openssl md5 ${1}
   echo -e "\n\t-- ${GREEN}NEW KEYS${RESET} --"
   #openssl md5 /etc/ssh/ssh_host_*
-  openssl md5 ${2}
+  $SUDO openssl md5 ${2}
   echo -e "\n\n"
   sleep 10
 }

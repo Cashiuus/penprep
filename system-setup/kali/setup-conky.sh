@@ -82,6 +82,10 @@ else
   $SUDO apt-get -y install conky
 fi
 
+if [[ ! $(which conky) ]]; then
+  echo -e "${RED}[ ERROR ]${RESET} Conky was not correctly installed, please investigate."
+  exit 1
+fi
 
 # ----- XFCE Installs - Enable Compositing -------
 if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
@@ -300,7 +304,7 @@ fi
 echo -e "${GREEN}[*] ${RESET}Adding conky-start script"
 file="/usr/local/bin/conky-start"
 [[ ! -d "/usr/local/bin" ]] && $SUDO mkdir -p "/usr/local/bin"
-# Create file and make it readable so we can build it
+# Create file and make it writeable so we can build it
 $SUDO touch "${file}"
 $SUDO chmod -f 0666 "${file}"
 cat <<EOF > "${file}"

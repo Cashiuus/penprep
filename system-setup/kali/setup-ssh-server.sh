@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     setup-ssh-server.sh
 # Author:   Cashiuus
-# Created:  01-Dec-2015 - (Revised: 09-Dec-2017)
+# Created:  01-Dec-2015 - (Revised: 03-Oct-2018)
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 #
@@ -27,7 +27,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.22"
+__version__="1.3"
 __author__='Cashiuus'
 ## =============[ CONSTANTS ]============= ##
 START_TIME=$(date +%s)
@@ -42,6 +42,11 @@ APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 LOG_FILE="${APP_BASE}/debug.log"
 DEBUG=true
 DO_LOGGING=false
+
+
+## === OpenSSH Pkg Version Checks
+#OPENSSH_VERSION=$(dpkg-query -f '${Version}' -W openssh-server) # 1:7.8p1-1
+
 
 ## ===========================[ START :: LOADING ]=========================== ##
 if [[ -s "${APP_BASE}/../common.sh" ]]; then
@@ -111,8 +116,6 @@ grep -q '^ALLOW_ROOT_LOGIN=' "${APP_SETTINGS}" 2>/dev/null \
 # ============================[  BEGIN INSTALL  ]=============================== #
 
 echo -e "${GREEN}[*]${RESET} Disabling SSH service while we reconfigure..."
-#update-rc.d -f ssh remove
-#update-rc.d -f ssh defaults
 $SUDO systemctl stop ssh.service >/dev/null 2>&1
 $SUDO systemctl disable ssh.service >/dev/null 2>&1
 
@@ -123,8 +126,9 @@ $SUDO apt-get -y -qq install openssh-server openssl
 tmp=$(dpkg -s openssh-server | grep "^Version" | cut -d ":" -f3)
 OPENSSH_VERSION="${tmp:0:3}"
 
-# Move the default Kali keys to backup folder
+# Move the default ssh host keys to backup folder
 cd /etc/ssh
+[[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG]${RESET} Moving original host keys to backup"
 if [[ ! -d insecure_original_kali_keys ]]; then
   $SUDO mkdir insecure_original_kali_keys
   $SUDO mv ssh_host_* insecure_original_kali_keys/
@@ -136,23 +140,23 @@ fi
 version_check $OPENSSH_VERSION 6.5
 
 # TODO: Ask user if they also want to implement a password
-if [ $? == 0 ]; then
+if [[ $? == 0 ]]; then
   #echo -e "${GREEN}[*]${RESET} Newer OpenSSH Version detected (Installed Version: $OPENSSH_VERSION)"
   echo -e "${GREEN}[*]${RESET} Proceeding with new SSH key-pair format"
 
   #TODO: -o fails for this key type: ssh-keygen -b 4096 -t rsa1 -o -f /etc/ssh/ssh_host_key -P ""
   # We don't need this rsa1 key, it's for SSH protocol version 1
   #ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P "" >/dev/null
-  ssh-keygen -b 4096 -t rsa -o -f /etc/ssh/ssh_host_rsa_key -P "" >/dev/null
-  ssh-keygen -b 1024 -t dsa -o -f /etc/ssh/ssh_host_dsa_key -P "" >/dev/null
-  ssh-keygen -b 521 -t ecdsa -o -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
-  ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -P "" >/dev/null
+  $SUDO ssh-keygen -b 4096 -t rsa -o -f /etc/ssh/ssh_host_rsa_key -P "" >/dev/null
+  $SUDO ssh-keygen -b 1024 -t dsa -o -f /etc/ssh/ssh_host_dsa_key -P "" >/dev/null
+  $SUDO ssh-keygen -b 521 -t ecdsa -o -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
+  $SUDO ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -P "" >/dev/null
 else
   echo -e "${YELLOW}[INFO]${RESET} OpenSSH Version is older than v6.5, Proceeding with PEM server key format"
-  #ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P "" >/dev/null
-  ssh-keygen -b 4096 -t rsa -f /etc/ssh/ssh_host_rsa_key -P "" >/dev/null
-  ssh-keygen -b 1024 -t dsa -f /etc/ssh/ssh_host_dsa_key -P "" >/dev/null
-  ssh-keygen -b 521 -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
+  #$SUDO ssh-keygen -b 4096 -t rsa1 -f /etc/ssh/ssh_host_key -P "" >/dev/null
+  $SUDO ssh-keygen -b 4096 -t rsa -f /etc/ssh/ssh_host_rsa_key -P "" >/dev/null
+  $SUDO ssh-keygen -b 1024 -t dsa -f /etc/ssh/ssh_host_dsa_key -P "" >/dev/null
+  $SUDO ssh-keygen -b 521 -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -P "" >/dev/null
 fi
 
 # Change/Protect server file permissions?
@@ -172,6 +176,7 @@ fi
 
 # ===============================[  SSH CLIENT SETUP  ]================================== #
 # Prepare our ssh client directory
+cd ~
 [[ ! -d "${HOME}/.ssh" ]] && mkdir -p "${HOME}/.ssh"
 
 # TODO: Sure we want to do this? What about when running this on pre-existing systems?
@@ -179,10 +184,11 @@ fi
 #find "${HOME}/.ssh/" -type f ! -name authorized_keys -delete 2>/dev/null
 
 # Generate personal key pair (can also add -a 6000 to iterate the hash function for increased strength)
-echo -e "${GREEN}[*]${RESET} Generating client SSH keyss"
+echo -e "${GREEN}[*]${RESET} Generating client SSH keys, saving to: ${HOME}/.ssh/"
 ssh-keygen -b 4096 -t rsa -f "${HOME}/.ssh/id_rsa" -P "" >/dev/null
 
 # Protect user files
+[[ ${DEBUG} -eq 1 ]] && echo -e "${ORANGE}[DEBUG]${RESET} Setting permissions on client keys"
 chmod 0700 "${HOME}/.ssh"
 chmod 0644 "${HOME}/.ssh/id_rsa.pub"
 chmod 0400 "${HOME}/.ssh/id_rsa"
@@ -213,7 +219,8 @@ chmod 644 "${SSH_AUTH_KEYS_FILE}"
 # ===========================[ SSHD CONFIG TWEAKS ] =============================== #
 #   Ref: http://man.openbsd.org/sshd_config
 
-file=/etc/ssh/sshd_config; [[ -e $file ]] && cp -n $file{,.bkup}
+file="/etc/ssh/sshd_config"
+[[ -e $file ]] && $SUDO cp -n $file{,.bkup}
 
 # -==[ SSH Server IP Address
 if [[ "${SSH_SERVER_ADDRESS}" ]]; then
@@ -265,30 +272,11 @@ fi
 # Default: #MaxAuthTries 6
 $SUDO sed -i 's/^#\?MaxAuthTries.*/MaxAuthTries 3/' "${file}"
 
-
 # -==[ X11 Forwarding
 $SUDO sed -i 's/^X11Forwarding.*/X11Forwarding yes/' "${file}"
 
 # X11DisplayOffset (Default: 10)))
 #$SUDO sed -i 's/^X11DisplayOffset.*/X11DisplayOffset 10/' "${file}"
-
-
-# ==[ Ciphers - https://cipherli.st/
-# -- https://stribika.github.io/2015/01/04/secure-secure-shell.html
-grep -q '^KexAlgorithms ' "${file}" 2>/dev/null \
-    || $SUDO sh -c "echo KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256 >> ${file}"
-
-grep -q '^Ciphers ' "${file}" 2>/dev/null \
-    || $SUDO sh -c "echo Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr >> ${file}"
-
-grep -q '^MACs ' "${file}" 2>/dev/null \
-    || $SUDO sh -c "echo MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com >> ${file}"
-
-# -==[ Compression
-# Only enable compression after authentication
-grep -q '^Compression delayed' "${file}" 2>/dev/null \
-    || $SUDO sh -c "echo Compression delayed >> ${file}"
-
 
 # ==[ Add Inactivty Timeouts
 # ClientAliveInterval = after x seconds, ssh server will send msg to client asking for response.
@@ -299,6 +287,26 @@ grep -q '^Compression delayed' "${file}" 2>/dev/null \
 # ClientAliveCountMax = total no. of checkalive msgs sent by ssh server w/o getting response from client.
 #   Default: 3
 $SUDO sed -i 's|^ClientAliveCountMax.*|ClientAliveCountMax 3|' "${file}"
+
+
+# ==[ Ciphers - https://cipherli.st/
+# -- Link: https://www.ssh.com/ssh/sshd_config/
+grep -q '^Ciphers ' "${file}" 2>/dev/null \
+  || $SUDO sh -c "echo Ciphers aes256-ctr,aes192-ctr,aes128-ctr >> ${file}"
+
+grep -q '^HostKeyAlgorithms ' "${file}" 2>/dev/null \
+  || $SUDO sh -c "echo HostKeyAlgorithms ecdsa-sha2-nistp521,ecdsa-sha2-nistp384,ecdsa-sha2-nistp256,ssh-rsa,ssh-dss >> ${file}"
+
+grep -q '^KexAlgorithms ' "${file}" 2>/dev/null \
+  || $SUDO sh -c "echo KexAlgorithms ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256 >> ${file}"
+
+grep -q '^MACs ' "${file}" 2>/dev/null \
+  || $SUDO sh -c "echo MACs hmac-sha2-512,hmac-sha2-256 >> ${file}"
+
+# -==[ Compression
+# Only enable compression after authentication
+grep -q '^Compression delayed' "${file}" 2>/dev/null \
+  || $SUDO sh -c "echo Compression delayed >> ${file}"
 
 
 # ==[ Add Whitelist and Blacklist of Users
@@ -344,19 +352,18 @@ $SUDO mv "${file}" /etc/motd
 file=/tmp/openssh_client.template
 cat <<EOF > "${file}"
 ### OpenSSH Hardened Client Template
-# https://cipherli.st/
-# https://stribika.github.io/2015/01/04/secure-secure-shell.html
+# https://www.ssh.com/ssh/sshd_config
 HashKnownHosts yes
 Host github.com
-    MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-128-etm@openssh.com,hmac-sha2-512
+    MACs hmac-sha2-512,hmac-sha2-256
     # Github needs diffie-hellman-group-exchange-sha1 some of the time but not always.
-#    KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1
+#    KexAlgorithms ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256
 
 Host *
   ConnectTimeout 30
-  KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
-  MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com
-  Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+  KexAlgorithms ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256
+  MACs hmac-sha2-512,hmac-sha2-256
+  Ciphers aes256-ctr,aes192-ctr,aes128-ctr
   ServerAliveInterval 10
   ControlMaster auto
   ControlPersist yes
@@ -390,9 +397,12 @@ function restrict_login_geoip() {
 
   # Create script that will check IPs and return True or False
   [[ ! -d "/usr/local/bin" ]] && $SUDO mkdir -vp "/usr/local/bin" >/dev/null 2>&1
-  file=/tmp/sshfilter.sh
-  file_dest=/usr/local/bin/sshfilter.sh
-  cat <<EOF > "${file}"
+
+  file=/usr/local/bin/sshfilter.sh
+  if [[ ! -e "${file}" ]]; then
+    $SUDO touch "${file}"
+    $SUDO chmod -f 0666 "${file}"
+    cat <<EOF > "${file}"
 #!/bin/bash
 
 # Credit to: http://www.axllent.org/docs/view/ssh-geoip/
@@ -417,24 +427,29 @@ else
     exit 1
 fi
 EOF
-  $SUDO mv "${file}" "${file_dest}"
-  $SUDO chmod 0755 "${file_dest}"
 
-  # Set the default to deny all
-  grep -q "sshd: ALL" "${file}" 2>/dev/null \
-    || $SUDO sh -c "echo sshd: ALL >> /etc/hosts.deny"
-  # Set the filter script to determine which hosts are allowed
-  grep -q "sshd: ALL: aclexec .*" "${file}" 2>/dev/null \
+    # Set the default to deny all
+    grep -q "sshd: ALL" "${file}" 2>/dev/null \
+      || $SUDO sh -c "echo sshd: ALL >> /etc/hosts.deny"
+    # Set the filter script to determine which hosts are allowed
+    grep -q "sshd: ALL: aclexec .*" "${file}" 2>/dev/null \
       || $SUDO sh -c "echo sshd: ALL: aclexec /usr/local/bin/sshfilter.sh %a >> /etc/hosts.allow"
-
+  fi
+  $SUDO chmod -f 0555 "${file}"
+  
   # Test it out
   # TODO: Send these deny entries to a different log for processing?
   [[ "$DEBUG" = true ]] \
-      && echo -e "${ORANGE}[DEBUG] Testing sshfilter.ssh - a DENY entry should output below (saved to: /var/log/messages)${RESET}"
+    && echo -e "${ORANGE}[DEBUG] Testing sshfilter.ssh - a DENY entry should output below (saved to: /var/log/messages)${RESET}"
   [[ "$DEBUG" = true ]] && /usr/local/bin/sshfilter.sh "175.198.198.78"
-  [[ "$DEBUG" = true ]] && tail /var/log/messages | grep ssh
+  [[ "$DEBUG" = true ]] && $SUDO tail /var/log/messages | grep ssh
+  
+  
   file=/usr/local/bin/geoip-updater.sh
-  cat <<EOF > "${file}"
+  if [[ ! -e "${file}" ]]; then
+    $SUDO touch "${file}"
+    $SUDO chmod -f 0666 "${file}"
+    cat <<EOF > "${file}"
 #!/bin/bash
 
 cd /tmp
@@ -447,17 +462,19 @@ else
     echo -e "[ERROR] The GeoIP library could not be downloaded and updated"
 fi
 EOF
-    chmod 0755 "${file}"
-    # Setup a monthly cron job to keep your Geo-IP Database updated - 1st of month at Noon.
-    # TODO: This method doesn't work for 'root' user
-    #(crontab -l ; echo "00 12 1 * * ${file}") | crontab
-    # Trying this version - crontab -l will exit 1 if file is empty
-    crontab -l >/dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
-        crontab -l | { cat; echo "10 23 3 * 0 /usr/local/bin/geoip-updater.sh"; } | crontab -
-    else
-        echo "10 23 3 * 0 /usr/local/bin/geoip-updater.sh" | crontab -
-    fi
+  fi
+  $SUDO chmod -f 0555 "${file}"
+  
+  # Setup a monthly cron job to keep your Geo-IP Database updated - 1st of month at Noon.
+  # TODO: This method doesn't work for 'root' user
+  #(crontab -l ; echo "00 12 1 * * ${file}") | crontab
+  # Trying this version - crontab -l will exit 1 if file is empty
+  crontab -l >/dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    crontab -l | { cat; echo "10 23 3 * 0 /usr/local/bin/geoip-updater.sh"; } | crontab -
+  else
+    echo "10 23 3 * 0 /usr/local/bin/geoip-updater.sh" | crontab -
+  fi
 }
 
 [[ "$DO_GEOIP" = true ]] && restrict_login_geoip
