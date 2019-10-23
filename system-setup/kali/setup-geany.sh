@@ -338,7 +338,7 @@ geany_templates
 
 # Copy desktop shortcut to the desktop
 cp /usr/share/applications/geany.desktop "${HOME}/Desktop/"
-chmod +x "${HOME}/Desktop/geany.desktop"
+chmod u+x "${HOME}/Desktop/geany.desktop"
 
 function finish() {
   ###
