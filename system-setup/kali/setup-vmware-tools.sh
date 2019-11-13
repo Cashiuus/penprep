@@ -37,7 +37,7 @@ elif $(dmidecode | grep -iq vmware); then
   apt-get -y install open-vm-tools-desktop fuse
 elif $(dmidecode | grep -iq virtualbox); then
   echo -e "\n${GREEN}-----------${RESET}[ Installing VirtualBox VM Tools ]${GREEN}-----------${RESET}"
-  apt-get -y install virtualbox-guest-x11
+  apt-get -y install virtualbox-guest-x11 virtualbox-guest-utils virtualbox-guest-dkms
 fi
 
 
