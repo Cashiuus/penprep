@@ -231,20 +231,24 @@ $SUDO python setup.py install
 # or $SUDO pip install . ?
 
 ### Additional git clones to grab
+echo -e "${GREEN}[*] ${RESET}Grabbing Github projects that will be useful"
 cd ~/git
 git clone https://github.com/Tib3rius/AutoRecon
-
+git clone https://github.com/danielmiessler/SecLists
+git clone https://github.com/PowerShellMafia/PowerSploit
+git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite PEASS
 
 
 # Get common shells to use
+echo -e "${GREEN}[*] ${RESET}Grabbing useful shells/backdoors"
 cd ~/htb/shells/
 git clone https://github.com/infodox/python-pty-shells
-
+git clone https://github.com/epinna/weevely3
+git clone https://github.com/eb3095/php-shell
 
 # Init our rockyou wordlist
+echo -e "${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
 $SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz
-
-
 
 
 function finish() {
@@ -253,6 +257,8 @@ function finish() {
   #
   ###
   #clear
+  $SUDO apt-get -qq clean
+  $SUDO apt-get -qq autoremove
   $SUDO updatedb
 
   echo -e "\n${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..."
