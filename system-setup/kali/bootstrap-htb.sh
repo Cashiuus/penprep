@@ -2,13 +2,15 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised:
+# Created:  08-Apr-2020     Revised: 10-Apr-2020
 #
 ##-[ Info ]-------------------------------------------------------------------------------
-# Purpose:  Describe script purpose
+# Purpose:  Run this script on new Kali images to automatically configure and
+#           install packages needed for HackTheBox challenges. Spend your time
+#           hacking and learning, not troubleshooting!
 #
 #
-# Notes:
+# Oneliner: wget -qO bootstrap-htb.sh https:://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh && bash bootstrap-htb.sh
 #
 #
 ##-[ Links/Credit ]-----------------------------------------------------------------------
@@ -123,11 +125,12 @@ function print_banner() {
                    ▀▀
 EOF
   echo -e "\n\n${BLUE}. . . . ${RESET}${BOLD}HackTheBox Base Kali Bootstrapper  ${RESET}${BLUE}. . . .${RESET}"
+  echo -e "${BLUE}---------------------------------------------------${RESET}"
 }
 print_banner
-echo -e "${BLUE}[$(date +"%F %T")] ${RESET}Giving Kali a tune-up, please wait..."
+echo -e "\n${BLUE}[$(date +"%F %T")] ${RESET}Giving Kali a tune-up, please wait..."
 sleep 3
-
+exit
 # =============================[ Setup VM Tools ]================================ #
 # https://github.com/vmware/open-vm-tools
 if [[ ! $(which vmware-toolbox-cmd) ]]; then
@@ -153,17 +156,18 @@ else
 fi
 
 echo -e "\n${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
-export DEBIAN_FRONTEND=noninteractive
+$SUDO export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y -q dist-upgrade
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
-$SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc git make \
-  net-tools openssl libssl-dev sudo tmux wget
+$SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc git \
+  libssl-dev make net-tools openssl sudo tmux wget
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing commonly used htb tools"
-$SUDO apt-get -y -qq install dirb dirbuster exploitdb nikto rdesktop responder shellter sqlmap windows-binaries
+$SUDO apt-get -y -qq install dirb dirbuster exploitdb libimage-exiftool-perl nikto \
+  rdesktop responder shellter sqlmap windows-binaries
 
 
 # Python
@@ -277,10 +281,18 @@ function finish() {
   $SUDO apt-get -qq autoremove
   $SUDO updatedb
 
-  echo -e "\n${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..."
+  echo -e "\n${GREEN}============================================================${RESET}"
+  echo -e "\n Your system has now been configured! Here is some useful information:\n"
+  echo -e "  Directories:\t\t${HOME}/htb/boxes/"
+  echo -e "  \t\t\t${HOME}/htb/shells/"
+  echo -e "\n  Place VPN Files here:\t${HOME}/vpn/"
+  echo -e "\n\n"
+  echo -e "${GREEN}============================================================${RESET}"
+  echo -e "\n"
+  read -e -t 10 -p " Press ENTER to finish and close the script..." RESPONSE
 
   FINISH_TIME=$(date +%s)
-  echo -e "${BLUE} -=[ :: $APP_NAME :: ]=- ${GREEN}Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
+  echo -e "${BLUE}[$(date +"%F %T")] ${GREEN}${APP_NAME} Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
 }
 # End of script
 trap finish EXIT
