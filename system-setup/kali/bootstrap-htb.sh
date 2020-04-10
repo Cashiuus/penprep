@@ -98,15 +98,36 @@ check_root
 
 
 function print_banner() {
-    echo -e "\n\n${BLUE}=============[  ${RESET}${BOLD}HackTheBox Base Kali Bootstrapper  ${RESET}${BLUE}]=============${RESET}"
-    cat /etc/os-release
-    cat /proc/version
-    uname -a
-    lsb_release -a
-    echo -e "${BLUE}========================<${RESET} version: ${__version__} ${BLUE}>========================\n${RESET}\n"
+  clear
+  cat << "EOF"
+
+               . - ' - .
+          _ - '          ' - _
+      ▓ |                      | ▓
+      ▓ |  --- '               | ▓
+      ▓ |  |                   | ▓
+      ▓ |  |              .    | ▓
+      ▓ |               .;;............ ..
+      ▓ |  |          .::;;::::::::::::..
+      ▓ |  |           ':;;:::::::::::: . .
+      ▓ |  |             ':    | ▓
+      ▓ |  |                   | ▓
+      ▓ :   '                  : ▓
+       ▓ \   '     TMC        / ▓
+        ▓ \   '              / ▓
+         ▓ \   '            / ▓
+          ▓ `\            /` ▓
+            ▓ `\        /` ▓
+              ▓ `\    /` ▓
+                 ▓ \/ ▓
+                   ▀▀
+EOF
+  echo -e "\n\n${BLUE}. . . . ${RESET}${BOLD}HackTheBox Base Kali Bootstrapper  ${RESET}${BLUE}. . . .${RESET}"
 }
 print_banner
-sleep 4
+echo -e "${BLUE}[$(date +"%F %T")] ${RESET}Giving Kali a tune-up, please wait..."
+sleep 3
+
 # =============================[ Setup VM Tools ]================================ #
 # https://github.com/vmware/open-vm-tools
 if [[ ! $(which vmware-toolbox-cmd) ]]; then
@@ -182,11 +203,6 @@ six
 wheel
 EOF
 $SUDO pip install -q -r /tmp/requirements.txt
-
-
-
-
-
 
 
 # =================[ Folder Structure ]================= #
