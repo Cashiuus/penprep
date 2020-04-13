@@ -12,6 +12,8 @@
 #
 # Oneliner: wget -qO bootstrap-htb.sh https:://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh && bash bootstrap-htb.sh
 #
+# Shorter: curl -sSL https:://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh | bash
+#
 #
 ##-[ Links/Credit ]-----------------------------------------------------------------------
 #
@@ -19,10 +21,13 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="0.1"
+__version__="0.2"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
+CREATE_USER_DIRECTORIES=(git htb vpn)
+CREATE_OPT_DIRECTORIES=()
+VPN_BASE_DIR="${HOME}/vpn"
 
 ## ==========[ TEXT COLORS ]============= ##
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
@@ -47,11 +52,6 @@ LINES=$(tput lines)
 COLS=$(tput cols)
 HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
 
-
-CREATE_USER_DIRECTORIES=(git htb vpn)
-CREATE_OPT_DIRECTORIES=()
-
-
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
 function install_sudo() {
@@ -72,31 +72,6 @@ function install_sudo() {
   su -c "init 6" root
   exit 0
 }
-
-function check_root() {
-  if [[ $EUID -ne 0 ]]; then
-    # If not root, check if sudo package is installed
-    if [[ $(which sudo) ]]; then
-      # This accounts for both root and sudo. If normal user, it'll use sudo.
-      # If you run script as root, $SUDO is blank and script will soldier on.
-      export SUDO="sudo"
-      # Test to ensure this user is able to use sudo
-      sudo -l >/dev/null
-      if [[ $? -eq 1 ]]; then
-        # sudo pkg is installed but current user is not in sudoers group to use it
-        echo -e "${RED}[ERROR]${RESET} You are not able to use sudo. Running install to fix."
-        read -r -t 5
-        install_sudo
-      fi
-    else
-      echo -e "${YELLOW}[WARN]${RESET} The 'sudo' package is not installed."
-      echo -e "${YELLOW}[+]${RESET} Press any key to install it (*You'll be prompted to enter sudo password). Otherwise, manually cancel script now..."
-      read -r -t 5
-      install_sudo
-    fi
-  fi
-}
-check_root
 
 
 function print_banner() {
@@ -129,8 +104,33 @@ EOF
 }
 print_banner
 echo -e "\n${BLUE}[$(date +"%F %T")] ${RESET}Giving Kali a tune-up, please wait..."
-sleep 3
-exit
+
+function check_root() {
+  if [[ $EUID -ne 0 ]]; then
+    # If not root, check if sudo package is installed
+    if [[ $(which sudo) ]]; then
+      # This accounts for both root and sudo. If normal user, it'll use sudo.
+      # If you run script as root, $SUDO is blank and script will soldier on.
+      export SUDO="sudo"
+      echo -e "${YELLOW}[WARN] This script leverages sudo for installation. Enter your password when prompted!${RESET}"
+      sleep 1
+      # Test to ensure this user is able to use sudo
+      sudo -l >/dev/null
+      if [[ $? -eq 1 ]]; then
+        # sudo pkg is installed but current user is not in sudoers group to use it
+        echo -e "${RED}[ERROR]${RESET} You are not able to use sudo. Running install to fix."
+        read -r -t 5
+        install_sudo
+      fi
+    else
+      echo -e "${YELLOW}[WARN]${RESET} The 'sudo' package is not installed."
+      echo -e "${YELLOW}[+]${RESET} Press any key to install it (*You'll be prompted to enter sudo password). Otherwise, manually cancel script now..."
+      read -r -t 5
+      install_sudo
+    fi
+  fi
+}
+check_root
 # =============================[ Setup VM Tools ]================================ #
 # https://github.com/vmware/open-vm-tools
 if [[ ! $(which vmware-toolbox-cmd) ]]; then
@@ -156,23 +156,33 @@ else
 fi
 
 echo -e "\n${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
-$SUDO export DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
-$SUDO apt-get -y -q dist-upgrade
+$SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
+  -o Dpkg::Options::="--force-confold" dist-upgrade
+
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
 $SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc git \
-  libssl-dev make net-tools openssl sudo tmux wget
+  libssl-dev make net-tools openssl openvpn tmux wget
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf
 
-echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing commonly used htb tools"
+echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing commonly used HTB tools"
 $SUDO apt-get -y -qq install dirb dirbuster exploitdb libimage-exiftool-perl nikto \
   rdesktop responder shellter sqlmap windows-binaries
 
-
 # Python
 echo -e "\n${GREEN}[*] ${RESET}python :: Installing/Configuring Python"
-$SUDO apt-get -y -qq install python python-dev python-pip virtualenv virtualenvwrapper
+$SUDO apt-get -y -qq install python python-dev python-setuptools virtualenv virtualenvwrapper || \
+  echo -e "${YELLOW}[ERROR] Errors occurred installing Python 2.x, you may have issues${RESET}" \
+  && sleep 2
+$SUDO apt-get -y -qq install python-pip
+
+
+$SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
+  echo -e "${YELLOW}[ERROR] Errors occurred installing Python 3.x, you may have issues${RESET}" \
+  && sleep 2
+
 # Pillow depends
 $SUDO apt-get -y -qq install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
     liblcms2-dev libwebp-dev libffi-dev zlib1g-dev
@@ -183,8 +193,6 @@ $SUDO apt-get -y -qq install libxml2-dev libxslt1-dev zlib1g-dev
 # Postgresql and psycopg2 depends
 $SUDO apt-get -y -qq install libpq-dev
 
-$SUDO pip install -q --upgrade pip
-$SUDO pip install -q --upgrade setuptools
 # Install base pip files
 file="/tmp/requirements.txt"
 cat <<EOF > "${file}"
@@ -206,7 +214,10 @@ requests
 six
 wheel
 EOF
-$SUDO pip install -q -r /tmp/requirements.txt
+# In this case, we do not need to SUDO here
+python -m pip install -q -r /tmp/requirements.txt
+
+python3 -m pip install -q -r /tmp/requirements.txt
 
 
 # =================[ Folder Structure ]================= #
@@ -271,12 +282,52 @@ echo -e "${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
 $SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz
 
 
+echo -e "${GREEN}[*] ${RESET}Installing VPN helper script to ~/vpn/vpn-helper.sh"
+file="${VPN_BASE_DIR}/vpn-helper.sh"
+#touch "${file}"
+cat <<EOF > "${file}"
+#!/bin/bash
+
+VPN_BASE_DIR="\${HOME}/vpn"
+GREEN="\\033[01;32m"
+YELLOW="\\033[01;33m"
+RESET="\\033[00m"
+
+if [[ ! -s "\${VPN_BASE_DIR}/vpn-helper.conf" ]]; then
+    echo -e "\n\n\${GREEN}[+] \${RESET}First time running? Find your .ovpn file in this list below:"
+    echo -e "-----------------------[ \${HOME}/vpn/ ]-----------------------"
+    ls -al "\${VPN_BASE_DIR}"
+    echo -e "---------------------------------------------------------------"
+    echo -e -n "\${YELLOW}[+]\${RESET}"
+    read -e -p " Enter full path to your OpenVPN '.ovpn' file here: " RESPONSE
+    while [[ ! -s "\${RESPONSE}" ]]; do
+        echo -e -n "\${YELLOW}[-]\${RESET}"
+        read -e -p " You've provided an invalid file, try again: " RESPONSE
+    done
+    echo "OVPN_FILE=\${RESPONSE}" > "\${VPN_BASE_DIR}/vpn-helper.conf"
+else
+    echo -e "\${GREEN}[*] \${RESET}Config file exists! If not correct, edit \${VPN_BASE_DIR}/vpn-helper.conf"
+fi
+
+echo -e "\n\${GREEN}[*] \${RESET}Ensuring your VPN config file is secured with proper permissions"
+chmod 0600 "\${VPN_BASE_DIR}/vpn-helper.conf"
+. "\${VPN_BASE_DIR}/vpn-helper.conf"
+
+echo -e "\${GREEN}[*] \${RESET}Prep done, now launching OpenVPN with chosen .ovpn config"
+openvpn --config "\${OVPN_FILE}" \\
+    --script-security 2
+EOF
+chmod u+x "${file}"
+
+
+
 function finish() {
   ###
   # finish function: Any script-termination routines go here, but function cannot be empty
   #
   ###
   #clear
+  echo -e "${GREEN}[*] ${RESET}Cleaning up system and updating locate db"
   $SUDO apt-get -qq clean
   $SUDO apt-get -qq autoremove
   $SUDO updatedb
@@ -286,20 +337,21 @@ function finish() {
   echo -e "  Directories:\t\t${HOME}/htb/boxes/"
   echo -e "  \t\t\t${HOME}/htb/shells/"
   echo -e "\n  Place VPN Files here:\t${HOME}/vpn/"
+  echo -e "  VPN Helper Script:\t${HOME}/vpn/vpn-helper.sh"
   echo -e "\n\n"
   echo -e "${GREEN}============================================================${RESET}"
-  echo -e "\n"
+  echo -e -n "\n${GREEN}[+]${RESET}"
   read -e -t 10 -p " Press ENTER to finish and close the script..." RESPONSE
 
   FINISH_TIME=$(date +%s)
-  echo -e "${BLUE}[$(date +"%F %T")] ${GREEN}${APP_NAME} Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
+  echo -e "\n${BLUE}[$(date +"%F %T")] ${GREEN}${APP_NAME} Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
 }
 # End of script
 trap finish EXIT
 
 
-## ===================================================================================== ##
-## ==============================[  Help :: Core Notes ]================================ ##
+## =================================================================================== ##
+## =============================[  Help :: Core Notes ]=============================== ##
 #
 ## -=====[  Notable Commands  ]=====- ##
 #
@@ -314,4 +366,4 @@ trap finish EXIT
 #tmux new -s HTB
 # allows multiple windows with keyboard
 # learn tmux shortcuts
-## ==================================================================================== ##
+## =================================================================================== ##
