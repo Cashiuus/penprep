@@ -10,9 +10,9 @@
 #           hacking and learning, not troubleshooting!
 #
 #
-# Oneliner: wget -qO bootstrap-htb.sh https:://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh && bash bootstrap-htb.sh
+# Oneliner: wget -qO bootstrap-htb.sh https://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh && bash bootstrap-htb.sh
 #
-# Shorter: curl -sSL https:://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh | bash
+# Shorter: curl -sSL https://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh | bash
 #
 #
 ##-[ Links/Credit ]-----------------------------------------------------------------------
