@@ -55,7 +55,7 @@ HISTCONTROL=ignoreboth
 # HISTSIZE (Default: 1000) For memory scrollback
 HISTSIZE=9000
 # HISTFILESIZE (Default: 2000) For history file (e.g. bash_history)
-HISTFILESIZE=10000
+HISTFILESIZE=9000
 
 
 ### set variable identifying the chroot you work in (used in the prompt below)
