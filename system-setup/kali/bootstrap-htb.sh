@@ -142,6 +142,17 @@ if [[ ! $(which vmware-toolbox-cmd) ]]; then
   $SUDO reboot
 fi
 
+# ===========================[ Bash History Sizes ]============================== #
+file="${HOME}/.bashrc"
+sed -i 's/^HISTSIZE=.*/HISTSIZE=9000/' "${file}"
+sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=9000/' "${file}"
+
+if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
+  # Increasing terminal history scrolling limit
+  file="${HOME}/.config/qterminal.org/qterminal.ini"
+  [[ -s "${file}" ]] && sed -i 's/^HistoryLimitedTo=.*/HistoryLimitedTo=30000/' "${file}"
+fi
+
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
 echo -e "\n${GREEN}[*] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
@@ -162,7 +173,7 @@ $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
   -o Dpkg::Options::="--force-confold" dist-upgrade
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
-$SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc git \
+$SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc geany git \
   libssl-dev make net-tools openssl openvpn tmux wget
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf
@@ -176,9 +187,10 @@ echo -e "\n${GREEN}[*] ${RESET}python :: Installing/Configuring Python"
 $SUDO apt-get -y -qq install python python-dev python-setuptools virtualenv virtualenvwrapper || \
   echo -e "${YELLOW}[ERROR] Errors occurred installing Python 2.x, you may have issues${RESET}" \
   && sleep 2
+# Currently issues with python-pip package so it's separate in case it fails
 $SUDO apt-get -y -qq install python-pip
 
-
+# Python 3
 $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
   echo -e "${YELLOW}[ERROR] Errors occurred installing Python 3.x, you may have issues${RESET}" \
   && sleep 2
@@ -186,10 +198,8 @@ $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools 
 # Pillow depends
 $SUDO apt-get -y -qq install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
     liblcms2-dev libwebp-dev libffi-dev zlib1g-dev
-
 # lxml depends
 $SUDO apt-get -y -qq install libxml2-dev libxslt1-dev zlib1g-dev
-
 # Postgresql and psycopg2 depends
 $SUDO apt-get -y -qq install libpq-dev
 
@@ -220,7 +230,36 @@ python -m pip install -q -r /tmp/requirements.txt
 python3 -m pip install -q -r /tmp/requirements.txt
 
 
-# =================[ Folder Structure ]================= #
+# =================[ Desktop Display Customizations ]================= #
+if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
+  # Thunar file manager settings - make hidden files visible
+  xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
+
+  # Add quick launcher apps to top left
+  mkdir -p ~/.config/xfce4/panel/launcher-{8,9,10,11}
+  # Firefox
+  ln -sf /usr/share/applications/firefox-esr.desktop ~/.config/xfce4/panel/launcher-8/browser.desktop
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "browser.desktop" -a
+  # Burpsuite
+  ln -sf /usr/share/applications/kali-burpsuite.desktop ~/.config/xfce4/panel/launcher-9/kali-burpsuite.desktop
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-9 -t string -s launcher
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "kali-burpsuite.desktop" -a
+  # Cherrytree
+  ln -sf /usr/share/applications/cherrytree.desktop ~/.config/xfce4/panel/launcher-10/cherrytree.desktop
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-10 -t string -s launcher
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/items -t string -s "cherrytree.desktop" -a
+  # Geany text editor / IDE
+  ln -sf /usr/share/applications/geany.desktop ~/.config/xfce4/panel/launcher-11/geany.desktop
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
+
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
+
+fi
+
+
+# ======================[ Folder Structure ]====================== #
 echo -e "${GREEN}[*] ${RESET}Creating extra directories for our HackTheBox setup"
 count=0
 while [ "x${CREATE_USER_DIRECTORIES[count]}" != "x" ]; do
@@ -244,25 +283,25 @@ for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
     mkdir -p "/opt/${dir}"
 done
 
-mkdir -p ~/htb/boxes/
-mkdir -p ~/htb/shells/
+mkdir -p ~/htb/{boxes,shells}
 
 
 ### Evil-WinRM install
-echo -e "${GREEN}[*] ${RESET}Installing Evil-WinRM"
+echo -e "\n${GREEN}[*] ${RESET}Installing Evil-WinRM"
 $SUDO apt-get -y -qq install rubygems
 $SUDO gem install evil-winrm
 
 ### Python Impacket install
-echo -e "${GREEN}[*] ${RESET}Installing Python Impacket collection"
+echo -e "\n${GREEN}[*] ${RESET}Installing Python Impacket collection"
 cd ~/git
 git clone https://github.com/SecureAuthCorp/impacket
 cd impacket
 $SUDO python setup.py install
+$SUDO python3 setup.py install
 # or $SUDO pip install . ?
 
 ### Additional git clones to grab
-echo -e "${GREEN}[*] ${RESET}Grabbing Github projects that will be useful"
+echo -e "\n${GREEN}[*] ${RESET}Grabbing Github projects that will be useful"
 cd ~/git
 git clone https://github.com/Tib3rius/AutoRecon
 git clone https://github.com/danielmiessler/SecLists
@@ -271,14 +310,14 @@ git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-su
 
 
 # Get common shells to use
-echo -e "${GREEN}[*] ${RESET}Grabbing useful shells/backdoors"
+echo -e "\n${GREEN}[*] ${RESET}Grabbing useful shells/backdoors"
 cd ~/htb/shells/
 git clone https://github.com/infodox/python-pty-shells
 git clone https://github.com/epinna/weevely3
 git clone https://github.com/eb3095/php-shell
 
 # Init our rockyou wordlist
-echo -e "${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
+echo -e "\n${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
 $SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz
 
 
@@ -353,17 +392,4 @@ trap finish EXIT
 ## =================================================================================== ##
 ## =============================[  Help :: Core Notes ]=============================== ##
 #
-## -=====[  Notable Commands  ]=====- ##
-#
-#
-
-# sqlmap -r login.req --level 5 --risk 3
-
-
-
-
-
-#tmux new -s HTB
-# allows multiple windows with keyboard
-# learn tmux shortcuts
 ## =================================================================================== ##
