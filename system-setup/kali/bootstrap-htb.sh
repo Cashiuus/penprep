@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 10-Apr-2020
+# Created:  08-Apr-2020     Revised: 14-Apr-2020
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -21,7 +21,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="0.2"
+__version__="1.0"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
@@ -156,6 +156,8 @@ fi
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
 echo -e "\n${GREEN}[*] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
+file=/etc/apt/sources.list
+[[ -e "${file}" ]] && $SUDO cp -n $file{,.bkup}
 if [[ $SUDO ]]; then
   echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
   echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
@@ -379,8 +381,8 @@ function finish() {
   echo -e "  VPN Helper Script:\t${HOME}/vpn/vpn-helper.sh"
   echo -e "\n\n"
   echo -e "${GREEN}============================================================${RESET}"
-  echo -e -n "\n${GREEN}[+]${RESET}"
-  read -e -t 10 -p " Press ENTER to finish and close the script..." RESPONSE
+  echo -e -n "\n${GREEN}[+]${RESET}Setup is complete. Please ${ORANGE}REBOOT${RESET} for desktop settings to take effect."
+  sleep 10
 
   FINISH_TIME=$(date +%s)
   echo -e "\n${BLUE}[$(date +"%F %T")] ${GREEN}${APP_NAME} Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
