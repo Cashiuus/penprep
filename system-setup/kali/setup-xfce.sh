@@ -2,7 +2,7 @@
 ## =================================================================================
 # File:     setup-xfce.sh
 # Author:   Cashiuus
-# Created:  25-JAN-2016     -     Revised:  16-May-2017
+# Created:  25-JAN-2016     -     Revised:  14-Apr-2020
 #
 # Purpose:  Perform a baseline setup of the xfce window manager to replace Gnome
 #           This is a lightweight desktop designed to be low on resource use.
@@ -17,7 +17,7 @@
 #
 #
 ## =================================================================================
-__version__="0.8"
+__version__="0.9"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]================= ##
 GREEN="\033[01;32m"    # Success
@@ -28,8 +28,6 @@ BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 ## =========[ CONSTANTS ]================ ##
 ENABLE_XFCE=true              # Thereby disabling Gnome as the default?
-BROWSER_SHORTCUT="firefox"
-EDITOR_SHORTCUT="geany"       # Use "geany" or "gedit" for panel shortcut icon?
 
 
 # =============================[  FUNCTIONS ]================================ #
@@ -39,136 +37,46 @@ function configure_panel_applications {
   #   This function configures a specific set of quick launchers for top-used applications
   #   on the xfce4 panel and sets it at the top of the desktop.
   ###
-  ln -sf /usr/share/applications/exo-terminal-emulator.desktop ~/.config/xfce4/panel/launcher-2/exo-terminal-emulator.desktop
-  ln -sf /usr/share/applications/kali-wireshark.desktop    ~/.config/xfce4/panel/launcher-4/kali-wireshark.desktop
-  if [[ "$BROWSER_SHORTCUT" == "firefox" ]]; then
-    ln -sf /usr/share/applications/firefox-esr.desktop     ~/.config/xfce4/panel/launcher-5/browser.desktop
-  else
-    ln -sf /usr/share/applications/iceweasel.desktop       ~/.config/xfce4/panel/launcher-5/browser.desktop
-  fi
-  ln -sf /usr/share/applications/kali-burpsuite.desktop    ~/.config/xfce4/panel/launcher-6/kali-burpsuite.desktop
-  ln -sf /usr/share/applications/kali-msfconsole.desktop   ~/.config/xfce4/panel/launcher-7/kali-msfconsole.desktop
-  if [[ "$EDITOR_SHORTCUT" == "gedit" ]]; then
-    ln -sf /usr/share/applications/org.gnome.gedit.desktop ~/.config/xfce4/panel/launcher-8/textedit.desktop
-  else
-    ln -sf /usr/share/applications/geany.desktop           ~/.config/xfce4/panel/launcher-8/textedit.desktop
-  fi
-  ln -sf /usr/share/applications/xfce4-appfinder.desktop   ~/.config/xfce4/panel/launcher-9/xfce4-appfinder.desktop
-  # My preferred order: Terminal, Iceweasel, Wireshark, Geany, Appfinder (search), Burp,
-
-  xfconf-query -n -a -c xfce4-panel -p /panels -t int -s 0
-  xfconf-query --create --channel xfce4-panel --property /panels/panel-0/plugin-ids \
-    -t int -s 1   -t int -s 2   -t int -s 3   -t int -s 4   -t int -s 5   -t int -s 6   -t int -s 7 \
-    -t int -s 8   -t int -s 9   -t int -s 10  -t int -s 11  -t int -s 13  -t int -s 15  -t int -s 16 \
-    -t int -s 17  -t int -s 19  -t int -s 20
-  xfconf-query -n -c xfce4-panel -p /panels/panel-0/length -t int -s 100
-  xfconf-query -n -c xfce4-panel -p /panels/panel-0/size -t int -s 30
-  xfconf-query -n -c xfce4-panel -p /panels/panel-0/position -t string -s "p=6;x=0;y=0"
-  xfconf-query -n -c xfce4-panel -p /panels/panel-0/position-locked -t bool -s true
-
-  #=====[ PANEL COMPONENTS ]====== #
+  ###
+  #     Defaults: 1=whiskermenu, 2=separator, 3=separator, 4=show desktop,
+  #               5=directory/file manager, 6=terminal, 7=Kazam recorder
+  #
+  #     View these via: xfconf-query -l -c xfce4-panel -p /plugins/plugin-6 -R -v
+  #
   ### Edit these later via GUI by typing: xfce4-settings-manager or xfce4-settings-editor
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-1 -t string -s applicationsmenu     # application menu
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-2 -t string -s launcher             # terminal   ID: exo-terminal-emulator
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-3 -t string -s places               # places
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-4 -t string -s launcher             # wireshark  ID: kali-wireshark
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-5 -t string -s launcher             # firefox    ID: firefox-esr
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-6 -t string -s launcher             # burpsuite  ID: kali-burpsuite
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-7 -t string -s launcher             # msf        ID: kali-msfconsole
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher             # gedit      ID: org.gnome.gedit.desktop
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-9 -t string -s launcher             # search     ID: xfce4-appfinder
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-10 -t string -s tasklist
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s separator
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-13 -t string -s mixer               # audio
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-15 -t string -s systray
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-16 -t string -s actions
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-17 -t string -s clock
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-19 -t string -s pager
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-20 -t string -s showdesktop
 
-  # application menu
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-1/show-tooltips -t bool -s true
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-1/show-button-title -t bool -s true
-  #--- terminal
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-2/items -t string -s "exo-terminal-emulator.desktop" -a
-  #--- places
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-3/mount-open-volumes -t bool -s true
-  #--- wireshark
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-4/items -t string -s "kali-wireshark.desktop" -a
-  #--- browser - either firefox or iceweasel
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-5/items -t string -s "browser.desktop" -a
-  #--- Burpsuite free
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-6/items -t string -s "kali-burpsuite.desktop" -a
-  #--- metasploit
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-7/items -t string -s "kali-msfconsole.desktop" -a
-  #--- geany/gedit
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "textedit.desktop" -a
-  #--- search
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "xfce4-appfinder.desktop" -a
-  # iceweasel
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-6 -t string -s launcher
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-6/items -t string -s "14470234761.desktop" -a
-  # geany
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "13684522859.desktop" -a
+  xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
+  # Add quick launcher apps to top left
+  mkdir -p ~/.config/xfce4/panel/{launcher-8,launcher-9,launcher-10,launcher-11}
+  # Firefox
+  ln -sf /usr/share/applications/firefox-esr.desktop ~/.config/xfce4/panel/launcher-8/browser.desktop
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "browser.desktop" -a
+  # Burpsuite
+  ln -sf /usr/share/applications/kali-burpsuite.desktop ~/.config/xfce4/panel/launcher-9/kali-burpsuite.desktop
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-9 -t string -s launcher
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "kali-burpsuite.desktop" -a
+  # Cherrytree
+  ln -sf /usr/share/applications/cherrytree.desktop ~/.config/xfce4/panel/launcher-10/cherrytree.desktop
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-10 -t string -s launcher
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/items -t string -s "cherrytree.desktop" -a
+  # Geany text editor / IDE
+  ln -sf /usr/share/applications/geany.desktop ~/.config/xfce4/panel/launcher-11/geany.desktop
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
 
-  # tasklist (& separator - required for padding)
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/show-labels -t bool -s true
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/show-handle -t bool -s false
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/style -t int -s 0
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/expand -t bool -s true
-  # systray
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-15/show-frame -t bool -s false
-  # actions
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-16/appearance -t int -s 1
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-16/items \
-    -t string -s "+logout-dialog" -t string -s "-switch-user" -t string -s "-separator" \
-    -t string -s "-logout" -t string -s "+lock-screen" -t string -s "+hibernate" \
-    -t string -s "+suspend" -t string -s "+restart" -t string -s "+shutdown" -a
-  #--- clock
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-17/show-frame -t bool -s false
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-17/mode -t int -s 2
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-17/digital-format -t string -s "%R, %Y-%m-%d"
-  #--- pager / workspace
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-19/miniature-view -t bool -s true
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-19/rows -t int -s 1
-  #--- Setup 3 workspaces
-  xfconf-query -n -c xfwm4 -p /general/workspace_count -t int -s 3
+  xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
+
 
   # ============[ CONFIGURE GLOBAL SETTINGS ]=============== #
-  #--- Theme options
-  xfconf-query -n -c xsettings -p /Net/ThemeName -s "Kali-X"
-  xfconf-query -n -c xsettings -p /Net/IconThemeName -s "Vibrancy-Kali"
-  xfconf-query -n -c xsettings -p /Gtk/MenuImages -t bool -s true
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-1/button-icon -t string -s "kali-menu"
-  #--- Window management
-  xfconf-query -n -c xfwm4 -p /general/snap_to_border -t bool -s true
-  xfconf-query -n -c xfwm4 -p /general/snap_to_windows -t bool -s true
-  xfconf-query -n -c xfwm4 -p /general/wrap_windows -t bool -s false
-  xfconf-query -n -c xfwm4 -p /general/wrap_workspaces -t bool -s false
-  xfconf-query -n -c xfwm4 -p /general/click_to_focus -t bool -s false
-  #xfconf-query -n -c xfwm4 -p /general/theme -t string -s "Blackbird"
-
-  #--- Default System icons
-  xfconf-query -n -c xfce4-desktop -p /desktop-icons/file-icons/show-filesystem -t bool -s true
-  xfconf-query -n -c xfce4-desktop -p /desktop-icons/file-icons/show-home -t bool -s true
-  xfconf-query -n -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s true
-  xfconf-query -n -c xfce4-desktop -p /desktop-icons/file-icons/show-removable -t bool -s true
-  #--- Start and exit values
-  xfconf-query -n -c xfce4-session -p /splash/Engine -t string -s ""
-  xfconf-query -n -c xfce4-session -p /shutdown/LockScreen -t bool -s true
-  xfconf-query -n -c xfce4-session -p /general/SaveOnExit -t bool -s false
-  #--- App Finder
-  xfconf-query -n -c xfce4-appfinder -p /last/pane-position -t int -s 248
-  xfconf-query -n -c xfce4-appfinder -p /last/window-height -t int -s 742
-  xfconf-query -n -c xfce4-appfinder -p /last/window-width -t int -s 648
   #--- Enable compositing
-  xfconf-query -n -c xfwm4 -p /general/use_compositing -t bool -s true
-  xfconf-query -n -c xfwm4 -p /general/frame_opacity -t int -s 85
+  #xfconf-query -n -c xfwm4 -p /general/use_compositing -t bool -s true
+  #xfconf-query -n -c xfwm4 -p /general/frame_opacity -t int -s 85
 }
 
 
 function xfce_setup_thunar {
+
   xfconf-query -n -c thunar -p /last-details-view-column-widths -t string -s "50,133,50,50,178,50,50,73,70"
   xfconf-query -n -c thunar -p /last-view -t string -s "ThunarDetailsView"
 
@@ -181,14 +89,8 @@ function xfce_setup_thunar {
 }
 
 
-
 function xfce_fix_defaults {
   # ==============[ Menu Customization ]=========== #
-  #--- Remove Mail Reader from menu
-  file=/usr/share/applications/exo-mail-reader.desktop
-  sed -i 's/^NotShowIn=*/NotShowIn=XFCE;/; s/^OnlyShowIn=XFCE;/OnlyShowIn=/' "${file}"
-  grep -q "NotShowIn=XFCE" "${file}" || echo "NotShowIn=XFCE;" >> "${file}"
-
   #--- XFCE fixes for default applications
   mkdir -p ~/.local/share/applications/
   file=~/.local/share/applications/mimeapps.list; [ -e "${file}" ] && cp -n $file{,.bkup}
@@ -484,9 +386,15 @@ $SUDO apt-get -y install burpsuite geany gedit metasploit-framework wireshark
 # NOTE: accountsservice isn't mandatory but I've seen issues w/o it and errors in syslog
 apt-get -y install accountsservice
 
+# Increase terminal scrolling history
+file="${HOME}/.config/qterminal.org/qterminal.ini"
+  if [[ -s "${file}" ]]; then
+    sed -i 's/^HistoryLimitedTo=.*/HistoryLimitedTo=9000/' "${file}"
+  fi
+
 # Create directory structure
 mkdir -p ~/.config/xfce4/{desktop,menu,panel,xfconf,xfwm4}/
-mkdir -p ~/.config/xfce4/panel/launcher-{2,4,5,6,7,8,9}/
+mkdir -p ~/.config/xfce4/panel/launcher-{2,4,5,6,7,8,9,10,11}/
 mkdir -p ~/.config/xfce4/xfconf/xfce-perchannel-xml/
 
 echo -e "${GREEN}[*]${RESET} Beginning XFCE4 Setup..."
