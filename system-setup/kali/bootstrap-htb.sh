@@ -285,7 +285,7 @@ for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
     mkdir -p "/opt/${dir}"
 done
 
-mkdir -p ~/htb/{boxes,shells}
+mkdir -p ~/htb/{boxes,shells,privesc-checkers}
 
 
 ### Evil-WinRM install
@@ -305,11 +305,12 @@ $SUDO python3 setup.py install
 ### Additional git clones to grab
 echo -e "\n${GREEN}[*] ${RESET}Grabbing Github projects that will be useful"
 cd ~/git
-git clone https://github.com/Tib3rius/AutoRecon
 git clone https://github.com/danielmiessler/SecLists
 git clone https://github.com/PowerShellMafia/PowerSploit
-git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite PEASS
-
+git clone https://github.com/abatchy17/WindowsExploits
+git clone https://github.com/Tib3rius/AutoRecon
+cd AutoRecon
+python3 -m pip install -r requirements.txt
 
 # Get common shells to use
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful shells/backdoors"
@@ -318,9 +319,15 @@ git clone https://github.com/infodox/python-pty-shells
 git clone https://github.com/epinna/weevely3
 git clone https://github.com/eb3095/php-shell
 
+echo -e "\n${GREEN}[*] ${RESET}Grabbing useful privilege escalation scanners"
+cd ~htb/privesc-checkers/
+git clone https://github.com/pentestmonkey/windows-privesc-check
+git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite PEASS
+
+
 # Init our rockyou wordlist
 echo -e "\n${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
-$SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz
+$SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
 
 
 echo -e "${GREEN}[*] ${RESET}Installing VPN helper script to ~/vpn/vpn-helper.sh"
