@@ -320,7 +320,7 @@ git clone https://github.com/epinna/weevely3
 git clone https://github.com/eb3095/php-shell
 
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful privilege escalation scanners"
-cd ~htb/privesc-checkers/
+cd ~/htb/privesc-checkers/
 git clone https://github.com/pentestmonkey/windows-privesc-check
 git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite PEASS
 
