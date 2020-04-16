@@ -47,7 +47,7 @@ function configure_panel_applications {
 
   xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
   # Add quick launcher apps to top left
-  mkdir -p ~/.config/xfce4/panel/{launcher-8,launcher-9,launcher-10,launcher-11}
+  mkdir -p ~/.config/xfce4/panel/launcher-{8,9,10,11}
   # Firefox
   ln -sf /usr/share/applications/firefox-esr.desktop ~/.config/xfce4/panel/launcher-8/browser.desktop
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
@@ -394,7 +394,6 @@ file="${HOME}/.config/qterminal.org/qterminal.ini"
 
 # Create directory structure
 mkdir -p ~/.config/xfce4/{desktop,menu,panel,xfconf,xfwm4}/
-mkdir -p ~/.config/xfce4/panel/launcher-{2,4,5,6,7,8,9,10,11}/
 mkdir -p ~/.config/xfce4/xfconf/xfce-perchannel-xml/
 
 echo -e "${GREEN}[*]${RESET} Beginning XFCE4 Setup..."
