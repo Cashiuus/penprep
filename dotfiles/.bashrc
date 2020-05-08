@@ -56,6 +56,8 @@ HISTCONTROL=ignoreboth
 HISTSIZE=9000
 # HISTFILESIZE (Default: 2000) For history file (e.g. bash_history)
 HISTFILESIZE=9000
+# Include timestamps in history log
+export HISTTIMEFORMAT="%F %T "
 
 
 ### set variable identifying the chroot you work in (used in the prompt below)
