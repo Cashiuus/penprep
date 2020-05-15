@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 14-Apr-2020
+# Created:  08-Apr-2020     Revised: 15-May-2020
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -176,7 +176,7 @@ $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
 $SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc geany git \
-  libssl-dev make net-tools openssl openvpn tmux wget
+  golang libssl-dev make net-tools openssl openvpn tmux wget
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf
 
@@ -190,7 +190,8 @@ $SUDO apt-get -y -qq install python python-dev python-setuptools virtualenv virt
   echo -e "${YELLOW}[ERROR] Errors occurred installing Python 2.x, you may have issues${RESET}" \
   && sleep 2
 # Currently issues with python-pip package so it's separate in case it fails
-$SUDO apt-get -y -qq install python-pip
+$SUDO apt-get -y -qq install python-pip || \
+  echo -e "${YELLOW}[ERROR] Failed to install python-pip for Python 2 (out of support), use Python 3 instead${RESET}"
 
 # Python 3
 $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
