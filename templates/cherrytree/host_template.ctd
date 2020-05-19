@@ -1,5 +1,5 @@
-<?xml version="1.0" ?><cherrytree><node custom_icon_id="27" foreground="" is_bold="True" name="10.10.10." prog_lang="custom-colors" readonly="False" tags="htb, hackthebox" ts_creation="0.0" ts_lastsave="1573331186.01" unique_id="175"><rich_text scale="h1">Hostname:   </rich_text><rich_text>
-
+<?xml version="1.0" ?><cherrytree><node custom_icon_id="27" foreground="" is_bold="True" name="10.10.10." prog_lang="custom-colors" readonly="False" tags="htb, hackthebox" ts_creation="0.0" ts_lastsave="1587652709.59" unique_id="448"><rich_text scale="h1">Hostname:   </rich_text><rich_text>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text weight="heavy">Operating System:</rich_text><rich_text>   
 
 </rich_text><rich_text weight="heavy">Networking Notes:</rich_text><rich_text>       
@@ -9,13 +9,6 @@
    • 
    • 
    • 
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</rich_text><rich_text scale="h1">                SOLUTION</rich_text><rich_text>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -27,14 +20,25 @@
    • 
 
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</rich_text><rich_text scale="h1">                SOLUTION</rich_text><rich_text>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   1.  
+   2. 
 
 
 
 
-
-</rich_text><node custom_icon_id="21" foreground="" is_bold="False" name="Enumeration" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1573331032.15" unique_id="176"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</rich_text><node custom_icon_id="21" foreground="" is_bold="False" name="Enumeration" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1573331032.15" unique_id="535"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">              ENUMERATION</rich_text><rich_text>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="TCP" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949819.41" ts_lastsave="1500473593.05" unique_id="177"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="UDP" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949826.2" ts_lastsave="1500473597.2" unique_id="178"><rich_text></rich_text></node><node custom_icon_id="17" foreground="" is_bold="False" name="Web Services" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492949605.23" unique_id="179"><rich_text></rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="Nikto" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949545.74" ts_lastsave="1492949578.65" unique_id="181"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Dirb\DirBuster" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949554.24" ts_lastsave="1500473690.91" unique_id="182"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="WebDav" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1500473692.93" ts_lastsave="1500473698.92" unique_id="183"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="CMS" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1500473700.65" ts_lastsave="1500473703.84" unique_id="184"><rich_text></rich_text></node></node></node><node custom_icon_id="22" foreground="" is_bold="False" name="Exploitation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1573330997.84" unique_id="190"><rich_text weight="heavy">Service Exploited:  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="TCP" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949819.41" ts_lastsave="1500473593.05" unique_id="536"><rich_text>
+</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="UDP" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949826.2" ts_lastsave="1500473597.2" unique_id="537"><rich_text>
+</rich_text></node><node custom_icon_id="17" foreground="" is_bold="False" name="Web Services" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492949605.23" unique_id="538"><rich_text>
+</rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="Nikto" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949545.74" ts_lastsave="1492949578.65" unique_id="539"><rich_text>
+</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Dirb\DirBuster" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1492949554.24" ts_lastsave="1500473690.91" unique_id="540"><rich_text>
+</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="WebDav" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1500473692.93" ts_lastsave="1500473698.92" unique_id="541"><rich_text>
+</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="CMS" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1500473700.65" ts_lastsave="1500473703.84" unique_id="542"><rich_text>
+</rich_text></node></node></node><node custom_icon_id="22" foreground="" is_bold="False" name="Exploitation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1573330997.84" unique_id="543"><rich_text weight="heavy">Service Exploited:  
 Vulnerability Type:
 Exploit POC:</rich_text><rich_text>
 </rich_text><rich_text weight="heavy">Description</rich_text><rich_text>: 
@@ -63,7 +67,7 @@ Exploit POC:</rich_text><rich_text>
 
 
 
-</rich_text></node><node custom_icon_id="10" foreground="" is_bold="False" name="Priv Escalation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1573331004.32" unique_id="200"><rich_text weight="heavy">Service Exploited:  
+</rich_text></node><node custom_icon_id="10" foreground="" is_bold="False" name="Priv Escalation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1573331004.32" unique_id="544"><rich_text weight="heavy">Service Exploited:  
 Vulnerability Type:
 Exploit POC:</rich_text><rich_text>
 </rich_text><rich_text weight="heavy">Description</rich_text><rich_text>: 
@@ -88,7 +92,9 @@ Exploit POC:</rich_text><rich_text>
    ☐ Screenshot with ifconfig\ipconfig
    ☐ Submit to site
 
-</rich_text></node><node custom_icon_id="21" foreground="" is_bold="False" name="Post Exploitation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714301.41" unique_id="191"><rich_text></rich_text><node custom_icon_id="44" foreground="" is_bold="False" name="Script Results" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1495714301.41" ts_lastsave="1495714310.34" unique_id="192"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Host Information" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474204.83" unique_id="193"><rich_text underline="single" weight="heavy">Operating System</rich_text><rich_text>
+</rich_text></node><node custom_icon_id="21" foreground="" is_bold="False" name="Post Exploitation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714301.41" unique_id="545"><rich_text>
+</rich_text><node custom_icon_id="44" foreground="" is_bold="False" name="Script Results" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1495714301.41" ts_lastsave="1495714310.34" unique_id="546"><rich_text>
+</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Host Information" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474204.83" unique_id="547"><rich_text underline="single" weight="heavy">Operating System</rich_text><rich_text>
 
 
 
@@ -102,7 +108,7 @@ Exploit POC:</rich_text><rich_text>
 
 </rich_text><rich_text underline="single" weight="heavy">Installed Updates</rich_text><rich_text>
 
-</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="File System" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474208.8" unique_id="194"><rich_text underline="single" weight="heavy">Writeable Files\Directories</rich_text><rich_text>
+</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="File System" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474208.8" unique_id="548"><rich_text underline="single" weight="heavy">Writeable Files\Directories</rich_text><rich_text>
 
 
 
@@ -111,12 +117,12 @@ Exploit POC:</rich_text><rich_text>
 
 
 
-</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Running Processes" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714268.27" unique_id="195"><rich_text underline="single" weight="heavy">Process List</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Installed Applications" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714509.19" unique_id="196"><rich_text underline="single" weight="heavy">Installed Applications</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Users &amp; Groups" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474213.69" unique_id="197"><rich_text underline="single" weight="heavy">Users</rich_text><rich_text>
+</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Running Processes" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714268.27" unique_id="549"><rich_text underline="single" weight="heavy">Process List</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Installed Applications" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714509.19" unique_id="550"><rich_text underline="single" weight="heavy">Installed Applications</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Users &amp; Groups" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474213.69" unique_id="551"><rich_text underline="single" weight="heavy">Users</rich_text><rich_text>
 
 
 
 
-</rich_text><rich_text underline="single" weight="heavy">Groups</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Network" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474223.91" unique_id="198"><rich_text underline="single" weight="heavy">IPConfig\IFConfig
+</rich_text><rich_text underline="single" weight="heavy">Groups</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Network" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1500474223.91" unique_id="552"><rich_text underline="single" weight="heavy">IPConfig\IFConfig
 </rich_text><rich_text>
 
 
@@ -136,12 +142,16 @@ Exploit POC:</rich_text><rich_text>
 
 
 
-</rich_text><rich_text underline="single" weight="heavy">Route</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Scheduled Jobs" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1496953428.46" unique_id="199"><rich_text underline="single" weight="heavy">Scheduled Tasks</rich_text></node></node><node custom_icon_id="43" foreground="" is_bold="False" name="Goodies" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492949508.15" unique_id="201"><rich_text></rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="Hashes" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492949998.88" unique_id="202"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Passwords" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492950150.97" unique_id="203"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Proof\Flags\Other" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1496953479.65" unique_id="204"><rich_text></rich_text></node></node><node custom_icon_id="13" foreground="" is_bold="True" name="Methodology" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1496953072.48" ts_lastsave="1573329678.74" unique_id="206"><rich_text underline="single" weight="heavy">Network Scanning</rich_text><rich_text>
+</rich_text><rich_text underline="single" weight="heavy">Route</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Scheduled Jobs" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1496953428.46" unique_id="553"><rich_text underline="single" weight="heavy">Scheduled Tasks</rich_text></node></node><node custom_icon_id="43" foreground="" is_bold="False" name="Goodies" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492949508.15" unique_id="554"><rich_text>
+</rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="Hashes" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492949998.88" unique_id="555"><rich_text>
+</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Passwords" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1492950150.97" unique_id="556"><rich_text>
+</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Proof\Flags\Other" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1496953479.65" unique_id="557"><rich_text>
+</rich_text></node></node><node custom_icon_id="13" foreground="" is_bold="True" name="Methodology" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1496953072.48" ts_lastsave="1589818649.34" unique_id="558"><rich_text underline="single" weight="heavy">Network Scanning</rich_text><rich_text>
 
    ☐  nmap -sn 10.11.1.*
    ☐  nmap -sL 10.11.1.*
    ☐  nbtscan -r 10.11.1.0/24
-   ☐  </rich_text><rich_text link="node 207">smbtree</rich_text><rich_text>
+   ☐  </rich_text><rich_text link="node 559">smbtree</rich_text><rich_text>
 
 </rich_text><rich_text underline="single" weight="heavy">Individual Host Scanning</rich_text><rich_text>
 
@@ -152,10 +162,10 @@ Exploit POC:</rich_text><rich_text>
 </rich_text><rich_text underline="single" weight="heavy">Service Scanning</rich_text><rich_text>
 
     </rich_text><rich_text weight="heavy">WebApp</rich_text><rich_text>
-      ☐   </rich_text><rich_text link="node 206">Nikto</rich_text><rich_text>
-      ☐   </rich_text><rich_text link="node 189">dirb</rich_text><rich_text>
+      ☐   </rich_text><rich_text link="node 558">Nikto</rich_text><rich_text>
+      ☐   </rich_text><rich_text link="node 560">dirb</rich_text><rich_text>
       ☐   dirbuster
-      ☐   </rich_text><rich_text link="node 208">wpscan</rich_text><rich_text>
+      ☐   </rich_text><rich_text link="node 561">wpscan</rich_text><rich_text>
       ☐   dotdotpwn
       ☐   view source 
       ☐   davtest\cadevar
@@ -171,8 +181,8 @@ Exploit POC:</rich_text><rich_text>
       ☐   Enum4Linux
     
     </rich_text><rich_text weight="heavy">Anything Else</rich_text><rich_text>
-      ☐   </rich_text><rich_text link="node 209">nmap scripts</rich_text><rich_text> (locate *nse* | grep servicename)
-      ☐   </rich_text><rich_text link="node 210">hydra</rich_text><rich_text>
+      ☐   </rich_text><rich_text link="node 562">nmap scripts</rich_text><rich_text> (locate *nse* | grep servicename)
+      ☐   </rich_text><rich_text link="node 563">hydra</rich_text><rich_text>
       ☐   MSF Aux Modules
       ☐   Download the softward
 
@@ -190,15 +200,17 @@ Exploit POC:</rich_text><rich_text>
       ☐   linuxprivchecker.py
       ☐   linux-exploit-suggestor.sh
       ☐   unix-privesc-check.py
+      ☐   linPEAS
 
     </rich_text><rich_text weight="heavy">Windows</rich_text><rich_text>
       ☐   wpc.exe
       ☐   windows-exploit-suggestor.py
       ☐   </rich_text><rich_text link="webs https://github.com/pentestmonkey/windows-privesc-check/blob/master/windows_privesc_check.py">windows_privesc_check.py</rich_text><rich_text>
       ☐  	windows-privesc-check2.exe
+      ☐   winPEAS.exe
 
 </rich_text><rich_text underline="single" weight="heavy">Priv Escalation</rich_text><rich_text>
-   ☐  </rich_text><rich_text link="node 211">acesss internal services (portfwd)</rich_text><rich_text>
+   ☐  </rich_text><rich_text link="node 564">acesss internal services (portfwd)</rich_text><rich_text>
    ☐  add account
 
 </rich_text><rich_text weight="heavy">Windows</rich_text><rich_text>
@@ -214,7 +226,8 @@ Exploit POC:</rich_text><rich_text>
    ☐  Copy proof.txt
    ☐  Dump hashes 
    ☐  Dump SSH Keys
-   ☐  Delete files</rich_text><node custom_icon_id="0" foreground="" is_bold="False" name="By Service" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1573328007.19" ts_lastsave="1573331274.09" unique_id="207"><rich_text></rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="21 FTP" prog_lang="custom-colors" readonly="False" tags="methodology ftp" ts_creation="1573328021.57" ts_lastsave="1573329131.38" unique_id="208"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   ☐  Delete files</rich_text><node custom_icon_id="0" foreground="" is_bold="False" name="By Service" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1573328007.19" ts_lastsave="1573331274.09" unique_id="559"><rich_text>
+</rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="21 FTP" prog_lang="custom-colors" readonly="False" tags="methodology ftp" ts_creation="1573328021.57" ts_lastsave="1573329131.38" unique_id="561"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 21 FTP</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -236,7 +249,7 @@ Exploit POC:</rich_text><rich_text>
 
 
 nc &lt;target&gt; 21
-ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="22 SSH" prog_lang="custom-colors" readonly="False" tags="methodology ssh openssh" ts_creation="1573328454.76" ts_lastsave="1573329138.5" unique_id="209"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="22 SSH" prog_lang="custom-colors" readonly="False" tags="methodology ssh openssh" ts_creation="1573328454.76" ts_lastsave="1573329138.5" unique_id="562"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 22 SSH</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -258,7 +271,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="23 Telnet" prog_lang="custom-colors" readonly="False" tags="methodology telnet" ts_creation="1573328511.89" ts_lastsave="1573329143.38" unique_id="210"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="23 Telnet" prog_lang="custom-colors" readonly="False" tags="methodology telnet" ts_creation="1573328511.89" ts_lastsave="1573329143.38" unique_id="563"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 23 TELNET</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -280,7 +293,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="25 SMTP" prog_lang="custom-colors" readonly="False" tags="methodology smtp mail" ts_creation="1573328514.44" ts_lastsave="1573329150.1" unique_id="211"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="25 SMTP" prog_lang="custom-colors" readonly="False" tags="methodology smtp mail" ts_creation="1573328514.44" ts_lastsave="1573329150.1" unique_id="564"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 25 SMTP</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -302,7 +315,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="53 DNS" prog_lang="custom-colors" readonly="False" tags="methodology dns" ts_creation="1573328514.84" ts_lastsave="1573329154.82" unique_id="213"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="53 DNS" prog_lang="custom-colors" readonly="False" tags="methodology dns" ts_creation="1573328514.84" ts_lastsave="1573329154.82" unique_id="565"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 53 DNS</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -324,7 +337,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="69 TFTP" prog_lang="custom-colors" readonly="False" tags="methodology tftp" ts_creation="1573328515.01" ts_lastsave="1573329161.08" unique_id="214"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="69 TFTP" prog_lang="custom-colors" readonly="False" tags="methodology tftp" ts_creation="1573328515.01" ts_lastsave="1573329161.08" unique_id="566"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 69 TFTP</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -346,7 +359,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="79 FINGER" prog_lang="custom-colors" readonly="False" tags="methodology finger" ts_creation="1573328515.11" ts_lastsave="1573329165.71" unique_id="215"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="79 FINGER" prog_lang="custom-colors" readonly="False" tags="methodology finger" ts_creation="1573328515.11" ts_lastsave="1573329165.71" unique_id="567"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">              79 FINGER</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -368,7 +381,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="80 HTTP" prog_lang="custom-colors" readonly="False" tags="methodology http https web" ts_creation="1573328515.22" ts_lastsave="1573329406.2" unique_id="216"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="80 HTTP" prog_lang="custom-colors" readonly="False" tags="methodology http https web" ts_creation="1573328515.22" ts_lastsave="1573329406.2" unique_id="568"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 80 HTTP</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -394,7 +407,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="110 POP3" prog_lang="custom-colors" readonly="False" tags="methodology pop3 mail" ts_creation="1573328515.33" ts_lastsave="1573329182.49" unique_id="217"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="110 POP3" prog_lang="custom-colors" readonly="False" tags="methodology pop3 mail" ts_creation="1573328515.33" ts_lastsave="1573329182.49" unique_id="569"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 110 POP3</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -416,7 +429,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="111 RPCBind" prog_lang="custom-colors" readonly="False" tags="methodology rpc rpcbind" ts_creation="1573328515.46" ts_lastsave="1573329187.98" unique_id="218"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="111 RPCBind" prog_lang="custom-colors" readonly="False" tags="methodology rpc rpcbind" ts_creation="1573328515.46" ts_lastsave="1573329187.98" unique_id="570"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">              111 RPCBIND</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -438,7 +451,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="135 MSRPC" prog_lang="custom-colors" readonly="False" tags="methodology msrpc rpc" ts_creation="1573328515.59" ts_lastsave="1573329200.23" unique_id="219"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="135 MSRPC" prog_lang="custom-colors" readonly="False" tags="methodology msrpc rpc" ts_creation="1573328515.59" ts_lastsave="1573329200.23" unique_id="571"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">               135 MSRPC</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -460,7 +473,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="139/445 SMB" prog_lang="custom-colors" readonly="False" tags="methodology smb netbios share" ts_creation="1573328515.71" ts_lastsave="1573329213.11" unique_id="220"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="139/445 SMB" prog_lang="custom-colors" readonly="False" tags="methodology smb netbios share" ts_creation="1573328515.71" ts_lastsave="1573329213.11" unique_id="572"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">             139/445 SMB</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -482,7 +495,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="161 SNMP" prog_lang="custom-colors" readonly="False" tags="methodology snmp" ts_creation="1573328515.82" ts_lastsave="1573329217.62" unique_id="221"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="161 SNMP" prog_lang="custom-colors" readonly="False" tags="methodology snmp" ts_creation="1573328515.82" ts_lastsave="1573329217.62" unique_id="573"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                161 SNMP</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -504,7 +517,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="443 HTTPS" prog_lang="custom-colors" readonly="False" tags="methodology https ssl tls" ts_creation="1573328515.95" ts_lastsave="1573329225.22" unique_id="222"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="443 HTTPS" prog_lang="custom-colors" readonly="False" tags="methodology https ssl tls" ts_creation="1573328515.95" ts_lastsave="1573329225.22" unique_id="574"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                443 HTTPS</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -526,7 +539,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="1433 MSSQL" prog_lang="custom-colors" readonly="False" tags="methodology mssql sql db database" ts_creation="1573328842.44" ts_lastsave="1573329250.68" unique_id="224"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="1433 MSSQL" prog_lang="custom-colors" readonly="False" tags="methodology mssql sql db database" ts_creation="1573328842.44" ts_lastsave="1573329250.68" unique_id="575"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                1433 MSSQL</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -548,7 +561,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="1521 ORACLE" prog_lang="custom-colors" readonly="False" tags="methodology oracle sql db database" ts_creation="1573328842.69" ts_lastsave="1573329246.61" unique_id="225"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="1521 ORACLE" prog_lang="custom-colors" readonly="False" tags="methodology oracle sql db database" ts_creation="1573328842.69" ts_lastsave="1573329246.61" unique_id="576"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">              1521 Oracle</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -570,7 +583,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="2049 NFS" prog_lang="custom-colors" readonly="False" tags="methodology nfs share" ts_creation="1573328842.88" ts_lastsave="1573329260.5" unique_id="226"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="2049 NFS" prog_lang="custom-colors" readonly="False" tags="methodology nfs share" ts_creation="1573328842.88" ts_lastsave="1573329260.5" unique_id="577"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                2049 NFS</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -592,7 +605,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="2100 Oracle XML" prog_lang="custom-colors" readonly="False" tags="methodology oracle db sql database" ts_creation="1573328843.0" ts_lastsave="1573329270.43" unique_id="227"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="2100 Oracle XML" prog_lang="custom-colors" readonly="False" tags="methodology oracle db sql database" ts_creation="1573328843.0" ts_lastsave="1573329270.43" unique_id="578"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">           2100 Oracle XML</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -614,7 +627,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="3306 MySQL" prog_lang="custom-colors" readonly="False" tags="methodology mysql sql db database" ts_creation="1573328948.59" ts_lastsave="1573329280.27" unique_id="228"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="3306 MySQL" prog_lang="custom-colors" readonly="False" tags="methodology mysql sql db database" ts_creation="1573328948.59" ts_lastsave="1573329280.27" unique_id="579"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">               3306 MySQL</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -636,7 +649,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="3339 Oracle Web Interface" prog_lang="custom-colors" readonly="False" tags="methodology sql oracle db database" ts_creation="1573328948.97" ts_lastsave="1573329291.47" unique_id="229"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="3339 Oracle Web Interface" prog_lang="custom-colors" readonly="False" tags="methodology sql oracle db database" ts_creation="1573328948.97" ts_lastsave="1573329291.47" unique_id="580"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">    3339 Oracle Web Interface</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -658,7 +671,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="3389 RDP" prog_lang="custom-colors" readonly="False" tags="methodology rdp remote rdesktop" ts_creation="1573329012.12" ts_lastsave="1573329309.83" unique_id="230"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="3389 RDP" prog_lang="custom-colors" readonly="False" tags="methodology rdp remote rdesktop" ts_creation="1573329012.12" ts_lastsave="1573329309.83" unique_id="581"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                3389 RDP</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -680,7 +693,7 @@ ftp &lt;target&gt;</codebox></node><node custom_icon_id="18" foreground="" is_bo
 
 
 rdesktop 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="10000 Webmin" prog_lang="custom-colors" readonly="False" tags="methodology webmin miniserv" ts_creation="1573328516.07" ts_lastsave="1573329329.55" unique_id="223"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="10000 Webmin" prog_lang="custom-colors" readonly="False" tags="methodology webmin miniserv" ts_creation="1573328516.07" ts_lastsave="1573329329.55" unique_id="582"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 2</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -702,7 +715,7 @@ rdesktop
 
 
 
-</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="BLANK" prog_lang="custom-colors" readonly="False" tags="methodology" ts_creation="1573329090.58" ts_lastsave="1573329326.21" unique_id="231"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node><node custom_icon_id="18" foreground="" is_bold="False" name="BLANK" prog_lang="custom-colors" readonly="False" tags="methodology" ts_creation="1573329090.58" ts_lastsave="1573329326.21" unique_id="583"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h1">                 2</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -724,12 +737,14 @@ rdesktop
 
 
 
-</codebox></node></node><node custom_icon_id="0" foreground="" is_bold="False" name="Priv Esc" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1573329667.41" ts_lastsave="1573331272.94" unique_id="232"><rich_text></rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="Linux" prog_lang="custom-colors" readonly="False" tags="linux" ts_creation="1573330511.19" ts_lastsave="1573330558.97" unique_id="236"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</codebox></node></node><node custom_icon_id="0" foreground="" is_bold="False" name="Priv Esc" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1573329667.41" ts_lastsave="1573331272.94" unique_id="584"><rich_text>
+</rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="Linux" prog_lang="custom-colors" readonly="False" tags="linux" ts_creation="1573330511.19" ts_lastsave="1573330558.97" unique_id="585"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h2">       LINUX PRIVILEGE ESCALATION</rich_text><rich_text>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Windows" prog_lang="custom-colors" readonly="False" tags="windows" ts_creation="1573330513.01" ts_lastsave="1573330545.57" unique_id="237"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Windows" prog_lang="custom-colors" readonly="False" tags="windows" ts_creation="1573330513.01" ts_lastsave="1573330545.57" unique_id="586"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h2">    WINDOWS PRIVILEGE ESCALATION</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</rich_text></node></node><node custom_icon_id="0" foreground="" is_bold="False" name="Post Exploitation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1573329678.78" ts_lastsave="1573329701.32" unique_id="233"><rich_text></rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="Linux" prog_lang="custom-colors" readonly="False" tags="linux" ts_creation="1573329693.65" ts_lastsave="1573330610.6" unique_id="234"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</rich_text></node></node><node custom_icon_id="0" foreground="" is_bold="False" name="Post Exploitation" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1573329678.78" ts_lastsave="1573329701.32" unique_id="587"><rich_text>
+</rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="Linux" prog_lang="custom-colors" readonly="False" tags="linux" ts_creation="1573329693.65" ts_lastsave="1589818307.83" unique_id="588"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h2">          LINUX POST EXPLOITATION</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -788,7 +803,7 @@ tcpdump -vv -i eth0 src not 10.11.1.* and dst not 10.11.1.*
 
 
 
-</rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Windows" prog_lang="custom-colors" readonly="False" tags="windows" ts_creation="1573329701.35" ts_lastsave="1573330604.47" unique_id="235"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</rich_text><node custom_icon_id="18" foreground="" is_bold="False" name="Kernel, OS, Device Info" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818307.97" ts_lastsave="1589818327.49" unique_id="413"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="User, Privilege Info" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818331.54" ts_lastsave="1589818343.62" unique_id="414"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Env Vars Info" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818345.26" ts_lastsave="1589818360.15" unique_id="415"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Interesting Files" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818346.04" ts_lastsave="1589818367.68" unique_id="416"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Services Info" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818346.33" ts_lastsave="1589818375.44" unique_id="417"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Jobs, Tasks" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818346.55" ts_lastsave="1589818386.29" unique_id="418"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Networking" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818378.49" ts_lastsave="1589818392.41" unique_id="419"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Programs Installed" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818379.02" ts_lastsave="1589818400.76" unique_id="422"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Shell Escape Sequences" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818379.21" ts_lastsave="1589818408.81" unique_id="423"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Transferring Files" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818379.38" ts_lastsave="1589818415.76" unique_id="424"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="Port Forwarding" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818379.55" ts_lastsave="1589818424.5" unique_id="425"><rich_text></rich_text></node><node custom_icon_id="18" foreground="" is_bold="False" name="References" prog_lang="custom-colors" readonly="False" tags="" ts_creation="1589818418.02" ts_lastsave="1589818430.67" unique_id="426"><rich_text></rich_text></node></node><node custom_icon_id="18" foreground="" is_bold="False" name="Windows" prog_lang="custom-colors" readonly="False" tags="windows" ts_creation="1573329701.35" ts_lastsave="1573330604.47" unique_id="589"><rich_text>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </rich_text><rich_text scale="h2">      WINDOWS POST EXPLOITATION</rich_text><rich_text>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -823,4 +838,5 @@ wce64.exe -w
 
 C:\&gt; reg.exe save hklm\sam c:\windows\temp\sam.save
 C:\&gt; reg.exe save hklm\security c:\windows\temp\security.save
-C:\&gt; reg.exe save hklm\system c:\windows\temp\system.save</codebox></node></node></node><node custom_icon_id="20" foreground="" is_bold="True" name="Log Book" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714168.37" unique_id="212"><rich_text></rich_text></node></node></cherrytree>
+C:\&gt; reg.exe save hklm\system c:\windows\temp\system.save</codebox></node></node></node><node custom_icon_id="20" foreground="" is_bold="True" name="Log Book" prog_lang="custom-colors" readonly="False" tags="" ts_creation="0.0" ts_lastsave="1495714168.37" unique_id="590"><rich_text>
+</rich_text></node></node></cherrytree>
