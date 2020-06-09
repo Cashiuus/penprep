@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 15-May-2020
+# Created:  08-Apr-2020     Revised: 09-Jun-2020
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -21,7 +21,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.0"
+__version__="1.01"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
@@ -176,7 +176,7 @@ $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
 $SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc geany git \
-  golang libssl-dev make net-tools openssl openvpn tmux wget
+  golang libssl-dev make net-tools openssl openvpn powershell tmux wget
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf
 
@@ -257,7 +257,7 @@ if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
   xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
 
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
+  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
 
 fi
 
