@@ -239,23 +239,23 @@ if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
   xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
 
   # Add quick launcher apps to top left
-  mkdir -p ~/.config/xfce4/panel/launcher-{8,9,10,11}
+  #mkdir -p ~/.config/xfce4/panel/launcher-{8,9,10,11}
   # Firefox
-  ln -sf /usr/share/applications/firefox-esr.desktop ~/.config/xfce4/panel/launcher-8/browser.desktop
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "browser.desktop" -a
+  #ln -sf /usr/share/applications/firefox-esr.desktop ~/.config/xfce4/panel/launcher-8/browser.desktop
+  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
+  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "browser.desktop" -a
   # Burpsuite
-  ln -sf /usr/share/applications/kali-burpsuite.desktop ~/.config/xfce4/panel/launcher-9/kali-burpsuite.desktop
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-9 -t string -s launcher
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "kali-burpsuite.desktop" -a
+  #ln -sf /usr/share/applications/kali-burpsuite.desktop ~/.config/xfce4/panel/launcher-9/kali-burpsuite.desktop
+  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9 -t string -s launcher
+  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "kali-burpsuite.desktop" -a
   # Cherrytree
-  ln -sf /usr/share/applications/cherrytree.desktop ~/.config/xfce4/panel/launcher-10/cherrytree.desktop
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-10 -t string -s launcher
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/items -t string -s "cherrytree.desktop" -a
+  #ln -sf /usr/share/applications/cherrytree.desktop ~/.config/xfce4/panel/launcher-10/cherrytree.desktop
+  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10 -t string -s launcher
+  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/items -t string -s "cherrytree.desktop" -a
   # Geany text editor / IDE
-  ln -sf /usr/share/applications/geany.desktop ~/.config/xfce4/panel/launcher-11/geany.desktop
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
-  xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
+  #ln -sf /usr/share/applications/geany.desktop ~/.config/xfce4/panel/launcher-11/geany.desktop
+  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
+  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
 
   #xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
 
