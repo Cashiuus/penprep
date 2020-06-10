@@ -1,18 +1,11 @@
 # Overview
-This project is primarily an OS setup and prep toolkit with a pentesting focus to get up and running without all the boring setup of various tools. First, you'll want to check out the setup scripts. There are many projects out there that accomplish system setups in a similar manner, but none of them go beyond the basics. These helpers serve to accomplish every single task needed to install a particular environment or tool.
+This project is primarily an OS setup and prep toolkit with a pentesting focus to get up and running without all the boring setup of various tools. First, you'll want to check out the `system-setup` scripts. There are many projects out there that accomplish system setups in a similar manner, but none of them go beyond the basics. These helpers serve to accomplish every single task needed to install a particular environment or tool.
 
 If you are running on a kali system, a quick base setup with tweaks can be found by running `setup-kali-base.sh`.
 
-Over time, my long-term goal is to wrap a console menu around these and make it much simpler to run these scripts and achieve a fully ready system to your liking with only running one initialization script rather than currently having to run each script manually.
-
-
-## Goals
-1. Standardize the methods and structure of every setup script.
-2. Package it all into a single console-based wrapper application to setup a system with minimal effort.
-
 
 ## Usage
-For now, this is bare bones use of this project
+For now, this is bare bones use of this project, and I use most on a new kali or debian install:
 
 1. `penprep/dotfiles/install-simple.sh` - Install dotfiles for a better console experience (However, next script will also do this step by prompting if you'd like to install them.)
 2. `penprep/system-setup/kali/setup-kali-base.sh` - Take a vanilla Kali system and do all the initial setup
@@ -21,21 +14,10 @@ For now, this is bare bones use of this project
 5. `penprep/system-setup/kali/setup-python.sh` - Install and setup Python 2 & 3 along with initial set of pip packages and pre-made virtualenvs ready to be put to use.
 
 
-
-
 ## Settings
 The "system-setup" component of this project will create a configuration base if you run any of the setup scripts.
 
 * Configuration Path/File: `${HOME}/.config/penbuilder/settings.conf`
-
-
-
-
-
-
-
-
-
 
 
 

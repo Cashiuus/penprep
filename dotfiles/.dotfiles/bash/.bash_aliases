@@ -25,7 +25,7 @@ alias ip_sort='sort -u -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n'
 alias sip='sort -V'
 alias openports='netstat --all --numeric --programs --inet' # or netstat -tulanp
 alias ping='ping -c 2'
-alias webserv='python -m SimpleHTTPServer'
+alias webserv='python3 -m http.server'
 alias header="curl -I"
 dns=$(grep 'nameserver' /etc/resolv.conf | awk '{print $2}')
 if [[ `id -u` -eq 0 ]]; then
