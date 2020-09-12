@@ -71,7 +71,7 @@ function install_sudo() {
   [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to install sudo via apt-get${RESET}" && exit 1
 
   echo -e "${GREEN}[INPUT]${RESET} Adding user ${BLUE}${INSTALL_USER}${RESET} to sudo group. Enter root password below"
-  su -c "usermod -a -G sudo ${INSTALL_USER}" root
+  su -c "/usr/sbin/usermod -a -G sudo ${INSTALL_USER}" root
   [[ $? -eq 1 ]] && echo -e "${RED}[ERROR] Unable to add original user to sudoers${RESET}" && exit 1
 
   echo -e "\n\n${YELLOW}[WARN]${RESET} Rebooting system to take effect!"

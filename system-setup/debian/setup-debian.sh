@@ -35,6 +35,7 @@ APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 ## ============[ CONSTANTS ]================ ##
 
 LSB_RELEASE=$(lsb_release -cs)
+# buster = Debian 10.x
 
 ## =========================[ START :: LOAD FILES ]========================= ##
 if [[ -s "${APP_BASE}/../common.sh" ]]; then
@@ -198,7 +199,7 @@ chmod u+x ~/Desktop/geany.desktop 2>/dev/null
 
 
 ## -============[ Debian Jessie Backports Repository ]=============- #
-echo -e "${GREEN}[*]${RESET} Installing Conky pkg..."
+echo -e "${GREEN}[*]${RESET} Installing Conky system status overlay tool..."
 if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   file=/etc/apt/sources.list.d/backports.list
   $SUDO sh -c "echo ### Debian Jessie Backports > ${file}"
@@ -224,6 +225,18 @@ read $GIT_EMAIL
 [[ ${GIT_EMAIL} ]] && git config --global user.email $GIT_EMAIL
 git config --global color.ui auto
 
+
+function customize_desktop() {
+  $SUDO apt-get -y install plank
+  # Need to remove the default dock
+  
+  # Then, launch plank
+  plank &
+  
+  # Open plank preferences
+  #plank --preferences
+  
+  }
 
 
 function finish() {
