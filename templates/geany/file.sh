@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     file.sh
 # Author:   Cashiuus
-# Created:  09-May-2017     Revised:
+# Created:  11-Oct-2020     Revised:
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Describe script purpose
@@ -22,7 +22,7 @@ __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
 
-## ==========[ TEXT COLORS ]============= ##
+## ==========[  TEXT COLORS  ]============= ##
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
 # [https://en.wikipedia.org/wiki/ANSI_escape_code]
@@ -35,7 +35,7 @@ PURPLE="\033[01;35m"    # Other
 GREY="\e[90m"           # Subdued Text
 BOLD="\033[01;01m"      # Highlight
 RESET="\033[00m"        # Normal
-## =============[ CONSTANTS ]============= ##
+## =============[  CONSTANTS  ]============= ##
 START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
@@ -44,7 +44,6 @@ APP_ARGS=$@
 LINES=$(tput lines)
 COLS=$(tput cols)
 HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
-
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 LOG_FILE="${APP_BASE}/debug.log"
 DEBUG=true
@@ -60,16 +59,10 @@ else
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: fail${RESET}"
     exit 1
 fi
-## ==========================[ END :: LOAD FILES ]]========================== ##
-
-
-
-
-
-
+## ==========================[ END :: LOAD FILES ]========================== ##
 
 ## ========================================================================== ##
-# =======================[  START :: HELPER FUNCTIONS  ]====================== #
+# =========================[ :: HELPER FUNCTIONS :: ]======================== #
 function pause() {
   # Simple function to pause a script mid-stride
   #
@@ -101,6 +94,18 @@ function asksure() {
 
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
+
+echo -e "${ORANGE} + -- -- -- --=[${RESET}  ${APP_NAME}  ${ORANGE}]=-- -- -- -- +${RESET}"
+echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
+echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
+echo -e "${ORANGE} + -- --=[ https://github.com/cashiuus ${RESET}"
+echo -e
+echo -e
+
+
+## =============[  SECTION  ]============= ##
+
+
 
 
 

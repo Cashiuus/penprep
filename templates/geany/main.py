@@ -1,16 +1,16 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ==============================================================================
 # File:
 # Depends:
-# Compat:       2.7+
-# Created:      01/22/2016  -   Revised:
+# Compat:       3.7
+# Created:      11-Oct-2020  -   Revised:
 # Author:       Cashiuus - Cashiuus@gmail.com
 #
 # Purpose:
 #
 # ==============================================================================
-#  Copyright (C) 2016 Cashiuus <cashiuus@gmail.com>
+#  Copyright (C) 2020 Cashiuus <cashiuus@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -42,9 +42,32 @@ except NameError:
 # ============================[ IMPORT & CONSTANTS ]============================
 __version__ = 0.1
 __author__ = 'Cashiuus'
+RED = '\033[31m' # red
+GREEN = '\033[32m' # green
+CYAN = '\033[36m' # cyan
+WHITE = '\033[0m'  # white
+
+
 import os
+import platform
+import sys
+
+APP_BASE = os.path.dirname(os.path.realpath(__file__))
 
 # ==========================[           ]==========================
+
+if platform.system() == 'Linux':
+    if os.geteuid() != 0:
+        print('\n' + RED + '[-]' + CYAN + ' Please Run as Root!' + '\n')
+        sys.exit()
+    else:
+        pass
+else:
+    pass
+
+
+
+
 
 
 
