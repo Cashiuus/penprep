@@ -18,8 +18,7 @@ alias p="cd /opt/pentest"
 alias u="cd ~/utils"
 
 ### Networking
-alias myip='curl ifconfig.me'
-#alias myip="curl -s http://ipinfo.io/ip"
+alias myip='curl ifconfig.me; echo '
 # Sorts IPs; ex: cat "ips.txt | ip_sort"
 alias ip_sort='sort -u -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n'
 alias sip='sort -V'
@@ -42,9 +41,6 @@ echo -n "MAC address:  "$mac ; echo ;
 echo -n "Internal IP:  "$ip ; echo ;
 echo -n "External IP:  " ; curl ifconfig.me ; echo'
 
-# From Matt S.
-#alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
-#alias localip="ipconfig getifaddr en0"
 
 ### Application Shortcuts
 alias axel="axel -a"
