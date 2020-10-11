@@ -4,13 +4,9 @@
 ###     .bash_profile   - Executes for all login BASH shells
 ###     .profile        - Executes for all login shells, not just BASH
 ###
-### Ref: http://www.linuxfromscratch.org/blfs/view/stable/postlfs/profile.html
 ###
 ### Standard dotfiles file permissions are: 0644
 ### ------------------------------------------------------------------------ ###
-
-### Load the configs that affect login shells - This causes recursion error when enabled
-#[[ -s "$HOME/.profile" ]] && source "$HOME/.profile"
 
 ### Load RVM into a shell session & make scripts available
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
@@ -45,5 +41,3 @@ check_virtualenv
 [[ -s "$HOME/.bash_aliases" ]] && source "$HOME/.bash_aliases"
 [[ -s "$HOME/.bash_sshagent" ]] && source "$HOME/.bash_sshagent"
 
-# According to advice online, PS1 should be set in .bashrc and not in .bash_profile
-#[[ -s "$HOME/.bash_prompt" ]] && source "$HOME/.bash_prompt"

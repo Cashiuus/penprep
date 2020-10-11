@@ -206,13 +206,14 @@ $SUDO apt-get -y -qq install libxml2-dev libxslt1-dev zlib1g-dev
 # Postgresql and psycopg2 depends
 $SUDO apt-get -y -qq install libpq-dev
 
-# Install base pip files
+# Install baseline set of system-wide pip packages
 file="/tmp/requirements.txt"
 cat <<EOF > "${file}"
 argparse
 beautifulsoup4
 colorama
 dnspython
+future
 lxml
 mechanize
 netaddr
