@@ -117,13 +117,13 @@ apt-get -y install python3-pip python3-setuptools
 # Create a python virtualenv for spiderfoot
 
 
-
 # Install pip packages
-pip install bs4 cherrypy lxml netaddr mako requests
+#pip install bs4 cherrypy lxml netaddr mako requests
+pip install -r requirements.txt
 
 
 # Launch spiderfoot server
-./sf.py
+./sf.py &
 
 
 firefox http://127.0.0.1:5001/ &

@@ -436,15 +436,15 @@ EOF
       || $SUDO sh -c "echo sshd: ALL: aclexec /usr/local/bin/sshfilter.sh %a >> /etc/hosts.allow"
   fi
   $SUDO chmod -f 0555 "${file}"
-  
+
   # Test it out
   # TODO: Send these deny entries to a different log for processing?
   [[ "$DEBUG" = true ]] \
     && echo -e "${ORANGE}[DEBUG] Testing sshfilter.ssh - a DENY entry should output below (saved to: /var/log/messages)${RESET}"
   [[ "$DEBUG" = true ]] && /usr/local/bin/sshfilter.sh "175.198.198.78"
   [[ "$DEBUG" = true ]] && $SUDO tail /var/log/messages | grep ssh
-  
-  
+
+
   file=/usr/local/bin/geoip-updater.sh
   if [[ ! -e "${file}" ]]; then
     $SUDO touch "${file}"
@@ -464,7 +464,7 @@ fi
 EOF
   fi
   $SUDO chmod -f 0555 "${file}"
-  
+
   # Setup a monthly cron job to keep your Geo-IP Database updated - 1st of month at Noon.
   # TODO: This method doesn't work for 'root' user
   #(crontab -l ; echo "00 12 1 * * ${file}") | crontab
