@@ -3,7 +3,7 @@
 # File:     setup-pycharm.sh
 #
 # Author:   Cashiuus
-# Created:  10-Dec-2016     Revised: 10-Aug-2017
+# Created:  10-Dec-2016     Revised: 10-Oct-2020
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Download, setup pycharm, backup original pycharm settings if applicable,
@@ -26,7 +26,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="0.3"
+__version__="1.0"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]========== ##
 GREEN="\033[01;32m"     # Success
@@ -42,13 +42,11 @@ START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)          # Previously "${SCRIPT_DIR}"
 APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
-APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_ARGS=$@
 DEBUG=true
-LOG_FILE="${APP_BASE}/debug.log"
 BACKUPS_PATH="${HOME}/Backups"
 # TODO: Get latest pycharm version programmatically
-PYCHARM_VERSION="2017.2.4"
+PYCHARM_VERSION="2020.2.3"
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]];then
@@ -66,31 +64,27 @@ fi
 # Check that we have OpenJDK installed and operational
 # Another way is to check if JAVA_HOME or another env variable exists
 java -version >/dev/null 2>&1
-
 if [[ $? -ne 0 ]]; then
     echo -e "${YELLOW}[*] ${RESET}Java not found, attempting to install"
-    $SUDO apt-get install openjdk-8-jdk || $SUDO apt-get -f install openjdk-8-jdk # Fix any dependency issues
+    $SUDO apt-get -y install openjdk-11-jdk || $SUDO apt-get -f install openjdk-11-jdk
 else
     echo -e "${GREEN}[*]${RESET} Java detected, continuing with installation"
 fi
 
 
 # Save our preferences/settings before getting rid of old versions
-echo -e "${GREEN}[*] ${RESET}Checking for previous versions to backup settings"
+echo -e "${GREEN}[*]${RESET} Checking for previous versions to backup settings"
 [[ ! -d "${BACKUPS_PATH}" ]] && mkdir -p "${BACKUPS_PATH}"
-if [[ -d ${HOME}/.PyCharm2016.2 ]]; then
-    cp ${HOME}/.PyCharm2016.2/config/settings.jar "${BACKUPS_PATH}/"
-elif [[ -d ${HOME}/.PyCharm2017.2 ]]; then
-    cp ${HOME}/.PyCharmCE2017.2/config/settings.jar "${BACKUPS_PATH}/"
+if [[ -d ${HOME}/.PyCharm* ]]; then
+    cp -R ${HOME}/.PyCharm*/ "${BACKUPS_PATH}/"
 fi
 
-
-echo -e "${GREEN}[*] ${RESET}Downloading PyCharm package, please wait..."
+echo -e "${GREEN}[*]${RESET} Downloading PyCharm package, please wait..."
 cd /tmp
 
 # TODO: Parse here for d/l link - http://www.jetbrains.com/pycharm/download/#section=linux
 # http://www.jetbrains.com/pycharm/download/download-thanks.html?platform=linux&code=PCC
-# https://download-cf.jetbrains.com/python/pycharm-community-2017.2.3.tar.gz
+# Example Link: https://download-cf.jetbrains.com/python/pycharm-community-2020.2.3.tar.gz
 wget --no-verbose http://download.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
 #wget -q https://download-cf.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
 tar xzf pycharm-community-${PYCHARM_VERSION}.tar.gz
@@ -145,20 +139,13 @@ function reconfigure_inotify() {
     # file: /etc/sysctl.conf , or add a new file under /etc/sysctl.d/ directory
     # fs.inotify.max_user_watches = 524288
 
-
     # Then run:
     $SUDO sysctl -p --system
     # Lastly
 }
 
 
-function finish {
-    # Any script-termination routines go here, but function cannot be empty
-    #clear
-    echo -e "${GREEN}[$(date +"%F %T")] ${RESET}PyCharm Installer complete, goodbye!"
-    echo ""
-    # Redirect app output to log, sending both stdout and stderr (*NOTE: this will not parse color codes)
-    # cmd_here 2>&1 | tee -a "${LOG_FILE}"
-}
-# End of script
-trap finish EXIT
+
+echo -e "${GREEN}[$(date +"%F %T")] ${RESET}PyCharm Installer complete, goodbye!"
+echo ""
+
