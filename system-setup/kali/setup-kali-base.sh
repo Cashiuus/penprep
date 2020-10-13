@@ -136,7 +136,8 @@ $SUDO apt-get -qq update
 $SUDO apt-get -y upgrade
 # TODO: Skipping for now because XFCE dist upgrade causes black screen of death loops
 $SUDO apt-get -y -q dist-upgrade
-$SUDO apt-get -y install bash-completion build-essential curl locate gcc git make net-tools sudo
+$SUDO apt-get -y install bash-completion build-essential curl locate gcc git jq \
+  make net-tools sudo
 # Extra Packages - Utilities
 $SUDO apt-get -y install geany htop sysv-rc-conf
 
