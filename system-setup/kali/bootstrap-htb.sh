@@ -176,7 +176,7 @@ $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
 $SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc geany git \
-  golang libssl-dev make net-tools openssl openvpn powershell tmux wget
+  golang jq libssl-dev make net-tools openssl openvpn powershell tmux wget
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf
 
