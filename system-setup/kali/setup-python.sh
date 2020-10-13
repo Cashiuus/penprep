@@ -3,7 +3,7 @@
 # File:     setup-python.sh
 #
 # Author:   Cashiuus
-# Created:  10-Mar-2016  -  Revised: 11-Oct-2020
+# Created:  10-Mar-2016  -  Revised: 12-Oct-2020
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup Python 2 & 3 in Kali Linux and specify default version.
@@ -15,7 +15,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="2.0"
+__version__="2.1"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 GREEN="\033[01;32m"     # Success
@@ -35,7 +35,7 @@ APP_ARGS=$@
 LOG_FILE="${APP_BASE}/debug.log"
 # --------------- #
 py2version="2.7"
-py3version="3.7"
+py3version="3"             # Kali is 3.8, while Debian is 3.7, so being generic here
 DEFAULT_VERSION="3"        # Determines which is set to default (2 or 3)
 DEFAULT_PY3_ENV="default-py3"
 DEFAULT_PY2_ENV="default-py2"
@@ -57,8 +57,8 @@ if [[ "${SHELL}" == "/usr/bin/zsh" ]]; then
 elif [[ "${SHELL}" == "/bin/bash" ]]; then
     SHELL_FILE=~/.bashrc
 else
-	# Just in case I add other shells in the future
-	SHELL_FILE=~/.bashrc
+    # Just in case I add other shells in the future
+    SHELL_FILE=~/.bashrc
 fi
 
 # ==========================[  Python 3  ]============================= #
@@ -74,8 +74,8 @@ $SUDO apt-get -y install build-essential libssl-dev libffi-dev
 echo -e "\n${GREEN}[*]${RESET} Installing/Configuring Python 3"
 # Core python 3 & virtual env support
 $SUDO apt-get -y install python3 python3-all python3-dev \
-	python3-pip python3-setuptools python3-venv python3-virtualenv \
-	virtualenvwrapper
+    python3-pip python3-setuptools python3-venv python3-virtualenv \
+    virtualenvwrapper
 
 # lxml depends (xml library)
 $SUDO apt-get -y install libxml2-dev libxslt1-dev zlib1g-dev
@@ -85,7 +85,7 @@ $SUDO apt-get -y install libpq-dev
 
 # Pillow depends (image library)
 $SUDO apt-get -y install libtiff5-dev libjpeg62-turbo-dev \
-	libfreetype6-dev liblcms2-dev libwebp-dev libffi-dev zlib1g-dev
+    libfreetype6-dev liblcms2-dev libwebp-dev libffi-dev zlib1g-dev
 
 # Scrapy depends (scraping library)
 $SUDO apt-get -y install openssl libssl-dev
@@ -100,7 +100,7 @@ source /usr/local/bin/virtualenvwrapper.sh
 # When you run this, its first-run auto-creates our default
 # virtualenv directory at: `$HOME/.virtualenvs/`
 
-# Custom post-creation script for ALL new envs to auto-install 
+# Custom post-creation script for ALL new envs to auto-install
 # core pip packages
 file="${WORKON_HOME}/postmkvirtualenv"
 cat <<EOF > "${file}"
@@ -114,16 +114,19 @@ EOF
 echo -e "\n${GREEN}[*]${RESET} Creating a Python 3 standard virtualenv"
 mkvirtualenv ${DEFAULT_PY3_ENV} -p /usr/bin/python${py3version}
 if [[ $? -eq 0 ]]; then
-	pip install --upgrade pip
-	pip install --upgrade setuptools
-	deactivate
+    pip install --upgrade pip
+    pip install --upgrade setuptools
+    deactivate
 fi
 
 
 # ==========================[  Python 2  ]============================= #
 echo -e "\n${GREEN}[*]${RESET} Installing/Configuring Python 2"
-$SUDO apt-get -y install python python-dev python-pip \
-	python-setuptools virtualenv
+$SUDO apt-get -y install python python-dev \
+    python-setuptools virtualenv
+
+$SUDO apt-get -y install python-pip
+[[ "$?" -eq 0 ]] && PIP2_SUCCESSFUL=true
 
 # Virtual Environment Setup - Python 2.7.x
 echo -e "\n${GREEN}[*]${RESET} Creating a Python 2 standard virtualenv"
@@ -131,7 +134,6 @@ mkvirtualenv ${DEFAULT_PY2_ENV} -p /usr/bin/python${py2version}
 pip install --upgrade pip
 pip install --upgrade setuptools
 deactivate
-
 
 
 # ==========================[  Pip Packages  ]========================== #
@@ -152,6 +154,7 @@ pep8
 Pillow
 psycopg2
 pygeoip
+pylnk3
 python-Levenshtein
 python-libnmap
 requests
@@ -159,8 +162,10 @@ six
 wheel
 EOF
 
-echo -e "\n${GREEN}[*]${RESET} Installing baseline pip pkgs for Python 2"
-pip install -r /tmp/requirements.txt
+if [[ ${PIP2_SUCCESSFUL} = true ]]; then
+    echo -e "\n${GREEN}[*]${RESET} Installing baseline pip pkgs for Python 2"
+    pip install -r /tmp/requirements.txt
+fi
 echo -e "\n${GREEN}[*]${RESET} Installing baseline pip pkgs for Python 3"
 pip3 install -r /tmp/requirements.txt
 
@@ -184,21 +189,21 @@ source "${file}"
 
 
 function setup_alternatives() {
-	# Utilize Linux's built-in feature of quick-switching between a program's versions
-	$SUDO update-alternatives --install /usr/bin/python python /usr/bin/python${py3version} 1
-	$SUDO update-alternatives --install /usr/bin/python python /usr/bin/python${py2version} 2
-	if [[ $DEFAULT_VERSION == "3" ]]; then
-		$SUDO update-alternatives --set python /usr/bin/python${py3version}
-	else
-		$SUDO update-alternatives --set python /usr/bin/python${py2version}
-	fi
-	echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
-	echo -n "${GREEN}[*]${RESET} Default Python is now: "
-	python -V
-	echo -e "${GREEN}[*]${RESET} If inccorrect, type: ${ORANGE}sudo update-alternatives --config python${RESET}"
-	echo -e "    and select desired python version"
-	sleep 5s
-	
+    # Utilize Linux's built-in feature of quick-switching between a program's versions
+    $SUDO update-alternatives --install /usr/bin/python python /usr/bin/python${py3version} 1
+    $SUDO update-alternatives --install /usr/bin/python python /usr/bin/python${py2version} 2
+    if [[ $DEFAULT_VERSION == "3" ]]; then
+            $SUDO update-alternatives --set python /usr/bin/python${py3version}
+    else
+            $SUDO update-alternatives --set python /usr/bin/python${py2version}
+    fi
+    echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
+    echo -n "${GREEN}[*]${RESET} Default Python is now: "
+    python -V
+    echo -e "${GREEN}[*]${RESET} If inccorrect, type: ${ORANGE}sudo update-alternatives --config python${RESET}"
+    echo -e "    and select desired python version"
+    sleep 5s
+
 }
 # Can possibly use in future, but for now, avoid using this system
 # It isn't reliable bc many apt packages still expect python 2 during
@@ -206,34 +211,34 @@ function setup_alternatives() {
 #setup_alternatives
 
 
-# ========================[  Python 3.9  ]=========================== #
+# =====[  Python 3.9  ]======= #
 # In case it's needed
 function install_python39 {
-	#
-	#
-	#
-	echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
-	VERSION='3.9.0'
-	V_SHORT='3.9'
-	#$SUDO apt-get -qq update
-	$SUDO apt-get -y install build-essential curl zlib1g-dev libncurses5-dev \
-		libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev \
-		libffi-dev libbz2-dev
-	cd /tmp
-	curl -O https://www.python.org/ftp/python/${VERSION}/Python-${VERSION}.tar.xz
-	tar -xf Python-${VERSION}.tar.xz
-	cd Python-${VERSION}
-	./configure --enable-optimizations
-	# Start build, specify number of cores in your processor
-	PROCS=$(nproc)
-	make -j ${PROCS}
-	# Install it, don't use `make install` as it'll overwrite
-	# the default system `python3` binary.
-	$SUDO make altinstall
-	# Version check to ensure it installed
-	echo -n "${GREEN}[*]${RESET} Python version check: "
-	python${V_SHORT} --version
-	mkvirtualenv default-${VERSION} -p /usr/bin/python${V_SHORT}
+    #
+    #
+    #
+    echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
+    VERSION='3.9.0'
+    V_SHORT='3.9'
+    #$SUDO apt-get -qq update
+    $SUDO apt-get -y install build-essential curl zlib1g-dev libncurses5-dev \
+            libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev \
+            libffi-dev libbz2-dev
+    cd /tmp
+    curl -O https://www.python.org/ftp/python/${VERSION}/Python-${VERSION}.tar.xz
+    tar -xf Python-${VERSION}.tar.xz
+    cd Python-${VERSION}
+    ./configure --enable-optimizations
+    # Start build, specify number of cores in your processor
+    PROCS=$(nproc)
+    make -j ${PROCS}
+    # Install it, don't use `make install` as it'll overwrite
+    # the default system `python3` binary.
+    $SUDO make altinstall
+    # Version check to ensure it installed
+    echo -n "${GREEN}[*]${RESET} Python version check: "
+    python${V_SHORT} --version
+    mkvirtualenv default-${VERSION} -p /usr/bin/python${V_SHORT}
 }
 #install_python39
 
@@ -273,7 +278,7 @@ trap finish EXIT
 # Project:https://github.com/kennethreitz/autoenv
 
 
-# Can also install pip packages on a per-user basis 
+# Can also install pip packages on a per-user basis
 # instead using: pip install --user <pkg>
 # NOTE: On kali, most base pip pkgs are already installed, some as apt pkgs
 #$SUDO pip3 install requests
@@ -284,8 +289,8 @@ trap finish EXIT
 # Source: https://pip.pypa.io/en/stable/installing/#upgrading-pip
 #python -m pip install --upgrade pip
 
-# Figure out which outdated $(pip list --oudated) pip packages are 
-# apt pkgs and which are not. Update the ones that are not so we 
+# Figure out which outdated $(pip list --oudated) pip packages are
+# apt pkgs and which are not. Update the ones that are not so we
 # don't break apt repo package installs.
 
 #$SUDO pip install --upgrade lxml
