@@ -3,10 +3,10 @@
 # ==============================================================================
 # File:         file.py
 # Author:       Cashiuus
-# Created:      10-Oct-2020     -     Revised:
+# Created:      14-Oct-2020     -     Revised:
 #
 # Depends:      n/a
-# Compat:       3.7+
+# Compat:       3.7+ (As of Oct 14, 2020, Deb 10 is 3.7, Kali 2020 is 3.8.6)
 #
 #-[ Usage ]---------------------------------------------------------------------
 #
@@ -57,25 +57,25 @@ except ImportError: pass
 ## =======[ IMPORT & CONSTANTS ]========= ##
 
 import argparse
+import errno
 import os
 import platform
 import subprocess
 import sys
-import time
 
 from random import randrange
-
+from time import sleep, strftime
 
 VERBOSE = 1
 DEBUG = 0
 MY_SETTINGS = 'settings.conf'
-HOME_DRIVE = os.environ.get('SYSTEMDRIVE')
+USER_HOME = os.environ.get('HOME')
+ACTIVE_SHELL = os.environ['SHELL']
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved')
 LOG_FILE = os.path.join(BASE_DIR, 'log.txt')
-ACTIVE_SHELL = os.environ['SHELL']
-PYTHON_VERSION = sys.version_info[0] + '.' + sys.version_info[1] + '.' + sys.version_info[2]
 PY3 = sys.version_info > (3,)
+#PYTHON_VERSION = sys.version_info[0] + '.' + sys.version_info[1] + '.' + sys.version_info[2]
 
 
 ## =========[  TEXT COLORS  ]============= ##
@@ -96,32 +96,31 @@ RESET = '\033[00m'      # Normal/White
 def root_check():
     if not (os.geteuid() == 0):
         print("[-] Not currently root user. Please fix.")
-        exit(1)
+        sys.exit(1)
     return
 
 
-def rnddelay():
+def delay():
     """Generate random number for sleep function"""
     return randrange(2, 8, 1)
 
 
 def install_pkg(package):
     pip.main(['install', package])
-if platform.system() == 'Linux':
-    if os.geteuid() != 0:
-        print('\n' + RED + '[-]' + YELLOW + ' Please Run as Root!' + '\n')
-        sys.exit()
+    if platform.system() == 'Linux':
+        if os.geteuid() != 0:
+            print('\n' + RED + '[-]' + YELLOW + ' Please Run as Root!' + '\n')
+            sys.exit()
+        else:
+            pass
     else:
         pass
-else:
-    pass
 
 
 def make_dirs(path):
     """
-    Helper function to make all directories necessary in the desired path
+    Make all directories en route to the full provided path
     """
-
     # If 'path' is a single directory path, create it, else treat as a list of paths
     # for i in path:
     if not os.path.isdir(path):
@@ -201,7 +200,7 @@ def git_update(git_path):
         try:
             os.chdir(git_path)
             subprocess.call('git pull', shell=True)
-            time.sleep(3)   # Sleep 3s
+            sleep(3)   # Sleep 3s
         except:
             print("[ERROR] Failed to update git repo at {0}".format(git_path))
 
@@ -271,6 +270,7 @@ def main():
 
     # -- arg parsing --
     #parser = argparse.ArgumentParser()
+    #parser = argparse.ArgumentParser(description="Description of this tool")
     #parser.add_argument('--url', action='store', default=None, dest='url', help='Pass URL to request')
     #parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     #args = parser.parse_args()
@@ -287,10 +287,9 @@ def main():
 
     try:
         # main application flow
-
+        pass
     except KeyboardInterrupt:
         shutdown_app()
-    return
     return
 
 
@@ -315,6 +314,7 @@ requirements = [
 
 def install(packages):
     for package in packages:
+        # Update this to use .run instead?
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
     return
 
