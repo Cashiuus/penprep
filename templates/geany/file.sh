@@ -64,18 +64,18 @@ fi
 
 ##  Functions
 ## =================================== ##
+
+
+
+
+##  Running Main
+## =================================== ##
 echo -e "${ORANGE} + -- -- -- --=[${RESET}  ${APP_NAME}  ${ORANGE}]=-- -- -- -- +${RESET}"
 echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
 echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
 echo -e "${ORANGE} + -- --=[ https://github.com/cashiuus ${RESET}"
 echo -e
 echo -e
-
-
-
-##  Running Main
-## =================================== ##
-
 
 
 
