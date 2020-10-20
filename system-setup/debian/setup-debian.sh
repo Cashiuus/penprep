@@ -58,15 +58,8 @@ if [[ "$?" -ne 0 ]]; then
   echo -e "${RED} [ERROR]${RESET} Network issues preventing apt-get. Check and try again."
   exit 1
 fi
-## ========================================================================== ##
-function pause() {
-  # Simple function to pause a script mid-stride
-  #
-  local dummy
-  read -s -r -p "Press any key to continue..." -n 1 dummy
-  echo -e ""
-}
 
+## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
 # -==  Setup VM Tools  ==- #
 # https://github.com/vmware/open-vm-tools

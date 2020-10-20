@@ -120,7 +120,7 @@ $SUDO apt-get remove --purge docker-engine
 export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y install apt-transport-https ca-certificates \
-  curl gnupg-agent software-properties-common
+  curl gnupg-agent jq software-properties-common
 
 #TODO: Does this work?
 #curl -fsSL https://download.docker.com/linux/debian/gpg | $SUDO apt-key add -
@@ -196,8 +196,7 @@ $SUDO usermod -aG docker $USER
 
 echo -e "${GREEN}[*]${RESET} User has been added to to the docker group"
 echo -e "${GREEN}[*]${RESET} Logout and back in. Then, you should be able to run 'docker run hello-world' and 'docker info' without sudo"
-echo -e "${GREEN}[+]${RESET} Press any key to continue..."
-read
+pause
 
 # If you ran 'sudo docker run ...' before adding non-root capability, you
 # will now need to fix the default ~/.docker/ directory permissions

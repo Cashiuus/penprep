@@ -3,7 +3,7 @@
 # File:     setup-python.sh
 #
 # Author:   Cashiuus
-# Created:  10-Mar-2016  -  Revised: 12-Oct-2020
+# Created:  10-Mar-2016  -  Revised: 20-Oct-2020
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup Python 2 & 3 in Kali Linux and specify default version.
@@ -15,7 +15,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="2.1"
+__version__="3.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 GREEN="\033[01;32m"     # Success
@@ -66,126 +66,20 @@ echo -e "\n${GREEN}[*]-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup-Pyth
 echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
 echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
 
-$SUDO apt-get -y -qq update
-
-# Core programming environment dependency files
-$SUDO apt-get -y install build-essential libssl-dev libffi-dev
-
-echo -e "\n${GREEN}[*]${RESET} Installing/Configuring Python 3"
-# Core python 3 & virtual env support
-$SUDO apt-get -y install python3 python3-all python3-dev \
-    python3-pip python3-setuptools python3-venv python3-virtualenv \
-    virtualenvwrapper
-
-# lxml depends (xml library)
-$SUDO apt-get -y install libxml2-dev libxslt1-dev zlib1g-dev
-
-# Postgresql and psycopg2 depends (db library)
-$SUDO apt-get -y install libpq-dev
-
-# Pillow depends (image library)
-$SUDO apt-get -y install libtiff5-dev libjpeg62-turbo-dev \
-    libfreetype6-dev liblcms2-dev libwebp-dev libffi-dev zlib1g-dev
-
-# Scrapy depends (scraping library)
-$SUDO apt-get -y install openssl libssl-dev
-
-echo -e "\n${GREEN}[*]${RESET} Creating Virtual Environments"
-if [ ! -e /usr/local/bin/virtualenvwrapper.sh ]; then
-    # apt-get package symlinking to where this file is expected to be
-    $SUDO ln -s /usr/share/virtualenvwrapper/virtualenvwrapper.sh /usr/local/bin/virtualenvwrapper.sh
-fi
-
-source /usr/local/bin/virtualenvwrapper.sh
-# When you run this, its first-run auto-creates our default
-# virtualenv directory at: `$HOME/.virtualenvs/`
-
-# Custom post-creation script for ALL new envs to auto-install
-# core pip packages
-file="${WORKON_HOME}/postmkvirtualenv"
-cat <<EOF > "${file}"
-#!/usr/bin/env bash
-pip install beautifulsoup4
-pip install pep8
-pip install requests
-EOF
-
-# Virtual Environment Setup - Python 3.x
-echo -e "\n${GREEN}[*]${RESET} Creating a Python 3 standard virtualenv"
-mkvirtualenv ${DEFAULT_PY3_ENV} -p /usr/bin/python${py3version}
-if [[ $? -eq 0 ]]; then
-    pip install --upgrade pip
-    pip install --upgrade setuptools
-    deactivate
-fi
+# Setup python 3 by default, but ask before configuring python 2, default to skipping python 2.
+install_python3
 
 
-# ==========================[  Python 2  ]============================= #
-echo -e "\n${GREEN}[*]${RESET} Installing/Configuring Python 2"
-$SUDO apt-get -y install python python-dev \
-    python-setuptools virtualenv
-
-$SUDO apt-get -y install python-pip
-[[ "$?" -eq 0 ]] && PIP2_SUCCESSFUL=true
-
-# Virtual Environment Setup - Python 2.7.x
-echo -e "\n${GREEN}[*]${RESET} Creating a Python 2 standard virtualenv"
-mkvirtualenv ${DEFAULT_PY2_ENV} -p /usr/bin/python${py2version}
-pip install --upgrade pip
-pip install --upgrade setuptools
-deactivate
+# If these aren't in the settings file, generate defaults
+echo -e -n "${GREEN}[+] ${RESET}"
+read -e -t 5 -i "N" -p " Do you want to also configure Python 2, even though it is now deprecated? [y,N] : " RESPONSE
+echo -e
+case $RESPONSE in
+  [Yy]* ) install_python2;;
+esac
 
 
-# ==========================[  Pip Packages  ]========================== #
 
-# Install baseline set of system-wide pip packages
-file="/tmp/requirements.txt"
-cat <<EOF > "${file}"
-argparse
-beautifulsoup4
-colorama
-dnspython
-future
-lxml
-mechanize
-netaddr
-pefile
-pep8
-Pillow
-psycopg2
-pygeoip
-pylnk3
-python-Levenshtein
-python-libnmap
-requests
-six
-wheel
-EOF
-
-if [[ ${PIP2_SUCCESSFUL} = true ]]; then
-    echo -e "\n${GREEN}[*]${RESET} Installing baseline pip pkgs for Python 2"
-    pip install -r /tmp/requirements.txt
-fi
-echo -e "\n${GREEN}[*]${RESET} Installing baseline pip pkgs for Python 3"
-pip3 install -r /tmp/requirements.txt
-
-
-# =========================[  Virtualenvwrapper  ]========================= #
-# Add lines to shell dotfile if they aren't there
-# Note: Prefer normal loading versus lazy loading here because lazy loading
-# will not have tab completion until after you've run at least 1 command (e.g. workon <tab>)
-# Source: https://virtualenvwrapper.readthedocs.io/en/latest/install.html
-echo -e "\n${GREEN}[*]${RESET} Updating your dotfile for virtualenvwrapper at: ${GREEN}${SHELL_FILE}${RESET}"
-file=$SHELL_FILE
-grep -q '^### Load Python Virtualenvwrapper' "${file}" 2>/dev/null \
-    || echo '### Load Python Virtualenvwrapper Script helper' >> "${file}"
-
-# TODO: Improve this regex
-grep -q '^.*"/usr/local/bin/virtualenvwrapper.sh".*' "${file}" 2>/dev/null \
-    || echo '[[ -s "/usr/local/bin/virtualenvwrapper.sh" ]] && source "/usr/local/bin/virtualenvwrapper.sh"' >> "${file}"
-grep -q 'export WORKON_HOME=' "${file}" 2>/dev/null \
-    || echo 'export WORKON_HOME=$HOME/.virtualenvs' >> "${file}"
-source "${file}"
 
 
 function setup_alternatives() {
@@ -259,7 +153,7 @@ trap finish EXIT
 
 
 ## ===================================================================================== ##
-## =====================[ Template File Code Help :: Core Notes ]======================= ##
+## =====================[ Python Setup Code Help :: Core Notes ]======================= ##
 #
 # Virtualenvs
 #----------------
