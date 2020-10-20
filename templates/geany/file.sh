@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-## =======================================================================================
+## =============================================================================
 # File:     file.sh
 # Author:   Cashiuus
-# Created:  11-Oct-2020     Revised:
+# Created:  20-Oct-2020     Revised:
 #
-##-[ Info ]-------------------------------------------------------------------------------
+##-[ Info ]---------------------------------------------------------------------
 # Purpose:  Describe script purpose
 #
 #
 # Notes:
 #
 #
-##-[ Links/Credit ]-----------------------------------------------------------------------
+##-[ Links/Credit ]-------------------------------------------------------------
 #
 #
-##-[ Copyright ]--------------------------------------------------------------------------
+##-[ Copyright ]----------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
-## =======================================================================================
+## =============================================================================
 __version__="0.1"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
@@ -59,42 +59,11 @@ else
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: fail${RESET}"
     exit 1
 fi
-## ==========================[ END :: LOAD FILES ]========================== ##
-
 ## ========================================================================== ##
-# =========================[ :: HELPER FUNCTIONS :: ]======================== #
-function pause() {
-  # Simple function to pause a script mid-stride
-  #
-  local dummy
-  read -s -r -p "Press any key to continue..." -n 1 dummy
-}
 
 
-function asksure() {
-  ###
-  # Usage:
-  #   if asksure; then
-  #        echo "Okay, performing rm -rf / then, master...."
-  #   else
-  #        echo "Awww, why not :("
-  #   fi
-  ###
-  echo -n "Are you sure (Y/N)? "
-  while read -r -n 1 -s answer; do
-    if [[ $answer = [YyNn] ]]; then
-      [[ $answer = [Yy] ]] && retval=0
-      [[ $answer = [Nn] ]] && retval=1
-      break
-    fi
-  done
-  echo
-  return $retval
-}
-
-## ========================================================================== ##
-# ================================[  BEGIN  ]================================ #
-
+##  Functions
+## =================================== ##
 echo -e "${ORANGE} + -- -- -- --=[${RESET}  ${APP_NAME}  ${ORANGE}]=-- -- -- -- +${RESET}"
 echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
 echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
@@ -103,7 +72,9 @@ echo -e
 echo -e
 
 
-## =============[  SECTION  ]============= ##
+
+##  Running Main
+## =================================== ##
 
 
 
@@ -145,10 +116,12 @@ trap finish EXIT
 #   https://github.com/lingtalfi/bashmanager
 #
 # ---------------------------------------------------------
-## =============[ Debugging BASH scripts ]============= ##
+## =============[ Debugging BASH scripts/cmds ]============= ##
 #
-#   Run the script with debug mode enabled:
-#       bash -x script.sh
+#   Run the script with debug mode enabled:     bash -x script.sh
+#       Syntax check/dry run script:    bash -n script.sh
+#
+# Debug a command (sudo apt-get install strace):  strace <cmd> <args>
 #
 #
 ## =============[ Styleguide Recommendations ]============= ##
@@ -304,6 +277,24 @@ trap finish EXIT
 # TODO: Did this work? or does it fail like recent cp/mv operations have showed requiring setglobopt's
 #       cp -a . $HOME/
 #
+# ---= Copy Hidden Files/Directories =--- Testing performed on Debian 10 (man cp shows GNU coreutils 8.30)
+#
+# Issue:  On Debian 10, by default, this does not work and copies parent 
+#     directory instead of .envs_template/ subdir:
+#       cd ~/git/Ghostwriter && cp -r .envs_templates/.* .envs
+#
+#     The reason is this asterisk also include copying ".envs_templates/.." !! mind blown!
+#     Until I find a better way, you just can't copy dirs that start with '.' this way.
+#     Instead, just do it like this:
+#       # Enable copying/moving of hidden files
+#       shopt -s dotglob
+#       # Now issue the wildcard copy
+#       cp -r .envs_template/* .envs/
+#
+# (or)    cp -r .envs_template/{.local,.production} .envs/
+#
+#
+
 ## -=====[  ECHO/PRINTF  ]=====-
 #   echo -n         Print without a newline
 #

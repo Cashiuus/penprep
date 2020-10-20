@@ -22,8 +22,13 @@ alias myip='curl ifconfig.me; echo '
 # Sorts IPs; ex: cat "ips.txt | ip_sort"
 alias ip_sort='sort -u -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n'
 alias sip='sort -V'
-alias openports='netstat --all --numeric --programs --inet' # or netstat -tulanp
-alias ping='ping -c 2'
+if [[ $(which netstat) ]]; then
+	alias openports='netstat --all --numeric --programs --inet' # or netstat -planta
+else
+	alias openports='ss -tunlp'
+fi
+#alias lsof='lsof -nP -iTCP -sTCP:LISTEN'
+alias ping='ping -c 3'
 alias webserv='python3 -m http.server'
 alias header="curl -I"
 dns=$(grep 'nameserver' /etc/resolv.conf | awk '{print $2}')
