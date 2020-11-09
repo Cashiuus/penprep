@@ -262,6 +262,11 @@ def printer(msg, color=ORANGE):
 
 
 def main():
+    """
+    Main function of the script
+
+    """
+    # Quick 'n dirty args if not using argparse
     args = sys.argv[1:]
 
     if not args:
@@ -269,13 +274,36 @@ def main():
         sys.exit(1)
 
     # -- arg parsing --
-    #parser = argparse.ArgumentParser()
-    #parser = argparse.ArgumentParser(description="Description of this tool")
-    #parser.add_argument('--url', action='store', default=None, dest='url', help='Pass URL to request')
-    #parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-    #args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Description of this tool")
+    parser.add_argument("-f", "--filename",
+                        nargs='*',
+                        help="Specify a file containing the output of an nmap "
+                             "scan in xml format.")
+    parser.add_argument("-o", "--output",
+                        help="Specify output file name")
+    parser.add_argument('--url', action='store', default=None, dest='url', help='Pass URL to request')
 
-    #  -- Config parsing --
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0')
+    parser.add_argument("-d", "--debug",
+                        help="Display error information",
+                        action="store_true")
+
+    args = parser.parse_args()
+
+    # If we have a mandatory arg, use it here; if not given, display usage
+    if not args.filename:
+        parser.print_help()
+        exit(1)
+
+    # Now store our args into variables for use
+    # NOTE: infile will be a list of files, bc args.filename accepts multiple input files
+    infile = args.filename
+    outfile = args.output
+    url = args.url
+
+
+    #  -- Config File parsing --
     #config = ConfigParser()
     #try:
         #config.read(MY_SETTINGS)
