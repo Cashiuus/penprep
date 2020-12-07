@@ -1,5 +1,5 @@
 ### .bash_aliases
-### by Cashiuus          (Updated: 2016-02-20)
+### by Cashiuus          (Updated: 2020-11-11)
 ###
 ### ------------------------------------------ ###
 
@@ -18,14 +18,14 @@ alias p="cd /opt/pentest"
 alias u="cd ~/utils"
 
 ### Networking
-alias myip='curl ifconfig.me; echo '
+alias myip='curl ifconfig.me; echo'
 # Sorts IPs; ex: cat "ips.txt | ip_sort"
 alias ip_sort='sort -u -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n'
 alias sip='sort -V'
 if [[ $(which netstat) ]]; then
-	alias openports='netstat --all --numeric --programs --inet' # or netstat -planta
+    alias openports='netstat --all --numeric --programs --inet' # or netstat -planta
 else
-	alias openports='ss -tunlp'
+    alias openports='ss -tunlp'
 fi
 #alias lsof='lsof -nP -iTCP -sTCP:LISTEN'
 alias ping='ping -c 3'
@@ -66,6 +66,7 @@ alias timer='echo "Timer started. Stop with Ctrl-D." && date && time cat && date
 ### Security Tool Enhancements
 alias nexpose='service postgresql stop ; cd /opt/rapid7/nexpose/nsc ; ./nsc.sh'
 alias nmap="nmap --reason --open"
+alias nse(){ find /usr/share/nmap/scripts/ -iname "*$1*" -printf '%P\n';}
 alias aircrack-ng="aircrack-ng -z"
 alias airodump-ng="airodump-ng --manufacturer --wps --uptime"
 ### Metasploit
