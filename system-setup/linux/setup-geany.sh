@@ -3,14 +3,14 @@
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Created:  10-Oct-2015     Revised:  11-Oct-2017
+# Created:  10-Oct-2015     Revised:  17-Dec-2020
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Install Geany IDE tool, configure custom settings, and copy in templates.
 #
 #
 #-[ Notes ]-------------------------------------------------------------------------------
-#
+#   Latest Change:  Fixed underscore invisible bug in versions < 1.37
 #
 #   TODO:
 #       - App shortcut is at: /usr/share/applications/geany.desktop, add to favorites?
@@ -25,7 +25,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.6"
+__version__="1.7"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -321,6 +321,28 @@ EOF
 }
 
 enable_geany_backups
+
+
+function fix_invisible_underscores() {
+    # Geany introduced a weird bug where the default installation often ends up
+    # so that underscores become invisible to eye. They are there, but blend in
+    # with a white background. See: https://www.geany.org/documentation/faq/
+    # Affects Geany versions prior to 1.37 (fixed in 1.37)
+    # Get installed geany version output : "1.37"
+    GEANY_VERSION=$(dpkg -s geany | grep -i version | cut -d ':' -f 2 | cut -d "." -f 1-2 | xargs echo)
+
+    # fix by changing line height to add a little space above and below
+    # problem is, this file doesn't exist until you open and edit from GUI
+    # Tools -> Configuration Files -> filetypes.common
+    # note: looks like we can copy it from usr share instead.
+    #   [styling]
+    #   line_height=1;1;
+    $file="~/.config/geany/filedefs/filetypes.common"
+    cp /usr/share/geany/filedefs/filetypes.common "${file}"
+    sed -i 's/^#~ line_height=0;0;/line_height=1;1;/' "${file}"
+}
+#fix_invisible_underscores
+
 
 
 function geany_templates() {
