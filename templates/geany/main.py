@@ -3,57 +3,22 @@
 # ==============================================================================
 # File:         file.py
 # Author:       Cashiuus
-# Created:      14-Oct-2020     -     Revised:
+# Created:      14-Dec-2020     -     Revised:
 #
 # Depends:      n/a
-# Compat:       3.7+ (As of Oct 14, 2020, Deb 10 is 3.7, Kali 2020 is 3.8.6)
+# Compat:       3.7+
 #
 #-[ Usage ]---------------------------------------------------------------------
 #
 #
 #
 #
-#-[ Notes/Links ]---------------------------------------------------------------
-#
-#
-#-[ Copyright ]-----------------------------------------------------------------
-#
-#  Copyright (C) 2020 Cashiuus <cashiuus@gmail.com>
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
 # ==============================================================================
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
 __version__ = 0.1
 __author__ = 'Cashiuus'
 __license__ = 'MIT'
 __copyright__ = 'Copyright (C) 2020 Cashiuus'
-## ====[ Python 2/3 Compatibilities ]==== ##
-try: input = raw_input
-except NameError: pass
-try: import thread
-except ImportError: import _thread as thread
-try: from colorama import init, Fore
-except ImportError: pass
+
 ## =======[ IMPORT & CONSTANTS ]========= ##
 
 import argparse
@@ -62,9 +27,20 @@ import os
 import platform
 import subprocess
 import sys
-
 from random import randrange
 from time import sleep, strftime
+
+try: from colorama import init, Fore
+except ImportError: pass
+
+# if using, these must go below `import sys`
+if sys.version > '3':
+    import urllib.parse as urlparse
+    import urllib.parse as urllib
+else:
+    import urlparse
+    import urllib
+
 
 VERBOSE = 1
 DEBUG = 0
@@ -72,23 +48,144 @@ MY_SETTINGS = 'settings.conf'
 USER_HOME = os.environ.get('HOME')
 ACTIVE_SHELL = os.environ['SHELL']
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved')
+SAVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved')
 LOG_FILE = os.path.join(BASE_DIR, 'log.txt')
 PY3 = sys.version_info > (3,)
-#PYTHON_VERSION = sys.version_info[0] + '.' + sys.version_info[1] + '.' + sys.version_info[2]
 
 
 ## =========[  TEXT COLORS  ]============= ##
-GREEN = '\033[32;1m'    # Green
-YELLOW = '\033[01;33m'  # Warnings/Information
-RED = '\033[31m'        # Error
-ORANGE = '\033[33m'     # Debug
-BLUE = '\033[01;34m'    # Heading
-PURPLE = '\033[01;35m'  # Other
-GREY = '\e[90m'         # Subdued Text
-BOLD = '\033[01;01m'    # Highlight
-RESET = '\033[00m'      # Normal/White
+class Colors(object):
+    """ Access these via 'Colors.GREEN'   """
+    GREEN = '\033[32;1m'    # Green
+    YELLOW = '\033[01;33m'  # Warnings/Information
+    RED = '\033[31m'        # Error or '\033[91m'
+    ORANGE = '\033[33m'     # Debug
+    BLUE = '\033[01;34m'    # Heading
+    PURPLE = '\033[01;35m'  # Other
+    GREY = '\e[90m'         # Subdued Text
+    BOLD = '\033[01;01m'    # Highlight
+    RESET = '\033[00m'      # Normal/White
+    BACKBLUE = '\033[44m'   # Blue background
+    BACKCYAN = '\033[46m'   # Cyan background
+    BACKRED = '\033[41m'    # Red background
+    BACKWHITE = '\033[47m'  # White background
 
+
+
+
+# ==========================[ BEGIN APPLICATION ]========================== #
+
+
+
+
+
+
+
+
+
+
+
+# -------------------
+#       SHUTDOWN
+# -------------------
+def shutdown_app():
+    print("Application shutting down -- Goodbye!")
+    exit(0)
+
+# ---------------------
+#   main
+# ---------------------
+def main():
+    """
+    Main function of the script
+
+    """
+    # Quick 'n dirty args if not using argparse
+    args = sys.argv[1:]
+
+    if not args:
+        print('Usage: [--flags options] [inputs] ')
+        sys.exit(1)
+
+    # -- arg parsing --
+    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Description of this tool")
+    parser.add_argument("-f", "--filename",
+                        nargs='*',
+                        help="Specify a file containing the output of an nmap "
+                             "scan in xml format.")
+    parser.add_argument("-o", "--output",
+                        help="Specify output file name")
+    parser.add_argument('--url', action='store', default=None, dest='url', help='Pass URL to request')
+
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0')
+    parser.add_argument("-d", "--debug",
+                        help="Display error information",
+                        action="store_true")
+
+    args = parser.parse_args()
+
+    # If we have a mandatory arg, use it here; if not given, display usage
+    if not args.filename:
+        parser.print_help()
+        exit(1)
+
+    # Now store our args into variables for use
+    # NOTE: infile will be a list of files, bc args.filename accepts multiple input files
+    infile = args.filename
+    outfile = args.output
+    url = args.url
+
+
+    #  -- Config File parsing --
+    #config = ConfigParser()
+    #try:
+        #config.read(MY_SETTINGS)
+        #config_value_format = config.get('youtube', 'format')
+        # Split a list into strings from a config file
+        #config_value_urls = config.get('youtube', 'urls')
+        #urls = shlex.split(config_value_urls)
+        #print("[DEBUG] urls: {0}".format(urls))
+
+    try:
+        # main application flow
+        pass
+    except KeyboardInterrupt:
+        shutdown_app()
+    return
+
+
+if __name__ == '__main__':
+    main()
+
+
+# -------------------
+#       LOGGING
+# -------------------
+
+# Usage:
+#   logger = logging.getLogger(__name__)
+#   logging.basicConfig(level=logging.DEBUG)
+#   handler = logging.FileHandler('debug.log')
+#   handler.setLevel(logging.DEBUG)
+#   # Configure a good format for the logs to save as
+#   formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#   handler.setFormatter(formatter)
+#   # Add the handler to the logger
+#   logger.addHandler(handler)
+#   logger.debug('Logger initialized')
+# logging statements you can place in code
+#logger.debug('foo')
+#logger.debug('var: url_slices is %s', url_slices)
+#logger.error('foo', exc_info=True)
+#logger.info('Destination File already exists')
+
+
+
+# =========================================================================== #
+# ================================[ RECIPES ]================================ #
+#
+#
 
 # ========================[  CORE UTILITY FUNCTIONS  ]======================== #
 # Check - Root user
@@ -100,9 +197,11 @@ def root_check():
     return
 
 
-def delay():
-    """Generate random number for sleep function"""
-    return randrange(2, 8, 1)
+def delay(max=10):
+    """Generate random number for sleep function
+            Usage: time.sleep(delay(max=30))
+    """
+    return randrange(2, max, 1)
 
 
 def install_pkg(package):
@@ -207,15 +306,6 @@ def git_update(git_path):
     return
 
 
-
-# -------------------
-#       SHUTDOWN
-# -------------------
-def shutdown_app():
-    print("Application shutting down -- Goodbye!")
-    exit(0)
-
-
 def printer(msg, color=ORANGE):
     """
     A print helper with colors for console output. Not for logging purposes.
@@ -228,107 +318,8 @@ def printer(msg, color=ORANGE):
         print("{0}{1!s}{2}".format(color, msg, RESET))
     return
 
-# -------------------
-#       LOGGING
-# -------------------
-
-# Usage:
-#   logger = logging.getLogger(__name__)
-#   logging.basicConfig(level=logging.DEBUG)
-#   handler = logging.FileHandler('debug.log')
-#   handler.setLevel(logging.DEBUG)
-#   # Configure a good format for the logs to save as
-#   formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-#   handler.setFormatter(formatter)
-#   # Add the handler to the logger
-#   logger.addHandler(handler)
-#   logger.debug('Logger initialized')
-# logging statements you can place in code
-#logger.debug('foo')
-#logger.debug('var: url_slices is %s', url_slices)
-#logger.error('foo', exc_info=True)
-#logger.info('Destination File already exists')
 
 
-# ==========================[ BEGIN APPLICATION ]========================== #
-
-
-
-
-
-
-
-
-
-
-def main():
-    """
-    Main function of the script
-
-    """
-    # Quick 'n dirty args if not using argparse
-    args = sys.argv[1:]
-
-    if not args:
-        print('Usage: [--flags options] [inputs] ')
-        sys.exit(1)
-
-    # -- arg parsing --
-    parser = argparse.ArgumentParser()
-    parser = argparse.ArgumentParser(description="Description of this tool")
-    parser.add_argument("-f", "--filename",
-                        nargs='*',
-                        help="Specify a file containing the output of an nmap "
-                             "scan in xml format.")
-    parser.add_argument("-o", "--output",
-                        help="Specify output file name")
-    parser.add_argument('--url', action='store', default=None, dest='url', help='Pass URL to request')
-
-    parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-    parser.add_argument("-d", "--debug",
-                        help="Display error information",
-                        action="store_true")
-
-    args = parser.parse_args()
-
-    # If we have a mandatory arg, use it here; if not given, display usage
-    if not args.filename:
-        parser.print_help()
-        exit(1)
-
-    # Now store our args into variables for use
-    # NOTE: infile will be a list of files, bc args.filename accepts multiple input files
-    infile = args.filename
-    outfile = args.output
-    url = args.url
-
-
-    #  -- Config File parsing --
-    #config = ConfigParser()
-    #try:
-        #config.read(MY_SETTINGS)
-        #config_value_format = config.get('youtube', 'format')
-        # Split a list into strings from a config file
-        #config_value_urls = config.get('youtube', 'urls')
-        #urls = shlex.split(config_value_urls)
-        #print("[DEBUG] urls: {0}".format(urls))
-
-    try:
-        # main application flow
-        pass
-    except KeyboardInterrupt:
-        shutdown_app()
-    return
-
-
-if __name__ == '__main__':
-    main()
-
-
-# =========================================================================== #
-# ================================[ RECIPES ]================================ #
-#
-#
 
 # Enable install of pip requirements within same script file
 import subprocess

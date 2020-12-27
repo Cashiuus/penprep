@@ -64,7 +64,10 @@ fi
 
 ##  Functions
 ## =================================== ##
-
+function echo_prompter() {
+  PROMPT="${PROMPT}"
+  echo "$PROMPT $@"
+}
 
 
 
@@ -279,7 +282,7 @@ trap finish EXIT
 #
 # ---= Copy Hidden Files/Directories =--- Testing performed on Debian 10 (man cp shows GNU coreutils 8.30)
 #
-# Issue:  On Debian 10, by default, this does not work and copies parent 
+# Issue:  On Debian 10, by default, this does not work and copies parent
 #     directory instead of .envs_template/ subdir:
 #       cd ~/git/Ghostwriter && cp -r .envs_templates/.* .envs
 #
