@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     setup-kali-base.sh
 # Author:   Cashiuus
-# Created:  27-Jan-2016  - Revised: 01-Oct-2018
+# Created:  27-Jan-2016  - Revised: 16-Oct-2020
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup bare bones kali with reasonable default options & packages
@@ -18,7 +18,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.1"
+__version__="1.2"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 GREEN="\033[01;32m"     # Success
@@ -134,12 +134,11 @@ echo -e "${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wai
 export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y upgrade
-# TODO: Skipping for now because XFCE dist upgrade causes black screen of death loops
 $SUDO apt-get -y -q dist-upgrade
 $SUDO apt-get -y install bash-completion build-essential curl locate gcc git jq \
   make net-tools sudo
 # Extra Packages - Utilities
-$SUDO apt-get -y install geany htop sysv-rc-conf
+$SUDO apt-get -y install geany htop strace sysv-rc-conf tree
 
 # Kali metapackages we want installed in case they already aren't
 $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
@@ -151,16 +150,48 @@ $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
   screen shellter sqlmap swftools tmux tshark vlan whatweb wifite windows-binaries \
   wpscan yersinia zsh
 
+# Enabling python 3 default
+$SUDO apt-get -y remove --purge python-pip
+$SUDO apt-get -y install python3-pip python-is-python3
+
 
 # =============================[ System Configurations]================================ #
 # Configure Static IP
 #read -n 5 -p "[+] Enter static IP Address or just press enter for DHCP : " -e response
 #if [[ $response != "" ]]; then
-#    # do stuff
+#   # do stuff
 #   ip addr add ${response}/24 dev eth0 2>/dev/null
 #fi
 
 
+# [ Terminal Tweaks ]
+if [[ ${TERM} == 'xterm-256color' ]]; then
+  # Configure XFCE4 Terminal defaults in its config file
+  file="${HOME}/.config/xfce4/terminal/terminalrc"
+  if [[ -s "${file}" ]]; then
+    # TODO: Not sure if this file is present on a vanilla install and/or if
+    # these 'scrolling' settings were only present because I had tweaked them.
+    sed -i 's/^ScrollingLines=.*/ScrollingLines=90000/' "${file}"
+    sed -i 's/^ScrollingOnOutput=.*/ScrollingOnOutput=FALSE/' "${file}"
+    sed -i 's/^ScrollingUnlimited=.*/ScrollingUnlimited=TRUE/' "${file}"
+    echo "FontName=Monospace 11" >> "${file}"
+    echo "BackgroundMode=TERMINAL_BACKGROUND_TRANSPARENT" >> "${file}"
+    echo "BackgroundDarkness=0.970000" >> "${file}"
+  else
+    mkdir -p "${HOME}/.config/xfce4/terminal/"
+    cat <<EOF > "${file}"
+
+FontName=Monospace 11
+ScrollingLines=90000
+ScrollingOnOutput=FALSE
+ScrollingUnlimited=TRUE
+EOF
+
+  fi
+fi
+
+
+# [ Gnome or XFCE Desktop Manager Tweaks ]
 if [[ ${GDMSESSION} == 'default' ]]; then
   echo -e "${GREEN}[*] ${RESET}Reconfiguring GNOME and related app settings"
 
@@ -230,23 +261,6 @@ elif [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
   xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
   xfconf-query -n -c thunar -p /last-details-view-column-widths -t string -s "50,133,50,50,178,50,50,73,70"
   xfconf-query -n -c thunar -p /last-view -t string -s "ThunarDetailsView"
-
-  # Configure XFCE4 Terminal defaults in its config file
-  file="${HOME}/.config/xfce4/terminal/terminalrc"
-  if [[ -s "${file}" ]]; then
-    # TODO: Not sure if this file is present on a vanilla install and/or if
-    # these 'scrolling' settings were only present because I had tweaked them.
-    sed -i 's/^ScrollingLines=.*/ScrollingLines=9000/' "${file}"
-    sed -i 's/^ScrollingOnOutput=.*/ScrollingOnOutput=FALSE/' "${file}"
-    echo "FontName=Monospace 11" >> "${file}"
-    echo "BackgroundMode=TERMINAL_BACKGROUND_TRANSPARENT" >> "${file}"
-    echo "BackgroundDarkness=0.970000" >> "${file}"
-  else
-    mkdir -p "${HOME}/.config/xfce4/terminal/"
-    cat <<EOF > "${file}"
-
-
-EOF
 fi
 
 
@@ -424,6 +438,10 @@ echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your email: "
 read $GITEMAIL
 git config --global user.email $GITEMAIL
 git config --global color.ui auto
+
+echo -e "${GREEN}[*]${RESET} As of Oct 1, 2020, Git has changed default branch to 'main'"
+echo -e "${GREEN}[*]${RESET} Therefore, setting your git config default branch to 'main' now"
+git config --global init.defaultBranch main
 
 # Git Aliases Ref: https://git-scm.com/book/en/v2/Git-Basics-Git-Aliases
 # Other settings/standard alias helpers

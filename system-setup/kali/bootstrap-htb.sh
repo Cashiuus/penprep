@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 09-Jun-2020
+# Created:  08-Apr-2020     Revised: 27-Dec-2020
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -15,7 +15,8 @@
 # Shorter: curl -sSL https://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh | bash
 #
 #
-##-[ Links/Credit ]-----------------------------------------------------------------------
+##-[ Changelog ]-----------------------------------------------------------------------
+#   2020-12-27: Removed python 2 from setup completely, as python 3 is the default now
 #
 #
 ##-[ Copyright ]--------------------------------------------------------------------------
@@ -144,8 +145,8 @@ fi
 
 # ===========================[ Bash History Sizes ]============================== #
 file="${HOME}/.bashrc"
-sed -i 's/^HISTSIZE=.*/HISTSIZE=9000/' "${file}"
-sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=9000/' "${file}"
+sed -i 's/^HISTSIZE=.*/HISTSIZE=90000/' "${file}"
+sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=9999/' "${file}"
 
 if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
   # Increasing terminal history scrolling limit
@@ -178,25 +179,17 @@ echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
 $SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc geany git \
   golang jq libssl-dev make net-tools openssl openvpn powershell tmux wget
 
-$SUDO apt-get -y -qq install geany htop sysv-rc-conf
+$SUDO apt-get -y -qq install geany htop sysv-rc-conf tree
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing commonly used HTB tools"
 $SUDO apt-get -y -qq install dirb dirbuster exploitdb libimage-exiftool-perl nikto \
-  rdesktop responder shellter sqlmap windows-binaries
-
-# Python
-echo -e "\n${GREEN}[*] ${RESET}python :: Installing/Configuring Python"
-$SUDO apt-get -y -qq install python python-dev python-setuptools virtualenv virtualenvwrapper || \
-  echo -e "${YELLOW}[ERROR] Errors occurred installing Python 2.x, you may have issues${RESET}" \
-  && sleep 2
-# Currently issues with python-pip package so it's separate in case it fails
-$SUDO apt-get -y -qq install python-pip || \
-  echo -e "${YELLOW}[ERROR] Failed to install python-pip for Python 2 (out of support), use Python 3 instead${RESET}"
+  rdesktop responder seclists shellter sqlmap windows-binaries
 
 # Python 3
 $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
   echo -e "${YELLOW}[ERROR] Errors occurred installing Python 3.x, you may have issues${RESET}" \
   && sleep 2
+$SUDO apt-get -y install python-is-python3
 
 # Pillow depends
 $SUDO apt-get -y -qq install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
@@ -214,6 +207,7 @@ beautifulsoup4
 colorama
 dnspython
 future
+htbclient
 lxml
 mechanize
 netaddr
@@ -228,8 +222,6 @@ requests
 six
 wheel
 EOF
-# In this case, we do not need to SUDO here
-python -m pip install -q -r /tmp/requirements.txt
 
 python3 -m pip install -q -r /tmp/requirements.txt
 
@@ -300,14 +292,13 @@ echo -e "\n${GREEN}[*] ${RESET}Installing Python Impacket collection"
 cd ~/git
 git clone https://github.com/SecureAuthCorp/impacket
 cd impacket
-$SUDO python setup.py install
 $SUDO python3 setup.py install
-# or $SUDO pip install . ?
 
 ### Additional git clones to grab
 echo -e "\n${GREEN}[*] ${RESET}Grabbing Github projects that will be useful"
 cd ~/git
-git clone https://github.com/danielmiessler/SecLists
+
+git clone https://github.com/DominicBreuker/pspy
 git clone https://github.com/PowerShellMafia/PowerSploit
 git clone https://github.com/abatchy17/WindowsExploits
 git clone https://github.com/Tib3rius/AutoRecon
@@ -324,7 +315,24 @@ git clone https://github.com/eb3095/php-shell
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful privilege escalation scanners"
 cd ~/htb/privesc-checkers/
 git clone https://github.com/pentestmonkey/windows-privesc-check
-git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite PEASS
+git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite peass
+
+
+# These are burp extensions
+mkdir -p ~/burpsuite/extensions && cd ~/burpsuite/extensions
+git clone https://github.com/bit4woo/domain_hunter
+
+
+echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into /opt/..."
+cd /opt
+$SUDO git clone https://github.com/BloodHoundAD/BloodHound
+$SUDO git clone https://github.com/cobbr/Covenant
+$SUDO git clone https://github.com/leebaird/discover
+$SUDO git clone https://github.com/elceef/dnstwist
+$SUDO git clone https://github.com/TheWover/donut
+$SUDO git clone https://github.com/GhostPack/Seatbelt
+$SUDO git clone https://github.com/byt3bl33d3r/SprayingToolkit
+
 
 
 # Init our rockyou wordlist
