@@ -17,8 +17,3 @@ if [ -n "$BASH_VERSION" ]; then
         . "$HOME/.bashrc"
     fi
 fi
-
-# Go support
-PATH=$GOPATH/bin:$GOROOT/bin:$PATH
-# set PATH so it includes user's local bin, python now uses by default
-PATH=$HOME/.local/bin:$PATH

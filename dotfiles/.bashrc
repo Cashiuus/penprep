@@ -53,7 +53,7 @@ shopt -s histappend
 HISTCONTROL=ignoreboth
 ### For setting history length see HISTSIZE and HISTFILESIZE
 # HISTSIZE (Default: 1000) For memory scrollback
-HISTSIZE=9000
+HISTSIZE=90000
 # HISTFILESIZE (Default: 2000) For history file (e.g. bash_history)
 HISTFILESIZE=9000
 # Include timestamps in history log
@@ -137,9 +137,17 @@ export EDITOR=nano
 [[ -s "/usr/local/bin/virtualenvwrapper.sh" ]] && source "/usr/local/bin/virtualenvwrapper.sh"
 [[ -d "${HOME}/.virtualenvs" ]] && export WORKON_HOME="${HOME}/.virtualenvs"
 
-# NVM preloading
+# NVM preloading & bash completions
 [[ -d "${HOME}/.nvm" ]] && export NVM_DIR="${HOME}/.nvm"
 [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh"
+[[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion"
 
 # Go Lang PATH support
-[[ -d "${HOME}/workspace" ]] && export GOPATH="${HOME}/workspace"
+[[ -d "${HOME}/workspace" ]] && export GOPATH="${HOME}/workspace" \
+    && export GOBIN="${HOME}/workspace/bin"
+export GOROOT=/usr/lib/go
+
+# Go support
+PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+# set PATH so it includes user's local bin, python now uses by default
+PATH=$PATH:$HOME/.local/bin
