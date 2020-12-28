@@ -3,7 +3,7 @@
 # File:     setup-conky.sh
 #
 # Author:   Cashiuus
-# Created:  27-Jan-2016          Revised:    01-Oct-2018
+# Created:  27-Jan-2016          Revised:    28-Dec-2020
 #
 #-[ Usage ]-------------------------------------------------------------------------------
 # Purpose:  Setup conky monitor dashboard on desktop with pre-configured style
@@ -42,6 +42,7 @@ NEW_CONKY_CONF="${HOME}/.config/conky/conky.conf"
 
 LSB_RELEASE=$(lsb_release -cs)
 CONKY_VERSION=$(dpkg-query -f '${Version}' -W conky)
+ETH_INTERFACE=$(ip link | awk -F: '$0 ~ "eth|ens"{print $2;getline}' | sed -e 's/^[[:space:]]*//')
 
 #======[ ROOT PRE-CHECK ]=======#
 function check_root() {
@@ -71,7 +72,7 @@ if [[ ${LSB_RELEASE} == 'jessie' ]]; then
   #   dpkg-query -W | grep ~bpo
   # View list of all potential packages:
   #   apt-cache policy <pkg>
-  
+
   export DEBIAN_FRONTEND=noninteractive
   echo -e "${GREEN}[*]${RESET} Checking for and removing pre-existing conky installs..."
   $SUDO apt-get -y remove --purge conky conky-std
@@ -91,14 +92,18 @@ fi
 if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
     # NOTE: Another env var that could be used is: XDG_CURRENT_DESKTOP=XFCE
   echo -e "${YELLOW}[INFO]${RESET} ${GDMSESSION} detected, skipping GNOME tweaks..."
-  # NOTE: Don't need sudo for these commands, actually didn't seem to fix 
+  # NOTE: Don't need sudo for these commands, actually didn't seem to fix
   #       conky when I used sudo, but conky went transparent after running
   #       these as user without sudo.
   xfconf-query -n -c xfwm4 -p /general/use_compositing -t bool -s true
   xfconf-query -n -c xfwm4 -p /general/frame_opacity -t int -s 85
 fi
 
-
+# Handling for linux distros that use 'ens33' etc, instead of eth0, is fallback
+if [[ ! ${ETH_INTERFACE} ]]; then
+  ETH_INTERFACE='eth0'
+fi
+echo -e "${GREEN}[*] ${RESET}Your network interface is ${ORANGE}${ETH_INTERFACE}${RESET} and will be used in the conky overlay config"
 # -----------------------------------
 # NOTE: Debian 8 "jessie" still uses conky 1.9, unless you enable unstable "sid" distro instead.
 # Conky < 1.9 uses old config style we are used to using
@@ -181,9 +186,9 @@ Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
 \${fs_bar 4 /}
 
 \${color yellow}NETWORK \${hr 1}\${color}
-\${if_up eth0}\${color white}LAN: eth0 (\${addr eth0})
-Down\${color}: \${downspeed eth0}KB/s \${color white}Up\${color}: \${upspeed eth0}KB/s
-\${downspeedgraph eth0 10,80 99cc33 006600} \${alignr}\${upspeedgraph eth0 10,80 ffcc00 ff0000}
+\${if_up ${ETH_INTERFACE}\${color white}LAN: ${ETH_INTERFACE} (\${addr ${ETH_INTERFACE})
+Down\${color}: \${downspeed ${ETH_INTERFACE}}KB/s \${color white}Up\${color}: \${upspeed ${ETH_INTERFACE}}KB/s
+\${downspeedgraph ${ETH_INTERFACE} 10,80 99cc33 006600} \${alignr}\${upspeedgraph ${ETH_INTERFACE} 10,80 ffcc00 ff0000}
 \${endif}
 
 \${color green}CUSTOM ALIASES \${hr 1}\${color}
@@ -198,7 +203,7 @@ else
   [[ ! -d "${filedir}" ]] && mkdir -p "${filedir}"
   cat <<EOF > "${NEW_CONKY_CONF}"
 conky.config = {
-    -- References: 
+    -- References:
     --    https://wiki.archlinux.org/index.php/conky
     --    https://github.com/brndnmtthws/conky/wiki/Configuration-Settings
     gap_x = 12,

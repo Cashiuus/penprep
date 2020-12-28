@@ -13,6 +13,9 @@ APP_SETTINGS_DIR=$(dirname ${APP_SETTINGS})
 # Can specify the user account for installation scripts, but not needed.
 INSTALL_USER=${USER}
 LSB_RELEASE=$(lsb_release -cs)
+ETH_INTERFACE=$(ip link | awk -F: '$0 ~ "eth|ens"{print $2;getline}' | sed -e 's/^[[:space:]]*//')
+#WLAN_INTERFACE=$(ip link | awk -F: '$0 ~ "wl"{print $2;getline}' | sed -e 's/^[[:space:]]*//')
+#TUN_INTERFACE=$(ip link | awk -F: '$0 ~ "tun"{print $2;getline}' | sed -e 's/^[[:space:]]*//')
 
 ## ==========[ TEXT COLORS ]============= ##
 GREEN="\033[01;32m"     # Success
@@ -156,7 +159,7 @@ function check_root_kali() {
   fi
 }
 
-##	Functions :: Core Utility Helpers
+##  Functions :: Core Utility Helpers
 # ============================================================================ #
 function pause() {
   # Simple function to pause a script mid-stride
@@ -202,11 +205,11 @@ check_root
 #   Function :: Python 3 Install/Setup
 # ============================================================================ #
 function install_python3() {
-    
+
     PY3_VERSION="3"             # Kali is 3.8, while Debian is 3.7, so being generic here
     DEFAULT_VERSION="3"        # Determines which is set to default (2 or 3)
     DEFAULT_PY3_ENV="default-py3"
-    
+
     $SUDO apt-get -y -qq update
 
     # Core programming environment dependency files
@@ -326,12 +329,12 @@ function install_python2() {
 
     $SUDO apt-get -y install python-pip
     [[ "$?" -eq 0 ]] && PIP2_SUCCESSFUL=true
-    
+
     if [[ ${PIP2_SUCCESSFUL} = true ]]; then
         echo -e "\n${GREEN}[*]${RESET} Installing baseline pip pkgs for Python 2"
         pip install -r /tmp/requirements.txt
     fi
-    
+
     # Virtual Environment Setup - Python 2.7.x
     echo -e "\n${GREEN}[*]${RESET} Creating a Python 2 standard virtualenv"
     mkvirtualenv "${DEFAULT_PY2_ENV}" -p /usr/bin/python${PY2_VERSION}
@@ -349,7 +352,7 @@ function install_python_django() {
 
 
     install_python3
-    
+
     # Install dependencies
     $SUDO apt-get -y install graphviz
 
@@ -391,9 +394,9 @@ function install_cookiecutter() {
     cd ~/git
     pip install cookiecutter
     cookiecutter https://github.com/pydanny/cookiecutter-django
-    
+
     # For timezone, default is UTC, but can type in "EST"
-    # Cloud provider is for serving static/media files. 
+    # Cloud provider is for serving static/media files.
     # If you choose None, make sure to choose "y" for Whitenoise later.
 
     # Postgres Version: Choose 12
