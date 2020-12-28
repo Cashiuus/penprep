@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     setup-debian.sh
 # Author:   Cashiuus
-# Created:  15-Jan-2016         Revised:  01-Oct-2018
+# Created:  15-Jan-2016         Revised:  28-Dec-2020
 #
 #-[ Info ]-------------------------------------------------------------------------------
 #- Purpose:  Setup a fresh Debian 8 server, typically within a Virtual Machine.
@@ -12,6 +12,8 @@
 #     1.  Below, set the constant "INSTALL_USER" to your primary account you are using
 #         If you don't, it'll default to 'user1'
 #
+#  Changes:
+#       - 2020-12-28 v1.4: Settings for gnome-terminal, now default in Deb 10
 #
 #-[ Links/Credit ]------------------------------------------------------------------------
 #   - http://www.debiantutorials.com/
@@ -22,7 +24,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.3"
+__version__="1.4"
 __author__="Cashiuus"
 
 ## ============[ CONSTANTS ]================ ##
@@ -107,6 +109,7 @@ echo -e "${GREEN}[*]${RESET} Performing apt-get update, please wait..."
 export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 
+
 # -== Gnome & XFCE default tweaks ==- #
 # xfce4-settings-editor will show settings in GUI window
 
@@ -115,14 +118,40 @@ file="${HOME}/.config/xfce4/terminal/terminalrc"
 if [[ -s "${file}" ]]; then
   # TODO: Not sure if this file is present on a vanilla install and/or if
   # these 'scrolling' settings were only present because I had tweaked them.
-  sed -i 's/^ScrollingLines=.*/ScrollingLines=9000/' "${file}"
+  #sed -i 's/^ScrollingLines=.*/ScrollingLines=9000/' "${file}"
   sed -i 's/^ScrollingOnOutput=.*/ScrollingOnOutput=FALSE/' "${file}"
-  sed -i 's/^FontName=.*/FontName=Monospace 10/' "${file}" || \
+  #sed -i 's/^FontName=.*/FontName=Monospace 10/' "${file}" || \
     echo "FontName=Monospace 10" >> "${file}"
-  echo "BackgroundMode=TERMINAL_BACKGROUND_TRANSPARENT" >> "${file}"
-  echo "BackgroundDarkness=0.970000" >> "${file}"
+  #echo "BackgroundMode=TERMINAL_BACKGROUND_TRANSPARENT" >> "${file}"
+  #echo "BackgroundDarkness=0.970000" >> "${file}"
 fi
 
+
+# --------------------
+#   GNOME Terminal
+# --------------------
+#   Need to use dconf to do this
+#   List profiles: dconf list /org/gnome/terminal/legacy/profiles:/
+#   Specify profile ID to get list of settings you can configure:
+#       dconf list /org/gnome/terminal/legacy/profiles:/<id>
+if [[ $(which gnome-terminal) ]]; then
+    MYPROFILE=$(dconf list /org/gnome/terminal/legacy/profiles:/)
+    dconf write /org/gnome/terminal/legacy/profiles:/"${MYPROFILE}"/visible-name "'Default'"
+    dconf write /org/gnome/terminal/legacy/profiles:/"${MYPROFILE}"/scrollback-unlimited true
+    dconf write /org/gnome/terminal/legacy/profiles:/"${MYPROFILE}"/audible-bell false
+    # These colors represent "Tango Dark" profile. Doesn't seem to be a setting for it by name.
+    dconf write /org/gnome/terminal/legacy/profiles:/"${MYPROFILE}"/background-color "'rgb(46,52,54)'"
+    dconf write /org/gnome/terminal/legacy/profiles:/"${MYPROFILE}"/foreground-color "'rgb(211,215,207)'"
+
+    # Method 2: gconftool-2 *This did not work for me on Debian 10
+    #   Get list of profiles: gconftool-2 --get /apps/gnome-terminal/profiles/global/profile_list
+    #   Get list of settings: gconftool-2 -a "/apps/gnome-terminal/profiles/Default"
+fi
+
+
+# -------------------------
+#   XFCE Tweaks continued
+# -------------------------
 # Setup 3 workspaces (Default: 4)
 xfconf-query -n -c xfwm4 -p /general/workspace_count -t int -s 3
 
@@ -157,8 +186,8 @@ echo -e "${GREEN}[*]${RESET} Performing a distro upgrade and installing core pkg
 $SUDO apt-get -qy upgrade
 $SUDO apt-get -qy dist-upgrade
 
-$SUDO apt-get -y install build-essential gcc git make mlocate screen
-$SUDO apt-get -y install geany unrar
+$SUDO apt-get -y install build-essential gcc git htop make mlocate screen strace
+$SUDO apt-get -y install gconf-editor geany unrar
 
 # Optional remote access services
 $SUDO apt-get -y install openvpn openssl openssh-server
@@ -166,6 +195,9 @@ $SUDO apt-get -y install openvpn openssl openssh-server
 # Install disk usage analyzers we may need to isolate disk space issues
 # baobab = Disk Usage Analyzer - Menu shortcut will show up under Applications -> SYSTEM
 $SUDO apt-get -y install baobab
+
+# Install libreoffice
+$SUDO apt-get -y install libreoffice
 
 # Initializing them disabled to prevent insecure remote services to be cautious
 echo -e "${GREEN}[*]${RESET} Disabling several network services for security hardening"
@@ -211,25 +243,26 @@ fi
 
 # -== Git global config settings ==- #
 echo -e -n "\n${YELLOW}[ INPUT ]${RESET} Git global config :: Enter your name: "
-read $GIT_NAME
+read GIT_NAME
 [[ ${GIT_NAME} ]] && git config --global user.name $GIT_NAME
 echo -e -n "\n${YELLOW}[ INPUT ]${RESET} Git global config :: Enter your email: "
-read $GIT_EMAIL 
+read GIT_EMAIL
 [[ ${GIT_EMAIL} ]] && git config --global user.email $GIT_EMAIL
 git config --global color.ui auto
 
 
-function customize_desktop() {
+function install_plank_desktop() {
   $SUDO apt-get -y install plank
   # Need to remove the default dock
-  
+
   # Then, launch plank
   plank &
-  
+
   # Open plank preferences
   #plank --preferences
-  
-  }
+
+}
+#install_plank_desktop
 
 
 function finish() {
@@ -253,8 +286,8 @@ trap finish EXIT
 
 # ====[ Remove Bloat ]======
 #if [[ "$KEEP_LIBREOFFICE" = false ]]; then
-#	echo -e "#{GREEN}[*] Removing LibreOffice packages first..."
-#	$SUDO apt-get -qq remove --purge libreoffice*
+#   echo -e "#{GREEN}[*] Removing LibreOffice packages first..."
+#   $SUDO apt-get -qq remove --purge libreoffice*
 #fi
 #$SUDO apt-get -y remove libreoffice libreoffice-base
 #$SUDO apt-get -y autoremove
@@ -275,7 +308,7 @@ trap finish EXIT
 # After you save and close, remount everything to get it to mount
 #$SUDO mount -a
 #
-# *NOTE: If you get a permission error, it's likely your share is 
+# *NOTE: If you get a permission error, it's likely your share is
 #        blocking you from accessing it as a guest
 #
 # ------------------------------------------------------------------------- #

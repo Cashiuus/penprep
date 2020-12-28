@@ -101,8 +101,8 @@ function check_root() {
 check_root
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
-$SUDO apt-get -y install python-pip geany
-$SUDO pip install flake8 pep8-naming
+$SUDO apt-get -y install geany python3-pip
+$SUDO python3 -m pip install python3-flake8 python3-pep8-naming
 
 # TODO: Refactor this so if 'dconf' command is not found, it moves on
 if [[ $($SUDO dconf read /org/gnome/gnome-panel/layout/object-id-list) ]]; then
