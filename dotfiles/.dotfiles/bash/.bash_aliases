@@ -66,7 +66,7 @@ alias timer='echo "Timer started. Stop with Ctrl-D." && date && time cat && date
 ### Security Tool Enhancements
 alias nexpose='service postgresql stop ; cd /opt/rapid7/nexpose/nsc ; ./nsc.sh'
 alias nmap="nmap --reason --open"
-alias nse(){ find /usr/share/nmap/scripts/ -iname "*$1*" -printf '%P\n';}
+function nse(){ find /usr/share/nmap/scripts/ -iname "*$1*" -printf '%P\n';}
 alias aircrack-ng="aircrack-ng -z"
 alias airodump-ng="airodump-ng --manufacturer --wps --uptime"
 ### Metasploit
