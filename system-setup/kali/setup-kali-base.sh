@@ -246,10 +246,6 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   gsettings set org.gnome.gedit.preferences.ui toolbar-visible true                 # Default: true
   gsettings set org.gnome.gedit.state.window side-panel-size 150                    # Default: 200
 
-  # ====[ Configure - Default GNOME Terminal ]==== #
-  gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_type transparent
-  gconftool-2 -t string -s /apps/gnome-terminal/profiles/Default/background_darkness 0.95
-
   # Modify the default "favorite apps"
   gsettings set org.gnome.shell favorite-apps \
     "['org.gnome.Terminal.desktop', 'org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'kali-burpsuite.desktop', 'kali-armitage.desktop', 'kali-msfconsole.desktop', 'kali-maltego.desktop', 'kali-beef.desktop', 'kali-faraday.desktop', 'geany.desktop']"
@@ -377,11 +373,11 @@ function configure_bash_systemwide() {
   grep -q "nocaseglob" "${file}" \
       || echo "shopt -sq nocaseglob" >> "${file}"         # Case insensitive pathname expansion
   grep -q "HISTSIZE" "${file}" \
-      || echo "HISTSIZE=10000" >> "${file}"               # Bash history (memory scroll back)
-  sed -i 's/^HISTSIZE=.*/HISTSIZE=10000/' "${file}"
+      || echo "HISTSIZE=90000" >> "${file}"               # Bash history (memory scroll back)
+  sed -i 's/^HISTSIZE=.*/HISTSIZE=90000/' "${file}"
   grep -q "HISTFILESIZE" "${file}" \
-      || echo "HISTFILESIZE=10000" >> "${file}"           # Bash history (file .bash_history)
-  sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=10000/' "${file}"
+      || echo "HISTFILESIZE=90000" >> "${file}"           # Bash history (file .bash_history)
+  sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=90000/' "${file}"
 
   # If last line of file is not blank, add a blank spacer line
   ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
@@ -410,10 +406,11 @@ install_bash_completion
 
 
 # ====[ Install default interfaces config ]======
-file=/etc/network/interfaces
-# TODO: add check if iface eth0 is already present & verify this is working correctly
-grep -q '^auto eth0' "${file}" \
-  || cat <<EOF >> "${file}"
+function configure_network() {
+  file=/etc/network/interfaces
+  # TODO: add check if iface eth0 is already present & verify this is working correctly
+  grep -q '^auto eth0' "${file}" \
+    || cat <<EOF >> "${file}"
 
 allow-hotplug eth0
 auto eth0
@@ -425,6 +422,8 @@ iface eth0 inet dhcp
 #    gateway
 #    network
 EOF
+}
+
 
 
 # ==========[ Configure GIT ]=========== #
@@ -432,11 +431,11 @@ EOF
 echo -e "${GREEN}[+]${RESET} Now setting up Git, you will be prompted to enter your name for commits."
 # -== Git global config settings ==- #
 echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your name: "
-read $GITNAME
-git config --global user.name $GITNAME
+read GIT_NAME
+git config --global user.name $GIT_NAME
 echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your email: "
-read $GITEMAIL
-git config --global user.email $GITEMAIL
+read GIT_EMAIL
+git config --global user.email $GIT_EMAIL
 git config --global color.ui auto
 
 echo -e "${GREEN}[*]${RESET} As of Oct 1, 2020, Git has changed default branch to 'main'"

@@ -41,8 +41,8 @@ OLD_CONKY_CONF="${HOME}/.conkyrc"
 NEW_CONKY_CONF="${HOME}/.config/conky/conky.conf"
 
 LSB_RELEASE=$(lsb_release -cs)
-CONKY_VERSION=$(dpkg-query -f '${Version}' -W conky)
 ETH_INTERFACE=$(ip link | awk -F: '$0 ~ "eth|ens"{print $2;getline}' | sed -e 's/^[[:space:]]*//')
+TUN_INTERFACE=$(ip link | awk -F: '$0 ~ "tun"{print $2;getline}' | sed -e 's/^[[:space:]]*//')
 
 #======[ ROOT PRE-CHECK ]=======#
 function check_root() {
@@ -83,6 +83,7 @@ else
   $SUDO apt-get -y install conky
 fi
 
+CONKY_VERSION=$(dpkg-query -f '${Version}' -W conky)
 if [[ ! $(which conky) ]]; then
   echo -e "${RED}[ ERROR ]${RESET} Conky was not correctly installed, please investigate."
   exit 1
@@ -100,8 +101,11 @@ if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
 fi
 
 # Handling for linux distros that use 'ens33' etc, instead of eth0, is fallback
-if [[ ! ${ETH_INTERFACE} ]]; then
+if [[ -z "$ETH_INTERFACE" ]]; then
   ETH_INTERFACE='eth0'
+fi
+if [[ -z "$TUN_INTERFACE" ]]; then
+  TUN_INTERFACE='tun0'
 fi
 echo -e "${GREEN}[*] ${RESET}Your network interface is ${ORANGE}${ETH_INTERFACE}${RESET} and will be used in the conky overlay config"
 # -----------------------------------
@@ -278,12 +282,13 @@ Root \${alignc}\${fs_used /} / \${fs_size /}\${alignr}\${fs_used_perc /}%
 \${fs_bar 4 /}
 
 \${color green}NETWORK \${hr 1}\${color}
-\${if_up eth0}\${color white}LAN: eth0 (\${addr eth0})
-\${downspeedgraph eth0 10,80 99cc33 006600} \${alignr}\${upspeedgraph eth0 10,80 ffcc00 ff0000}
-Down\${color}: \${downspeed eth0}KB/s \${alignr}\${color white}Up\${color}: \${upspeed eth0}KB/s
-\${endif}\${if_up wlan0}\${color white}LAN: wlan0 (\${addr wlan0})
-\${downspeedgraph wlan0 10,80 99cc33 006600} \${alignr}\${upspeedgraph wlan0 10,80 ffcc00 ff0000}
-Down\${color}: \${downspeed wlan0}KB/s \${alignr}\${color white}Up\${color}: \${upspeed wlan0}KB/s
+\${if_up ${ETH_INTERFACE}}\${color white}LAN: ${ETH_INTERFACE} (\${addr ${ETH_INTERFACE}})
+\${downspeedgraph ${ETH_INTERFACE} 10,80 99cc33 006600} \${alignr}\${upspeedgraph ${ETH_INTERFACE} 10,80 ffcc00 ff0000}
+Down\${color}: \${downspeed ${ETH_INTERFACE}}KB/s \${alignr}\${color white}Up\${color}: \${upspeed ${ETH_INTERFACE}}KB/s
+\${endif}
+\${if_up ${TUN_INTERFACE}}\${color white}TUN: ${TUN_INTERFACE} (\${addr ${TUN_INTERFACE}})
+\${downspeedgraph ${TUN_INTERFACE} 10,80 99cc33 006600} \${alignr}\${upspeedgraph ${TUN_INTERFACE} 10,80 ffcc00 ff0000}
+Down\${color}: \${downspeed ${TUN_INTERFACE}}KB/s \${alignr}\${color white}Up\${color}: \${upspeed ${TUN_INTERFACE}}KB/s
 \${endif}
 \${color1}Inbound \${alignr}Local Service/Port\${color}
 \$color \${tcp_portmon 1 32767 rhost 0} \${alignr}\${tcp_portmon 1 32767 lservice 0}

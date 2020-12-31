@@ -223,7 +223,7 @@ six
 wheel
 EOF
 
-python3 -m pip install -q -r /tmp/requirements.txt
+$SUDO python3 -m pip install -q -r /tmp/requirements.txt
 
 
 # =================[ Desktop Display Customizations ]================= #
@@ -287,23 +287,7 @@ echo -e "\n${GREEN}[*] ${RESET}Installing Evil-WinRM"
 $SUDO apt-get -y -qq install rubygems
 $SUDO gem install evil-winrm
 
-### Python Impacket install
-echo -e "\n${GREEN}[*] ${RESET}Installing Python Impacket collection"
-cd ~/git
-git clone https://github.com/SecureAuthCorp/impacket
-cd impacket
-$SUDO python3 setup.py install
-
 ### Additional git clones to grab
-echo -e "\n${GREEN}[*] ${RESET}Grabbing Github projects that will be useful"
-cd ~/git
-
-git clone https://github.com/DominicBreuker/pspy
-git clone https://github.com/PowerShellMafia/PowerSploit
-git clone https://github.com/abatchy17/WindowsExploits
-git clone https://github.com/Tib3rius/AutoRecon
-cd AutoRecon
-python3 -m pip install -r requirements.txt
 
 # Get common shells to use
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful shells/backdoors"
@@ -316,6 +300,10 @@ echo -e "\n${GREEN}[*] ${RESET}Grabbing useful privilege escalation scanners"
 cd ~/htb/privesc-checkers/
 git clone https://github.com/pentestmonkey/windows-privesc-check
 git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite peass
+git clone https://github.com/etc5had0w/suider
+git clone https://github.com/rasta-mouse/Sherlock sherlock
+git clone https://github.com/rasta-mouse/Watson watson
+git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester
 
 
 # These are burp extensions
@@ -332,15 +320,45 @@ $SUDO git clone https://github.com/elceef/dnstwist
 $SUDO git clone https://github.com/TheWover/donut
 $SUDO git clone https://github.com/GhostPack/Seatbelt
 $SUDO git clone https://github.com/byt3bl33d3r/SprayingToolkit
+$SUDO git clone https://github.com/DominicBreuker/pspy
+$SUDO git clone https://github.com/PowerShellMafia/PowerSploit
+$SUDO git clone https://github.com/abatchy17/WindowsExploits
+$SUDO git clone https://github.com/21y4d/nmapAutomator
+
+$SUDO python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
+if [[ ! $(which autorecon)) ]]; then
+  cd /opt/
+  $SUDO git clone https://github.com/Tib3rius/AutoRecon
+  cd AutoRecon
+  # TODO: Better to use a virtualenv, but only if it's easy for
+  # users to auto-activate it anytime they want to use AutoRecon
+  $SUDO python3 -m pip install -r requirements.txt
+  $SUDO ln -s /opt/AutoRecon/src/autorecon/autorecon.py /usr/local/bin/autorecon
+fi
+
+cd /opt/
+# Custom nmap nse script to run CVE checks
+$SUDO git clone https://github.com/vulnersCom/nmap-vulners
+$SUDO cp /opt/nmap-vulners/vulners.nse /usr/share/nmap/scripts/
+# Usage: nmap -sV --script vulners --script-args mincvss=7
+$SUDO nmap --script-updatedb
+# This repo has another "http-vulners-regex.nse" you can read up on.
 
 
+### Python Impacket install
+echo -e "\n${GREEN}[*] ${RESET}Installing Python Impacket collection"
+cd /opt/
+$SUDO git clone https://github.com/SecureAuthCorp/impacket
+cd impacket
+$SUDO python3 setup.py install
 
 # Init our rockyou wordlist
 echo -e "\n${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
+cd /usr/share/wordlists/
 $SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
+$SUDO ln -s /usr/share/seclists seclists 2>/dev/null
 
-
-echo -e "${GREEN}[*] ${RESET}Installing VPN helper script to ~/vpn/vpn-helper.sh"
+echo -e "${GREEN}[*] ${RESET}Installing VPN helper script to ${VPN_BASE_DIR}/vpn-helper.sh"
 file="${VPN_BASE_DIR}/vpn-helper.sh"
 #touch "${file}"
 cat <<EOF > "${file}"

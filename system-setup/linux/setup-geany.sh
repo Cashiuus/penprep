@@ -97,7 +97,7 @@ check_root
 # ================================[  BEGIN  ]================================ #
 $SUDO apt-get -qq update
 $SUDO apt-get -y install geany python3-pip
-$SUDO python3 -m pip install python3-flake8 python3-pep8-naming
+$SUDO apt-get -y install python3-flake8 python3-pep8-naming
 
 
 # =============================[ CONFIGURE GEANY ]================================ #
@@ -125,12 +125,10 @@ if [[ -e "${file}" ]]; then
   sed -i 's/^long_line_column=.*/long_line_column=90/' "${file}"
   sed -i 's/^long_line_color=.*/long_line_color=#C2EBC2/' "${file}"
   sed -i 's/^line_break_column=.*/line_break_column=90/' "${file}"
-
   sed -i 's/^auto_close_xml_tags=.*/auto_close_xml_tags=true/' "${file}"
   sed -i 's/^auto_complete_symbols=.*/auto_complete_symbols=true/' "${file}"
   sed -i 's/^autocomplete_doc_words=.*/autocomplete_doc_words=true/' "${file}"
   sed -i 's/^completion_drops_rest_of_word=.*/completion_drops_rest_of_word=true/' "${file}"
-
   sed -i 's/^pref_editor_newline_strip=.*/pref_editor_newline_strip=true/' "${file}"
   sed -i 's/^pref_editor_ensure_convert_line_endings=.*/pref_editor_ensure_convert_line_endings=true/' "${file}"
   sed -i 's/^pref_editor_replace_tabs=.*/pref_editor_replace_tabs=true/' "${file}"
@@ -149,7 +147,7 @@ if [[ -e "${file}" ]]; then
 
   #sed -i 's#^.*project_file_path=.*#project_file_path=/#' "${file}"
   #grep -q '^custom_commands=sort;' "${file}" \
-    || sed -i 's/\[geany\]/[geany]\ncustom_commands=sort;/' "${file}"
+  #  || sed -i 's/\[geany\]/[geany]\ncustom_commands=sort;/' "${file}"
 else
   # TODO: Test that this block works under sudo
 
