@@ -1,0 +1,16 @@
+
+
+
+
+# Unix
+alias ll="ls -al"
+alias ln="ln -v"
+alias mkdir="mkdir -p"
+alias e="$EDITOR"
+alias v="$VISUAL"
+alias cls='clear'
+alias path='echo $PATH | tr -s ":" "\n"'
+
+
+alias update-kali="apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade"
+

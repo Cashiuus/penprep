@@ -7,6 +7,7 @@ alias bashload="source ${HOME}/.bashrc"
 alias update-kali="apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade"
 alias cls='clear'
 alias open="gedit"
+alias path='echo $PATH | tr -s ":" "\n"'
 
 ### Custom Folder Workflows
 alias d="cd ~/Documents"
@@ -15,7 +16,6 @@ alias drop="cd ~/dropbox"
 alias e="cd ~/Engagements"
 alias g="cd /opt/git"
 alias p="cd /opt/pentest"
-alias u="cd ~/utils"
 
 ### Networking
 alias myip='curl ifconfig.me; echo'
@@ -121,10 +121,8 @@ fi
 
 # Always use color output for `ls`
 alias ls="command ls -Ahp ${colorflag}"
-# List all files colorized in long format
-alias l="ls -lF ${colorflag}"
-# List all files colorized in long format, including dot files
-alias la="ls -laF ${colorflag}"
+alias l="ls -alF ${colorflag}"
+alias ll="ls -al"
 # List only directories
 alias lsd="ls -lF ${colorflag} | grep --color=never '^d'"
 

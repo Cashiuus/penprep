@@ -144,8 +144,7 @@ export EDITOR=nano
 
 # Go Lang PATH support
 [[ -d "${HOME}/workspace" ]] && export GOPATH="${HOME}/workspace" \
-    && export GOBIN="${HOME}/workspace/bin"
-export GOROOT=/usr/lib/go
+    && export GOBIN="${HOME}/workspace/bin" && export GOROOT=/usr/lib/go
 
 # Go support
 PATH=$GOPATH/bin:$GOROOT/bin:$PATH
