@@ -378,14 +378,13 @@ function finish() {
   echo -e "  Directories:\t\t${HOME}/htb/boxes/"
   echo -e "  \t\t\t${HOME}/htb/shells/"
   echo -e "\n  Place VPN Files here:\t${HOME}/vpn/"
-  echo -e "  VPN Helper Script:\t${HOME}/vpn/vpn-helper.sh"
   echo -e "\n\n"
   echo -e "${GREEN}============================================================${RESET}"
-  echo -e -n "\n${GREEN}[+]${RESET}Setup is complete. Please ${ORANGE}REBOOT${RESET} for desktop settings to take effect."
+  echo -e "\n${GREEN}[*]${RESET} Setup is complete. Please ${ORANGE}REBOOT${RESET} for desktop settings to take effect."
   sleep 10
 
   FINISH_TIME=$(date +%s)
-  echo -e "\n${BLUE}[$(date +"%F %T")] ${GREEN}${APP_NAME} Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
+  echo -e "${BLUE}[*] ${GREEN}${APP_NAME} Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
 }
 # End of script
 trap finish EXIT
