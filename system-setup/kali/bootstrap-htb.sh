@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 27-Dec-2020
+# Created:  08-Apr-2020     Revised: 03-Feb-2021
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -22,7 +22,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.01"
+__version__="1.02"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
@@ -177,7 +177,7 @@ $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
 $SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc geany git \
-  golang jq libssl-dev make net-tools openssl openvpn powershell tmux wget
+  golang gzip jq libssl-dev make net-tools openssl openvpn powershell tmux wget unzip
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf tree
 
@@ -227,32 +227,35 @@ $SUDO python3 -m pip install -q -r /tmp/requirements.txt
 
 
 # =================[ Desktop Display Customizations ]================= #
-if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
-  # Thunar file manager settings - make hidden files visible
-  xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
+function desktop_tweaks() {
+  if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
+    # Thunar file manager settings - make hidden files visible
+    xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
 
-  # Add quick launcher apps to top left
-  #mkdir -p ~/.config/xfce4/panel/launcher-{8,9,10,11}
-  # Firefox
-  #ln -sf /usr/share/applications/firefox-esr.desktop ~/.config/xfce4/panel/launcher-8/browser.desktop
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "browser.desktop" -a
-  # Burpsuite
-  #ln -sf /usr/share/applications/kali-burpsuite.desktop ~/.config/xfce4/panel/launcher-9/kali-burpsuite.desktop
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9 -t string -s launcher
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "kali-burpsuite.desktop" -a
-  # Cherrytree
-  #ln -sf /usr/share/applications/cherrytree.desktop ~/.config/xfce4/panel/launcher-10/cherrytree.desktop
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10 -t string -s launcher
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/items -t string -s "cherrytree.desktop" -a
-  # Geany text editor / IDE
-  #ln -sf /usr/share/applications/geany.desktop ~/.config/xfce4/panel/launcher-11/geany.desktop
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
+    # Add quick launcher apps to top left
+    #mkdir -p ~/.config/xfce4/panel/launcher-{8,9,10,11}
+    # Firefox
+    #ln -sf /usr/share/applications/firefox-esr.desktop ~/.config/xfce4/panel/launcher-8/browser.desktop
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "browser.desktop" -a
+    # Burpsuite
+    #ln -sf /usr/share/applications/kali-burpsuite.desktop ~/.config/xfce4/panel/launcher-9/kali-burpsuite.desktop
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9 -t string -s launcher
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "kali-burpsuite.desktop" -a
+    # Cherrytree
+    #ln -sf /usr/share/applications/cherrytree.desktop ~/.config/xfce4/panel/launcher-10/cherrytree.desktop
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10 -t string -s launcher
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/items -t string -s "cherrytree.desktop" -a
+    # Geany text editor / IDE
+    #ln -sf /usr/share/applications/geany.desktop ~/.config/xfce4/panel/launcher-11/geany.desktop
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
 
-  #xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
 
-fi
+  fi
+}
+#desktop_tweaks
 
 
 # ======================[ Folder Structure ]====================== #
@@ -301,8 +304,8 @@ cd ~/htb/privesc-checkers/
 git clone https://github.com/pentestmonkey/windows-privesc-check
 git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite peass
 git clone https://github.com/etc5had0w/suider
-git clone https://github.com/rasta-mouse/Sherlock sherlock
-git clone https://github.com/rasta-mouse/Watson watson
+git clone https://github.com/rasta-mouse/Sherlock
+git clone https://github.com/rasta-mouse/Watson
 git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester
 
 
@@ -326,7 +329,7 @@ $SUDO git clone https://github.com/abatchy17/WindowsExploits
 $SUDO git clone https://github.com/21y4d/nmapAutomator
 
 $SUDO python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
-if [[ ! $(which autorecon)) ]]; then
+if [[ ! $(which autorecon) ]]; then
   cd /opt/
   $SUDO git clone https://github.com/Tib3rius/AutoRecon
   cd AutoRecon
@@ -357,44 +360,6 @@ echo -e "\n${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
 cd /usr/share/wordlists/
 $SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
 $SUDO ln -s /usr/share/seclists seclists 2>/dev/null
-
-echo -e "${GREEN}[*] ${RESET}Installing VPN helper script to ${VPN_BASE_DIR}/vpn-helper.sh"
-file="${VPN_BASE_DIR}/vpn-helper.sh"
-#touch "${file}"
-cat <<EOF > "${file}"
-#!/bin/bash
-
-VPN_BASE_DIR="\${HOME}/vpn"
-GREEN="\\033[01;32m"
-YELLOW="\\033[01;33m"
-RESET="\\033[00m"
-
-if [[ ! -s "\${VPN_BASE_DIR}/vpn-helper.conf" ]]; then
-    echo -e "\n\n\${GREEN}[+] \${RESET}First time running? Find your .ovpn file in this list below:"
-    echo -e "-----------------------[ \${HOME}/vpn/ ]-----------------------"
-    ls -al "\${VPN_BASE_DIR}"
-    echo -e "---------------------------------------------------------------"
-    echo -e -n "\${YELLOW}[+]\${RESET}"
-    read -e -p " Enter full path to your OpenVPN '.ovpn' file here: " RESPONSE
-    while [[ ! -s "\${RESPONSE}" ]]; do
-        echo -e -n "\${YELLOW}[-]\${RESET}"
-        read -e -p " You've provided an invalid file, try again: " RESPONSE
-    done
-    echo "OVPN_FILE=\${RESPONSE}" > "\${VPN_BASE_DIR}/vpn-helper.conf"
-else
-    echo -e "\${GREEN}[*] \${RESET}Config file exists! If not correct, edit \${VPN_BASE_DIR}/vpn-helper.conf"
-fi
-
-echo -e "\n\${GREEN}[*] \${RESET}Ensuring your VPN config file is secured with proper permissions"
-chmod 0600 "\${VPN_BASE_DIR}/vpn-helper.conf"
-. "\${VPN_BASE_DIR}/vpn-helper.conf"
-
-echo -e "\${GREEN}[*] \${RESET}Prep done, now launching OpenVPN with chosen .ovpn config"
-openvpn --config "\${OVPN_FILE}" \\
-    --script-security 2
-EOF
-chmod u+x "${file}"
-
 
 
 function finish() {
