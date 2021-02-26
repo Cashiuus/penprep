@@ -62,15 +62,6 @@ fi
 ## ========================================================================== ##
 
 
-##  Functions
-## =================================== ##
-function echo_prompter() {
-  PROMPT="${PROMPT}"
-  echo "$PROMPT $@"
-}
-
-
-
 ##  Running Main
 ## =================================== ##
 echo -e "${ORANGE} + -- -- -- --=[${RESET}  ${APP_NAME}  ${ORANGE}]=-- -- -- -- +${RESET}"
@@ -82,6 +73,20 @@ echo -e
 
 
 
+
+##  Functions
+## =================================== ##
+function echo_prompter() {
+  PROMPT="${PROMPT}"
+  echo "$PROMPT $@"
+}
+
+fail() {
+  # Something failed, exit.
+
+  echo "$@, exiting." >&2
+  exit 1
+}
 
 
 

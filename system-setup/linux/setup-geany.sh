@@ -238,6 +238,11 @@ FT_00_CM=python3 -m py_compile "%f"
 FT_00_WD=
 EOF
 
+# Custom file defs for syntax highlighting tweaks
+#cp /usr/share/geany/filedefs/filetypes.sh ${filedir}/
+#cp /usr/share/geany/filedefs/filetypes.python ${filedir}/
+
+
 # Add custom config for flake8 checking, exclude noisy Error Codes
 file="${HOME}/.config/flake8"
 cat << EOF > "${file}"
@@ -330,10 +335,20 @@ function geany_templates() {
 geany_templates
 
 
+echo -e "${GREEN}[*]${RESET} Installing custom Geany color themes"
+echo -e "${GREEN}[*]${RESET} Choose a theme from View -> Choose Color Theme"
+cd /tmp
+wget https://github.com/geany/geany-themes/archive/master.zip
+unzip master
+cd geany-themes-master
+./install.sh
+
 
 # Copy desktop shortcut to the desktop
 cp /usr/share/applications/geany.desktop "${HOME}/Desktop/"
 chmod u+x "${HOME}/Desktop/geany.desktop"
+
+echo -e "${GREEN}[*]${RESET} NOTE: If underscore characters are invisible, change font or adjust line height"
 
 function finish() {
   ###

@@ -1,6 +1,51 @@
 
 
 
+function install_vpn_helper_script() {
+  echo -e "${GREEN}[*] ${RESET}Installing VPN helper script to ${VPN_BASE_DIR}/vpn-helper.sh"
+  file="${VPN_BASE_DIR}/vpn-helper.sh"
+  #touch "${file}"
+  cat <<EOF > "${file}"
+#!/bin/bash
+
+VPN_BASE_DIR="\${HOME}/vpn"
+GREEN="\\033[01;32m"
+YELLOW="\\033[01;33m"
+RESET="\\033[00m"
+
+if [[ ! -s "\${VPN_BASE_DIR}/vpn-helper.conf" ]]; then
+    echo -e "\n\n\${GREEN}[+] \${RESET}First time running? Find your .ovpn file in this list below:"
+    echo -e "-----------------------[ \${HOME}/vpn/ ]-----------------------"
+    ls -al "\${VPN_BASE_DIR}"
+    echo -e "---------------------------------------------------------------"
+    echo -e -n "\${YELLOW}[+]\${RESET}"
+    read -e -p " Enter full path to your OpenVPN '.ovpn' file here: " RESPONSE
+    while [[ ! -s "\${RESPONSE}" ]]; do
+        echo -e -n "\${YELLOW}[-]\${RESET}"
+        read -e -p " You've provided an invalid file, try again: " RESPONSE
+    done
+    echo "OVPN_FILE=\${RESPONSE}" > "\${VPN_BASE_DIR}/vpn-helper.conf"
+else
+    echo -e "\${GREEN}[*] \${RESET}Config file exists! If not correct, edit \${VPN_BASE_DIR}/vpn-helper.conf"
+fi
+
+echo -e "\n\${GREEN}[*] \${RESET}Ensuring your VPN config file is secured with proper permissions"
+chmod 0600 "\${VPN_BASE_DIR}/vpn-helper.conf"
+. "\${VPN_BASE_DIR}/vpn-helper.conf"
+
+echo -e "\${GREEN}[*] \${RESET}Prep done, now launching OpenVPN with chosen .ovpn config"
+openvpn --config "\${OVPN_FILE}" \\
+    --script-security 2
+EOF
+chmod u+x "${file}"
+
+}
+
+
+
+
+
+
 function validate_port() {
   # We don't want to allow an unusable port
   if [ $sshport -lt 0 -o $sshport -gt 65535 ]; then

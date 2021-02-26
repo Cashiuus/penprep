@@ -192,6 +192,121 @@ function asksure() {
 
 
 
+check_sha256() {
+  # Pass file and hash and verify it
+  #   Usage: <file> <known_good_hash_to_verify>
+  ##
+
+  [[ $(which sha256sum) ]] || echo -e "[ERROR] sha256sum missing from system" && return
+
+  if [ $(sha256sum $1 | awk '{print $1}') = $2 ]; then
+    echo -e "[*] SHA256 hash matches what was provided!"
+    retval=1
+  else
+    echo -e "[-] SHA256 hash DOES NOT match what was provided!"
+    retval=0
+  fi
+  return $retval
+}
+
+
+
+
+patch_system() {
+  #Make sure all currently installed packages are updated.  This has the added benefit
+  #that we update the package metadata for later installing new packages.
+
+  if [ -x /usr/bin/apt-get -a -x /usr/bin/dpkg-query ]; then
+    while ! $SUDO sudo add-apt-repository universe ; do
+      echo "Error subscribing to universe repository, perhaps because a system update is running; will wait 60 seconds and try again." >&2
+      sleep 60
+    done
+    while ! $SUDO apt-get -q -y update >/dev/null ; do
+      echo "Error updating package metadata, perhaps because a system update is running; will wait 60 seconds and try again." >&2
+      sleep 60
+    done
+    while ! $SUDO apt-get -q -y upgrade >/dev/null ; do
+      echo "Error updating packages, perhaps because a system update is running; will wait 60 seconds and try again." >&2
+      sleep 60
+    done
+      while ! $SUDO apt-get -q -y install lsb-release >/dev/null ; do
+        echo "Error installing lsb-release, perhaps because a system update is running; will wait 60 seconds and try again." >&2
+        sleep 60
+      done
+  elif [ -x /usr/bin/yum -a -x /bin/rpm ]; then
+    $SUDO yum -q -e 0 makecache
+    $SUDO yum -y -q -e 0 -y install deltarpm
+    $SUDO yum -q -e 0 -y update
+    $SUDO yum -y -q -e 0 -y install redhat-lsb-core yum-utils
+    if [ -s /etc/redhat-release -a -s /etc/os-release ]; then
+      . /etc/os-release
+      if [ "$VERSION_ID" = "7" ]; then
+        $SUDO yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        if [ ! -e /etc/centos-release ]; then
+          $SUDO yum -y install subscription-manager
+          $SUDO subscription-manager repos --enable "rhel-*-optional-rpms" --enable "rhel-*-extras-rpms"  --enable "rhel-ha-for-rhel-*-server-rpms"
+        fi
+      elif [ "$VERSION_ID" = "8" ]; then
+        $SUDO yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+        if [ -e /etc/centos-release ]; then
+          $SUDO dnf config-manager --set-enabled powertools
+        else
+          $SUDO yum -y install subscription-manager
+          $SUDO subscription-manager repos --enable "codeready-builder-for-rhel-8-`/bin/arch`-rpms"
+        fi
+      fi
+    fi
+    $SUDO yum -q -e 0 makecache
+  fi
+}
+
+
+
+install_tool() {
+  # Install a program.
+  #   $1 holds the name of the executable we need
+  #   $2 is one or more packages that can supply that executable
+  #      (put preferred package names early in the list).
+  #
+  #   Usage:  install_tool <pkg_name>
+  #           install_tool nc "netcat nc nmap-ncat"
+  #           install_tool sha256sum "coreutils"
+  ###
+
+  binary="$1"
+  echo "Installing package that contains $binary" >&2
+  potential_packages="$2"
+
+  if type -path "$binary" >/dev/null ; then
+    echo "$binary executable is installed." >&2
+  else
+    if [ -x /usr/bin/apt-get -a -x /usr/bin/dpkg-query ]; then
+      for one_package in $potential_packages ; do
+        if ! type -path "$binary" >/dev/null ; then   #if a previous package was successfully able to install, don't try again.
+          $SUDO apt-get -q -y install $one_package
+        fi
+      done
+    elif [ -x /usr/bin/yum -a -x /bin/rpm ]; then
+      #Yum takes care of the lock loop for us
+      for one_package in $potential_packages ; do
+        if ! type -path "$binary" >/dev/null ; then   #if a previous package was successfully able to install, don't try again.
+          $SUDO yum -y -q -e 0 install $one_package
+        fi
+      done
+    else
+      fail "Neither (apt-get and dpkg-query) nor (yum, rpm, and yum-config-manager) is installed on the system"
+    fi
+  fi
+
+  if type -path "$binary" >/dev/null ; then
+    return 0
+  else
+    echo "WARNING: Unable to install $binary from a system package" >&2
+    return 1
+  fi
+}
+
+
 
 #   MAIN EXECUTION
 # ============================================================================ #

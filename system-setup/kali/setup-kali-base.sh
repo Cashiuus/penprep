@@ -146,7 +146,7 @@ $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
 
 # Extra packages - just in case they are missing
 $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
-  mitmproxy nikto openssh-server openssl proxychains rdesktop responder \
+  mitmproxy neo4j nikto openssh-server openssl proxychains rdesktop responder \
   screen shellter sqlmap swftools tmux tshark vlan whatweb wifite windows-binaries \
   wpscan yersinia zsh
 
@@ -427,7 +427,6 @@ EOF
 
 
 # ==========[ Configure GIT ]=========== #
-
 echo -e "${GREEN}[+]${RESET} Now setting up Git, you will be prompted to enter your name for commits."
 # -== Git global config settings ==- #
 echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your name: "
@@ -441,6 +440,8 @@ git config --global color.ui auto
 echo -e "${GREEN}[*]${RESET} As of Oct 1, 2020, Git has changed default branch to 'main'"
 echo -e "${GREEN}[*]${RESET} Therefore, setting your git config default branch to 'main' now"
 git config --global init.defaultBranch main
+# Set the previously-default setting to suppress warnings and make this the new default
+git config --global pull.rebase false
 
 # Git Aliases Ref: https://git-scm.com/book/en/v2/Git-Basics-Git-Aliases
 # Other settings/standard alias helpers

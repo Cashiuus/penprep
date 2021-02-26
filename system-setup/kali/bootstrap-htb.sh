@@ -22,7 +22,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.02"
+__version__="1.03"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
@@ -182,8 +182,8 @@ $SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc gea
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf tree
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing commonly used HTB tools"
-$SUDO apt-get -y -qq install dirb dirbuster exploitdb libimage-exiftool-perl nikto \
-  rdesktop responder seclists shellter sqlmap windows-binaries
+$SUDO apt-get -y -qq install dirb dirbuster exploitdb libimage-exiftool-perl neo4j \
+  nikto rdesktop responder seclists shellter sqlmap windows-binaries
 
 # Python 3
 $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
@@ -225,37 +225,6 @@ EOF
 
 $SUDO python3 -m pip install -q -r /tmp/requirements.txt
 
-
-# =================[ Desktop Display Customizations ]================= #
-function desktop_tweaks() {
-  if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
-    # Thunar file manager settings - make hidden files visible
-    xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
-
-    # Add quick launcher apps to top left
-    #mkdir -p ~/.config/xfce4/panel/launcher-{8,9,10,11}
-    # Firefox
-    #ln -sf /usr/share/applications/firefox-esr.desktop ~/.config/xfce4/panel/launcher-8/browser.desktop
-    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
-    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "browser.desktop" -a
-    # Burpsuite
-    #ln -sf /usr/share/applications/kali-burpsuite.desktop ~/.config/xfce4/panel/launcher-9/kali-burpsuite.desktop
-    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9 -t string -s launcher
-    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "kali-burpsuite.desktop" -a
-    # Cherrytree
-    #ln -sf /usr/share/applications/cherrytree.desktop ~/.config/xfce4/panel/launcher-10/cherrytree.desktop
-    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10 -t string -s launcher
-    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/items -t string -s "cherrytree.desktop" -a
-    # Geany text editor / IDE
-    #ln -sf /usr/share/applications/geany.desktop ~/.config/xfce4/panel/launcher-11/geany.desktop
-    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
-    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
-
-    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
-
-  fi
-}
-#desktop_tweaks
 
 
 # ======================[ Folder Structure ]====================== #
@@ -355,11 +324,49 @@ $SUDO git clone https://github.com/SecureAuthCorp/impacket
 cd impacket
 $SUDO python3 setup.py install
 
-# Init our rockyou wordlist
+# Unzip the infamous rockyou wordlist
 echo -e "\n${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
 cd /usr/share/wordlists/
 $SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
 $SUDO ln -s /usr/share/seclists seclists 2>/dev/null
+
+
+
+# =================[ Desktop Display Customizations ]================= #
+function desktop_tweaks() {
+  # Apply a few customizations to standard kali desktop, like shortcuts in taskbar
+  # and on the desktop.
+  if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
+
+    # Thunar file manager settings - make hidden files visible
+    xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
+
+    # Add quick launcher apps to top left
+    #mkdir -p ~/.config/xfce4/panel/launcher-{8,9,10,11}
+    # Firefox
+    #ln -sf /usr/share/applications/firefox-esr.desktop ~/.config/xfce4/panel/launcher-8/browser.desktop
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8 -t string -s launcher
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-8/items -t string -s "browser.desktop" -a
+    # Burpsuite
+    #ln -sf /usr/share/applications/kali-burpsuite.desktop ~/.config/xfce4/panel/launcher-9/kali-burpsuite.desktop
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9 -t string -s launcher
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-9/items -t string -s "kali-burpsuite.desktop" -a
+    # Cherrytree
+    #ln -sf /usr/share/applications/cherrytree.desktop ~/.config/xfce4/panel/launcher-10/cherrytree.desktop
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10 -t string -s launcher
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-10/items -t string -s "cherrytree.desktop" -a
+    # Geany text editor / IDE
+    #ln -sf /usr/share/applications/geany.desktop ~/.config/xfce4/panel/launcher-11/geany.desktop
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
+
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
+
+  fi
+}
+desktop_tweaks
+
+
 
 
 function finish() {
