@@ -3,7 +3,7 @@
 # File:     install-simple.sh
 #
 # Author:   Cashiuus
-# Created:  02/20/2016  - (Revised: 11-Dec-2016)
+# Created:  02/20/2016  - (Revised: 23-Feb-2021)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #
 #
 ## =============================================================================
-__version__="1.2"
+__version__="1.3.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 GREEN="\033[01;32m"    # Success
@@ -33,34 +33,31 @@ cd "${APP_BASE}"
 shopt -s dotglob
 
 # Backup core existing dotfiles first
-for file in .bashrc .bash_profile .profile; do
+for file in .bashrc .bash_profile .profile .tmux.conf .zshrc; do
     if [[ -e ${file} ]]; then
         [[ ! -d "${BACKUPS_DIR}" ]] && mkdir -p "${BACKUPS_DIR}"
-        echo -e "${GREEN}[*] ${RESET}Moving original ${RED}${file}${RESET} to:" \
+        echo -e "${GREEN}[*]${RESET} Moving original ${RED}${file}${RESET} to:" \
             "${YELLOW}${BACKUPS_DIR}${RESET}"
         mv "${HOME}/${file}" "${BACKUPS_DIR}/" >/dev/null 1>&2
     fi
 done
 
-
-echo -e "${GREEN}[*] ${RESET}Copying our git dotfiles to HOME directory..."
-cp .bashrc "${HOME}/"
-cp .profile "${HOME}/"
+echo -e "${GREEN}[*] ${RESET}Copying managed dotfiles from repo to HOME directory..."
+cd "${APP_BASE}"
+for file in .aliases .bashrc .gitconfig .nanorc .profile .tmux.conf .zshrc; do
+    if [[ -e ${file} ]]; then
+        cp "${file}" "${HOME}/"
+    fi
 cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}"
 
-# Copy nano dotfiles
+# Copy nano dotfiles - These includes add syntax highlighting for addtl filetypes
 mkdir -p "${HOME}/.dotfiles/nano/"
-cp .nanorc "${HOME}/"
+#cp .nanorc "${HOME}/"
 cp -R "${APP_BASE}"/.dotfiles/nano/* "${HOME}/.dotfiles/nano/"
 
 
-#for file in .bash_aliases .bash_profile .bash_prompt .bash_sshagent; do
-#    cp "${APP_BASE}/.dotfiles/bash/${file}" "${HOME}/"
-#    echo -e "${GREEN}[*] ${file} copied to HOME"
-#done
 echo -e "${GREEN}[*] ${RESET}Finished simple dotfiles install, goodbye!"
 exit 0
-
 
 
 # Another way to install by using git cloning
