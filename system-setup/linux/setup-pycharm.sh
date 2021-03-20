@@ -135,15 +135,18 @@ chmod 0500 "${file}"
 
 function reconfigure_inotify() {
     # Increase the watch limit for inotify so pycharm works better and doesn't error
-
+    # Reference: https://confluence.jetbrains.com/display/IDEADEV/Inotify+Watches+Limit
     # file: /etc/sysctl.conf , or add a new file under /etc/sysctl.d/ directory
     # fs.inotify.max_user_watches = 524288
-
+    file="/etc/sysctl.conf"
+    grep -q '^fs.inotify.max_user_watches' "${file}" 2>/dev/null \
+      || $SUDO sh -c "echo fs.inotify.max_user_watches = 524288 >> ${file}"
     # Then run:
     $SUDO sysctl -p --system
-    # Lastly
+    # For this to take effect for PyCharm, you must restart it, it's already running; shouldn't be an issue here.
 }
-
+echo -e "${GREEN}[*] ${RESET}Modifying inotify setting so PyCharm can use more file watch handlers"
+reconfigure_inotify
 
 
 echo -e "${GREEN}[$(date +"%F %T")] ${RESET}PyCharm Installer complete, goodbye!"
