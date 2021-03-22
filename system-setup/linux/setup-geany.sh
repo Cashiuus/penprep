@@ -115,6 +115,7 @@ if [[ -e "${file}" ]]; then
   sed -i 's/^tab_order_beside=.*/tab_order_beside=true/' "${file}"
   sed -i 's/^check_detect_indent=.*/check_detect_indent=true/' "${file}"
   sed -i 's/^detect_indent_width=.*/detect_indent_width=true/' "${file}"
+  sed -i 's/^editor_font=.*/editor_font=Fira Code 10/' "${file}"
   sed -i 's/^pref_editor_tab_width=.*/pref_editor_tab_width=4/' "${file}"
   sed -i 's/^indent_type=.*/indent_type=2/' "${file}"
   sed -i 's/^show_indent_guide=.*/show_indent_guide=true/' "${file}"
@@ -236,11 +237,31 @@ error_regex=([^:]+):([0-9]+):([0-9:]+)? .*
 FT_00_LB=Py_Compile
 FT_00_CM=python3 -m py_compile "%f"
 FT_00_WD=
+EX_00_LB=_Execute
+EX_00_CM=python3 "%f"
+EX_00_WD=
 EOF
 
+<<<<<<< Updated upstream
 # Custom file defs for syntax highlighting tweaks
 #cp /usr/share/geany/filedefs/filetypes.sh ${filedir}/
 #cp /usr/share/geany/filedefs/filetypes.python ${filedir}/
+=======
+# Create a standard style config for .txt files
+file="${filedir}/filetypes.Txt"
+cat << EOF > "${file}"
+[keywords]
+primary=Note Warning Syntax Usage Examples Description References Installation
+
+[settings]
+extension=txt,log,gny,hlp
+lexer_filetype=Python
+EOF
+
+# TODO: Add this line to ~/.config/geany/filetype_extensions.conf
+# Txt=*.txt;*.hlp;*.gny;*.log
+# can't simply insert, need to find "^Tcl" and insert a line after it for this
+>>>>>>> Stashed changes
 
 
 # Add custom config for flake8 checking, exclude noisy Error Codes
@@ -339,14 +360,15 @@ echo -e "${GREEN}[*]${RESET} Installing custom Geany color themes"
 echo -e "${GREEN}[*]${RESET} Choose a theme from View -> Choose Color Theme"
 cd /tmp
 wget https://github.com/geany/geany-themes/archive/master.zip
-unzip master
+unzip master.zip
 cd geany-themes-master
 ./install.sh
+cd ~
 
 
 # Copy desktop shortcut to the desktop
-cp /usr/share/applications/geany.desktop "${HOME}/Desktop/"
-chmod u+x "${HOME}/Desktop/geany.desktop"
+cp /usr/share/applications/geany.desktop "${HOME}/Desktop/" 2>/dev/null
+chmod u+x "${HOME}/Desktop/geany.desktop" 2>/dev/null
 
 echo -e "${GREEN}[*]${RESET} NOTE: If underscore characters are invisible, change font or adjust line height"
 

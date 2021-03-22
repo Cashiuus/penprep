@@ -218,7 +218,7 @@ echo -e "${GREEN}[*]${RESET} Performing a distro upgrade and installing core pkg
 $SUDO apt-get -qy upgrade
 $SUDO apt-get -qy dist-upgrade
 
-$SUDO apt-get -y install build-essential gcc git htop make mlocate screen strace
+$SUDO apt-get -y install build-essential gcc git htop make mlocate screen strace tree
 $SUDO apt-get -y install gconf-editor geany unrar
 
 # Optional remote access services

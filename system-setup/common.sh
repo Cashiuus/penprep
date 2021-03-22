@@ -332,7 +332,7 @@ function install_python3() {
 
     echo -e "\n${GREEN}[*]${RESET} Installing/Configuring Python 3"
     # Core python 3 & virtual env support
-    $SUDO apt-get -y install python3 python3-all python3-dev \
+    $SUDO apt-get -y install python3 python3-dev \
         python3-pip python3-setuptools python3-venv python3-virtualenv \
         virtualenvwrapper
 
@@ -388,17 +388,16 @@ argparse
 beautifulsoup4
 colorama
 dnspython
-future
 lxml
 mechanize
 netaddr
 pefile
 pep8
 Pillow
+poetry
 psycopg2
 pygeoip
 pylnk3
-python-Levenshtein
 python-libnmap
 requests
 six

@@ -112,7 +112,7 @@ function install_python39 {
     #
     #
     echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
-    VERSION='3.9.0'
+    VERSION='3.9.1'
     V_SHORT='3.9'
     #$SUDO apt-get -qq update
     $SUDO apt-get -y install build-essential curl zlib1g-dev libncurses5-dev \
