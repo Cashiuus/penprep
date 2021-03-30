@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 03-Feb-2021
+# Created:  08-Apr-2020     Revised: 29-Mar-2021
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -22,14 +22,8 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.03"
+__version__="2.0.0"
 __author__="Cashiuus"
-## =======[ EDIT THESE SETTINGS ]======= ##
-
-CREATE_USER_DIRECTORIES=(git htb vpn)
-CREATE_OPT_DIRECTORIES=()
-VPN_BASE_DIR="${HOME}/vpn"
-
 ## ==========[ TEXT COLORS ]============= ##
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -52,6 +46,24 @@ APP_ARGS=$@
 LINES=$(tput lines)
 COLS=$(tput cols)
 HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
+
+## =======[ EDIT THESE SETTINGS ]======= ##
+VPN_BASE_DIR="${HOME}/vpn"
+HTB_BASE_DIR="${HOME}/htb"
+CREATE_USER_DIRECTORIES=(burpsuite git go msf-scripts tools vpn)  # Subdirectories of $HOME/
+CREATE_OPT_DIRECTORIES=()                                         # Subdirectories of /opt/
+# HTB folder package -- don't delete existing, but you can add more dirs to these
+# Some script routines rely on placing certain git repo's into these subdirs
+CREATE_HTB_DIRS=(boxes credentials notebooks privesc pivoting shells transfers wordlists)
+CREATE_HTB_BOX_SUBDIRS=(scans loot)                               # Future use
+HTB_BOXES="${HTB_BASE_DIR}/boxes"             # Our challenge boxes artifacts as we go
+HTB_NOTES="${HTB_BASE_DIR}/notebooks"         # Our challenge boxes artifacts as we go
+HTB_PIVOTING="${HTB_BASE_DIR}/pivoting"       # Resources for pivoting/c2
+HTB_PRIVESC="${HTB_BASE_DIR}/privesc"         # Privesc tools for both Linux and Windows
+HTB_SHELLS="${HTB_BASE_DIR}/shells"           # Various shells we can use (or created along the way)
+HTB_TRANSFERS="${HTB_BASE_DIR}/transfers"     # Everything in one place for file transfers
+BURPSUITE_CONFIG_DIR="${HOME}/burpsuite"      # Burpsuite configs, libs, extensions, etc in one place
+
 
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
@@ -176,14 +188,16 @@ $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
   -o Dpkg::Options::="--force-confold" dist-upgrade
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
-$SUDO apt-get -y -qq install bash-completion build-essential curl locate gcc geany git \
-  golang gzip jq libssl-dev make net-tools openssl openvpn powershell tmux wget unzip
+$SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locate \
+  gcc geany git golang gzip jq libssl-dev make net-tools openssl openvpn \
+  powershell tmux wget unzip xclip
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf tree
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing commonly used HTB tools"
-$SUDO apt-get -y -qq install dirb dirbuster exploitdb libimage-exiftool-perl neo4j \
-  nikto rdesktop responder seclists shellter sqlmap windows-binaries
+$SUDO apt-get -y -qq install dirb dirbuster exploitdb flameshot \
+  libimage-exiftool-perl neo4j nikto rdesktop responder seclists \
+  shellter sqlmap windows-binaries
 
 # Python 3
 $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
@@ -225,10 +239,39 @@ EOF
 
 $SUDO python3 -m pip install -q -r /tmp/requirements.txt
 
+# -- Create Directory Structure -------------------------------------------------
+function asksure() {
+  ###
+  # Usage:
+  #   if asksure; then
+  #        echo "Okay, performing rm -rf / then, master...."
+  #   else
+  #        echo "Awww, why not :("
+  #   fi
+  ###
+  echo -n "$1 (Y/N): "
+  while read -r -n 1 -s answer; do
+    if [[ $answer = [YyNn] ]]; then
+      [[ $answer = [Yy] ]] && retval=0
+      [[ $answer = [Nn] ]] && retval=1
+      break
+    fi
+  done
+  echo
+  return $retval
+}
 
+if asksure "Is this install for a pro/specific named lab?"; then
+  read -r -e -p "Enter simple one-word name for the lab: " HTB_LAB_NAME
+fi
+if [[ $HTB_LAB_NAME != "" ]]; then
+  echo -e "${GREEN}[*] ${RESET} Okay, your parent HackTheBox directory will be: ${ORANGE}htb-${HTB_LAB_NAME}${RESET}"
+  HTB_DIRNAME_FORMATTED="${HTB_BASE_DIR}-${HTB_LAB_NAME}"
+  sleep 1s
+else
+  HTB_DIRNAME_FORMATTED="${HTB_BASE_DIR}"
+fi
 
-# ======================[ Folder Structure ]====================== #
-echo -e "${GREEN}[*] ${RESET}Creating extra directories for our HackTheBox setup"
 count=0
 while [ "x${CREATE_USER_DIRECTORIES[count]}" != "x" ]; do
     count=$(( $count + 1 ))
@@ -246,41 +289,50 @@ while [ "x${CREATE_OPT_DIRECTORIES[count]}" != "x" ]; do
 done
 
 # Create folders in /opt
-#echo -e "${GREEN}[*]${RESET} Creating ${count} directories in /opt/ path"
-for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
-    mkdir -p "/opt/${dir}"
+if [ $count -ge 1 ]; then
+  echo -e "${GREEN}[*]${RESET} Creating ${count} directories in /opt/ path"
+  for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
+      mkdir -p "/opt/${dir}"
+  done
+fi
+
+#mkdir -p ~/htb/{boxes,credentials,shells,privesc,wordlists}
+# Create core subdirs in our HTB BASE DIR
+echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB${RESET} core subdirectories"
+for dir in ${CREATE_HTB_DIRS[@]}; do
+    mkdir -p "${HTB_BASE_DIR}/${dir}"
 done
 
-mkdir -p ~/htb/{boxes,shells,privesc-checkers}
 
+# -- Various Extra Tools -------------------------------------------------------
+if [[ ! -d "${HOME}/git/penprep" ]]; then
+  cd "${HOME}/git" && git clone https://github.com/cashiuus/penprep
+fi
 
 ### Evil-WinRM install
 echo -e "\n${GREEN}[*] ${RESET}Installing Evil-WinRM"
 $SUDO apt-get -y -qq install rubygems
 $SUDO gem install evil-winrm
 
-### Additional git clones to grab
-
 # Get common shells to use
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful shells/backdoors"
-cd ~/htb/shells/
+cd "${HTB_SHELLS}"
 git clone https://github.com/infodox/python-pty-shells
 git clone https://github.com/epinna/weevely3
 git clone https://github.com/eb3095/php-shell
 
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful privilege escalation scanners"
-cd ~/htb/privesc-checkers/
+cd "${HTB_PRIVESC}"
 git clone https://github.com/pentestmonkey/windows-privesc-check
 git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite peass
 git clone https://github.com/etc5had0w/suider
 git clone https://github.com/rasta-mouse/Sherlock
 git clone https://github.com/rasta-mouse/Watson
 git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester
-
-
-# These are burp extensions
-mkdir -p ~/burpsuite/extensions && cd ~/burpsuite/extensions
-git clone https://github.com/bit4woo/domain_hunter
+git clone https://github.com/gentilkiwi/mimikatz
+git clone https://github.com/skelsec/pypykatz
+git clone https://github.com/AlessandroZ/BeRoot
+git clone https://github.com/enjoiz/Privesc Privesc-PS
 
 
 echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into /opt/..."
@@ -292,8 +344,11 @@ $SUDO git clone https://github.com/elceef/dnstwist
 $SUDO git clone https://github.com/TheWover/donut
 $SUDO git clone https://github.com/GhostPack/Seatbelt
 $SUDO git clone https://github.com/byt3bl33d3r/SprayingToolkit
+$SUDO git clone https://github.com/samratashok/ADModule
+$SUDO git clone https://github.com/samratashok/nishang
 $SUDO git clone https://github.com/DominicBreuker/pspy
 $SUDO git clone https://github.com/PowerShellMafia/PowerSploit
+$SUDO git clone https://github.com/NetSPI/PowerUpSQL
 $SUDO git clone https://github.com/abatchy17/WindowsExploits
 $SUDO git clone https://github.com/21y4d/nmapAutomator
 
@@ -305,16 +360,21 @@ if [[ ! $(which autorecon) ]]; then
   # TODO: Better to use a virtualenv, but only if it's easy for
   # users to auto-activate it anytime they want to use AutoRecon
   $SUDO python3 -m pip install -r requirements.txt
-  $SUDO ln -s /opt/AutoRecon/src/autorecon/autorecon.py /usr/local/bin/autorecon
+  $SUDO ln -s /opt/AutoRecon/src/autorecon/autorecon.py local/bin/autorecon
+  # TODO: which symlink option is better? If i put it local, do i still need sudo?
+  #ln -s /opt/AutoRecon/src/autorecon/autorecon.py "${HOME}/.local/bin/autorecon"
 fi
 
-cd /opt/
+
 # Custom nmap nse script to run CVE checks
+cd /tmp/
+# NOTE: This repo has another "http-vulners-regex.nse" you can read up on
 $SUDO git clone https://github.com/vulnersCom/nmap-vulners
-$SUDO cp /opt/nmap-vulners/vulners.nse /usr/share/nmap/scripts/
+$SUDO cp /tmp/nmap-vulners/vulners.nse /usr/share/nmap/scripts/
 # Usage: nmap -sV --script vulners --script-args mincvss=7
+
+# Run this after we've imported all new nse scripts to load them
 $SUDO nmap --script-updatedb
-# This repo has another "http-vulners-regex.nse" you can read up on.
 
 
 ### Python Impacket install
@@ -324,6 +384,51 @@ $SUDO git clone https://github.com/SecureAuthCorp/impacket
 cd impacket
 $SUDO python3 setup.py install
 
+
+# -- Singular web director for file transfers ----------------------------------
+
+echo -e "${GREEN}[*] ${RESET} Consolidating all our goodies in one place for file transfers (nc, mimi, privesc, etc)"
+cd "${HTB_TRANSFERS}"
+cp "/usr/share/windows-binaries/nc.exe" ./
+cp "/usr/share/windows-binaries/wget.exe" ./
+cp "/usr/share/windows-resources/mimikatz/x64/mimikatz.exe" ./
+cp "${HTB_PRIVESC}/peass/linPEAS/linpeas.sh" ./
+cp "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x86/Release/winPEASx86.exe" ./
+cp "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x64/Release/winPEASx64.exe" ./
+cp "${HTB_PRIVESC}/Windows-Exploit-Suggester/windows-exploit-suggester.py" ./
+cp "${HTB_PRIVESC}/Sherlock/Sherlock.ps1" ./
+cp "/opt/PowerSploit/Privesc/PowerUp.ps1" ./
+cp "/opt/PowerSploit/Privesc/Privesc.psd1" ./
+cp "/opt/PowerSploit/Privesc/Privesc.psm1" ./
+cp "/opt/PowerSploit/Recon/PowerView.ps1" ./
+cp "/opt/PowerSploit/AntivirusBypass/Find-AVSignature.ps1" ./
+cp "/opt/ADModule/Import-ActiveDirectory.ps1" ./
+cp "/opt/ADModule/Microsoft.ActiveDirectory.Management.dll" ./
+
+
+
+# -- Burpsuite -----------------------------------------------------------------
+mkdir -p "${BURPSUITE_CONFIG_DIR}"/{configs,libs,extensions,projects}
+cd "${BURPSUITE_CONFIG_DIR}/libs"
+echo -e "${GREEN}[*] ${RESET}Centralizing burpsuite configs, extensions, libs, etc. into ${BURPSUITE_CONFIG_DIR}"
+jython_url='https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/jython-standalone-2.7.2.jar'
+curl -SL "${jython_url}" -o jython-2.7.2.jar
+
+cd "${BURPSUITE_CONFIG_DIR}/extensions"
+git clone https://github.com/bit4woo/domain_hunter
+
+
+# -- Golang & Tools ------------------------------------------------------------
+### Go packages
+if [[ $(which go) ]]; then
+  GO_VERSION=$(go version | awk '{print $3}' | cut -d 'o' -f2)
+  export PATH=$PATH:$HOME/go/bin
+  go get github.com/ropnop/kerbrute
+
+fi
+
+
+# -- Wordlists -----------------------------------------------------------------
 # Unzip the infamous rockyou wordlist
 echo -e "\n${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
 cd /usr/share/wordlists/
@@ -332,7 +437,69 @@ $SUDO ln -s /usr/share/seclists seclists 2>/dev/null
 
 
 
-# =================[ Desktop Display Customizations ]================= #
+# -- Install Obsidian for Notetaking -------------------------------------------
+function install_obsidian_appimage() {
+  if [[ ! $(which obsidian) ]]; then
+    cd /tmp/
+    url='https://github.com/obsidianmd/obsidian-releases/releases/download/v0.11.9/Obsidian-0.11.9.AppImage'
+    curl -SL "${url}" -o obsidian
+    $SUDO mv /tmp/obsidian /usr/local/sbin/obsidian
+    $SUDO chmod +x /usr/local/sbin/obsidian
+    # First-run but don't create/open a vault yet
+    $SUDO timeout 5 "/usr/local/sbin/obsidian --no-sandbox" >/dev/null 2>&1
+  fi
+  # Download and install templates we'll use with note and report writing
+  if [[ ! -e /usr/share/pandoc/data/templates/eisvogel.latex ]]; then
+    curl -SL 'https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v2.0.0/Eisvogel-2.0.0.tar.gz' -o eisvogel.tar.gz
+    tar -xvf eisvogel.tar.gz
+    cp /tmp/eisvogel.latex "${HTB_NOTES}/"
+    $SUDO cp /tmp/eisvogel.latex /usr/share/eisvogel.latex /usr/share/pandoc/data/templates/eisvogel.latex
+  fi
+  cd "${HOME}/git"
+  git clone https://github.com/noraj/OSCP-Exam-Report-Template-Markdown
+  cp "${HOME}/git/OSCP-Exam-Report-Template-Markdown/src/OSEP-exam-report-template_OS_v1.md" "${HTB_NOTES}/"
+
+  # Install extras for this workflow
+  $SUDO apt-get -y install evince pandoc p7zip-full texlive-full
+
+  file="${HTB_NOTES}/generate-report.sh"
+  if [[ ! -e "${file}" ]]; then
+    cat <<EOF > "${file}"
+#!/bin/bash
+
+if [[ \$# -ne 2 ]]; then
+  echo -e " Usage: \$0 <input.md> <output.pdf>"
+  exit
+fi
+
+if [[ ! -e /usr/share/pandoc/data/templates/eisvogel.latex ]]; then
+  echo -e "[ERROR] eisvogel.latex file missing, check and try again!"
+  exit
+fi
+
+pandoc \$1 -o \$2 \
+  --from markdown+yaml_metadata_block+raw_html \
+  --template eisvogel \
+  --table-of-contents \
+  --toc-depth 6 \
+  --number-sections \
+  --top-level-division=chapter \
+  --highlight-style tango
+
+
+if [[ \$? -eq 0 ]]; then
+  evince \$2
+fi
+EOF
+    chmod u+x "${file}"
+  fi
+}
+install_obsidian_appimage
+
+
+
+
+# -- Desktop Display Tweaks ----------------------------------------------------
 function desktop_tweaks() {
   # Apply a few customizations to standard kali desktop, like shortcuts in taskbar
   # and on the desktop.
@@ -391,7 +558,7 @@ function finish() {
   sleep 10
 
   FINISH_TIME=$(date +%s)
-  echo -e "${BLUE}[*] ${GREEN}${APP_NAME} Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
+  echo -e "${GREEN}[*] ${BLUE}${APP_NAME}${RESET} Completed Successfully - (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)\n"
 }
 # End of script
 trap finish EXIT

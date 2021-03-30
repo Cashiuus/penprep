@@ -135,10 +135,10 @@ export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y upgrade
 $SUDO apt-get -y -q dist-upgrade
-$SUDO apt-get -y install bash-completion build-essential curl locate gcc git jq \
-  make net-tools sudo
+$SUDO apt-get -y install bash-completion build-essential curl dos2unix locate \
+  gcc git jq make net-tools sudo
 # Extra Packages - Utilities
-$SUDO apt-get -y install geany htop strace sysv-rc-conf tree
+$SUDO apt-get -y install geany htop strace sysv-rc-conf tree xclip
 
 # Kali metapackages we want installed in case they already aren't
 $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
