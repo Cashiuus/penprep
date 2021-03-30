@@ -1,8 +1,9 @@
-
-
-
-
+### .aliases
+### by Cashiuus          (Updated: 2021-03-29)
+###     - aliases for zsh
+### ------------------------------------------ ###
 # Unix
+alias l="ls -a"
 alias ll="ls -al"
 alias ln="ln -v"
 alias mkdir="mkdir -p"
@@ -11,6 +12,72 @@ alias v="$VISUAL"
 alias cls='clear'
 alias path='echo $PATH | tr -s ":" "\n"'
 
+### Folder Creation
+alias mkdir="/bin/mkdir -pv"
 
-alias update-kali="apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade"
+alias reload=". ${HOME}/.zshrc"
+alias update-kali='sudo apt-get update && sudo apt-get -y upgrade && sudo apt-get -y dist-upgrade'
 
+### Custom Folder Workflows
+alias g="cd ${HOME}/git"
+
+### Networking
+alias myip='curl ifconfig.me; echo'
+# Sorts IPs; ex: cat "ips.txt | ip_sort"
+alias ip_sort='sort -u -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n'
+alias sip='sort -V'
+if [[ $(which netstat) ]]; then
+    alias openports='netstat --all --numeric --programs --inet' # or netstat -planta
+elif [[ $(which ss) ]]; then
+    alias openports='ss -tunlp'
+fi
+alias ping='ping -c 3'
+alias webserv='python3 -m http.server'
+alias webserver='python3 -m http.server'
+alias header="curl -I"
+
+### Application Shortcuts
+alias lynx='lynx -force_html -width=$COLUMNS' #best settings for viewing HTML
+alias links='links -force-html' #need to enable colour in config menu manually
+alias strings="strings -a"
+alias screen="screen -xRR"
+alias tmux="tmux attach || tmux new"
+
+# Stopwatch
+alias timer='echo "Timer started. Stop with Ctrl-D." && date && time cat && date'
+
+### Security Tool Enhancements
+function nse(){ find /usr/share/nmap/scripts/ -iname "*$1*" -printf '%P\n';}
+
+### Git Custom Commands
+alias git-owner="cat .git/config | grep 'url' || echo 'You do not appear to be in a git repo folder'"
+
+alias ..="cd .."
+alias ...="cd ../.."
+alias cdup="cd .."
+
+### CLI Navigation
+alias more='less'
+alias head='head -n $((${LINES:-12}-2))' #as many as possible without scrolling
+alias tail='tail -n $((${LINES:-12}-2)) -s.1' #Likewise, also more responsive -f
+
+### Colorizing
+alias grep="grep --color=auto -I" #ignore binary files when searching inside
+alias ngrep="ngrep --color=auto"
+alias fgrep="fgrep --color=auto"
+alias egrep="egrep --color=auto -I"
+
+# Always print human-readable for various disk space commands
+alias df='df -h'
+alias free='free -h'
+alias du='du -s -h'
+
+# Setup SUDO action for non-root usage
+if [ $UID -ne 0 ]; then
+    alias s='sudo '
+    alias scat='sudo cat'
+    alias stail='sudo tail'
+    alias root='sudo su'
+    alias reboot='sudo reboot'
+    alias halt='sudo halt'
+fi

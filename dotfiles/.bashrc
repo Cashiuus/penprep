@@ -149,4 +149,4 @@ export EDITOR=nano
 # Go support
 PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 # set PATH so it includes user's local bin, python now uses by default
-PATH=$PATH:$HOME/.local/bin
+PATH=$PATH:$HOME/.local/bin:/snap/bin

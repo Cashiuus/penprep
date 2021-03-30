@@ -195,6 +195,7 @@ if [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
 fi
 
 # Load custom aliases
+[[ -f ~/.aliases ]] && source ~/.aliases
 [[ -f ~/.dotfiles/.aliases ]] && source ~/.dotfiles/.aliases
 
 # Python Virtualenvwrapper Support
@@ -207,4 +208,4 @@ fi
 
 # Add PATH for Go Python3, Pipx, and snapd -- if you experience errors, put these
 # local paths BEFORE $PATH instead of at the end.
-PATH="$PATH:$HOME/.local/bin:$GOPATH/bin:/snap/bin"
+PATH=$PATH:$HOME/.local/bin:${GOPATH}/bin:/snap/bin

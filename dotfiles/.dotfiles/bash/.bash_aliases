@@ -14,8 +14,9 @@ alias d="cd ~/Documents"
 alias dl="cd ~/Downloads"
 alias drop="cd ~/dropbox"
 alias e="cd ~/Engagements"
-alias g="cd /opt/git"
+alias g="cd ${HOME}/git"
 alias p="cd /opt/pentest"
+
 
 ### Networking
 alias myip='curl ifconfig.me; echo'
@@ -24,12 +25,13 @@ alias ip_sort='sort -u -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n'
 alias sip='sort -V'
 if [[ $(which netstat) ]]; then
     alias openports='netstat --all --numeric --programs --inet' # or netstat -planta
-else
+elif [[ $(which ss) ]]; then
     alias openports='ss -tunlp'
 fi
 #alias lsof='lsof -nP -iTCP -sTCP:LISTEN'
 alias ping='ping -c 3'
 alias webserv='python3 -m http.server'
+alias webserver='python3 -m http.server'
 alias header="curl -I"
 dns=$(grep 'nameserver' /etc/resolv.conf | awk '{print $2}')
 if [[ `id -u` -eq 0 ]]; then
@@ -54,10 +56,9 @@ alias cal='cal -3'
 alias chrome='/opt/google/chrome/chrome'
 alias lynx='lynx -force_html -width=$COLUMNS' #best settings for viewing HTML
 alias links='links -force-html' #need to enable colour in config menu manually
+alias strings="strings -a"
 
 alias screen="screen -xRR"
-#alias screen="screen -r"
-alias strings="strings -a"
 alias tmux="tmux attach || tmux new"
 
 # Stopwatch
@@ -72,7 +73,6 @@ alias airodump-ng="airodump-ng --manufacturer --wps --uptime"
 ### Metasploit
 alias msfc="systemctl start postgresql; msfdb start; msfconsole -q \"$@\""
 alias msfconsole="systemctl start postgresql; msfdb start; msfconsole -q \"$@\""
-
 alias openvas="openvas-stop; openvas-start; sleep 3s; xdg-open https://127.0.0.1:9392/ >/dev/null 2>&1"
 alias mana-toolkit-start="a2ensite 000-mana-toolkit;a2dissite 000-default;systemctl apache2 restart"
 alias mana-toolkit-stop="a2dissite 000-mana-toolkit;a2ensite 000-default;systemctl apache2 restart"

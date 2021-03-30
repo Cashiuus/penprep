@@ -3,15 +3,16 @@
 # File:     install-simple.sh
 #
 # Author:   Cashiuus
-# Created:  02/20/2016  - (Revised: 23-Feb-2021)
+# Created:  02/20/2016  - (Revised: 29-Mar-2021)
 #
 # MIT License ~ http://opensource.org/licenses/MIT
 #-[ Notes ]---------------------------------------------------------------------
-# Purpose:  Simply copy existing dotfiles into ${HOME} dir w/o any fancy symlinking.
+# Purpose:  Simply copy existing dotfiles into ${HOME} dir
+#           without any fancy symlinking.
 #
 #
 ## =============================================================================
-__version__="1.3.0"
+__version__="1.3.1"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 GREEN="\033[01;32m"    # Success
@@ -37,8 +38,8 @@ for file in .bashrc .bash_profile .profile .tmux.conf .zshrc; do
     if [[ -e ${file} ]]; then
         [[ ! -d "${BACKUPS_DIR}" ]] && mkdir -p "${BACKUPS_DIR}"
         echo -e "${GREEN}[*]${RESET} Moving original ${RED}${file}${RESET} to:" \
-            "${YELLOW}${BACKUPS_DIR}${RESET}"
-        mv "${HOME}/${file}" "${BACKUPS_DIR}/" >/dev/null 1>&2
+            "${YELLOW}${BACKUPS_DIR}/${RESET}"
+        mv "${HOME}/${file}" "${BACKUPS_DIR}/" 2>/dev/null
     fi
 done
 
@@ -46,14 +47,16 @@ echo -e "${GREEN}[*] ${RESET}Copying managed dotfiles from repo to HOME director
 cd "${APP_BASE}"
 for file in .aliases .bashrc .gitconfig .nanorc .profile .tmux.conf .zshrc; do
     if [[ -e ${file} ]]; then
-        cp "${file}" "${HOME}/"
+        cp "${APP_BASE}/${file}" "${HOME}/"
+        echo -e "${GREEN}[*] ${ORANGE}$file${RESET} copied into user home!"
     fi
+done
 cp -R "${APP_BASE}"/.dotfiles/bash/* "${HOME}"
 
 # Copy nano dotfiles - These includes add syntax highlighting for addtl filetypes
-mkdir -p "${HOME}/.dotfiles/nano/"
+#mkdir -p "${HOME}/.dotfiles/nano/"
 #cp .nanorc "${HOME}/"
-cp -R "${APP_BASE}"/.dotfiles/nano/* "${HOME}/.dotfiles/nano/"
+#cp -R "${APP_BASE}"/.dotfiles/nano/* "${HOME}/.dotfiles/nano/"
 
 
 echo -e "${GREEN}[*] ${RESET}Finished simple dotfiles install, goodbye!"
