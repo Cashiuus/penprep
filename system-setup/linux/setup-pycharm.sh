@@ -3,7 +3,7 @@
 # File:     setup-pycharm.sh
 #
 # Author:   Cashiuus
-# Created:  10-Dec-2016     Revised: 10-Oct-2020
+# Created:  10-Dec-2016     Revised: 25-Mar-2021
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Download, setup pycharm, backup original pycharm settings if applicable,
@@ -26,7 +26,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.0"
+__version__="1.0.1"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]========== ##
 GREEN="\033[01;32m"     # Success
@@ -46,7 +46,7 @@ APP_ARGS=$@
 DEBUG=true
 BACKUPS_PATH="${HOME}/Backups"
 # TODO: Get latest pycharm version programmatically
-PYCHARM_VERSION="2020.2.3"
+PYCHARM_VERSION="2020.3.4"
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]];then
