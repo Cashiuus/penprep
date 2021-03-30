@@ -3,7 +3,7 @@
 # ==============================================================================
 # File:         file.py
 # Author:       Cashiuus
-# Created:      14-Dec-2020     -     Revised:
+# Created:      20-Mar-2021     -     Revised:
 #
 # Depends:      n/a
 # Compat:       3.7+
@@ -14,13 +14,12 @@
 #
 #
 # ==============================================================================
-__version__ = 0.1
+__version__ = '0.0.1'
 __author__ = 'Cashiuus'
 __license__ = 'MIT'
-__copyright__ = 'Copyright (C) 2020 Cashiuus'
+__copyright__ = 'Copyright (C) 2021 Cashiuus'
 
 ## =======[ IMPORT & CONSTANTS ]========= ##
-
 import argparse
 import errno
 import os
@@ -44,13 +43,13 @@ else:
 
 VERBOSE = 1
 DEBUG = 0
-MY_SETTINGS = 'settings.conf'
+#MY_SETTINGS = 'settings.conf'
 USER_HOME = os.environ.get('HOME')
 ACTIVE_SHELL = os.environ['SHELL']
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SAVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved')
 LOG_FILE = os.path.join(BASE_DIR, 'log.txt')
-PY3 = sys.version_info > (3,)
+#FILE_NAME_WITH_DATE_EXAMPLE = "data_output-" + strftime('%Y%m%d') + ".txt"
 
 
 ## =========[  TEXT COLORS  ]============= ##
@@ -71,8 +70,6 @@ class Colors(object):
     BACKWHITE = '\033[47m'  # White background
 
 
-
-
 # ==========================[ BEGIN APPLICATION ]========================== #
 
 
@@ -85,10 +82,11 @@ class Colors(object):
 
 
 
-# -------------------
+# ---------------------
 #       SHUTDOWN
-# -------------------
+# ---------------------
 def shutdown_app():
+    #logger.debug("shutdown_app :: Application shutdown function executing")
     print("Application shutting down -- Goodbye!")
     exit(0)
 
@@ -110,29 +108,30 @@ def main():
     # -- arg parsing --
     parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(description="Description of this tool")
-    parser.add_argument("-f", "--filename",
-                        nargs='*',
+    parser.add_argument('target', help='IP/CIDR/URL of target')
+    parser.add_argument("-i", "--input-file", dest='input', nargs='*',
                         help="Specify a file containing the output of an nmap "
                              "scan in xml format.")
-    parser.add_argument("-o", "--output",
+    parser.add_argument("-o", "--output-file", dest='output',
                         help="Specify output file name")
-    parser.add_argument('--url', action='store', default=None, dest='url', help='Pass URL to request')
+    parser.add_argument('--url', action='store', default=None, dest='url',
+                        help='Pass URL to request')
 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-    parser.add_argument("-d", "--debug",
-                        help="Display error information",
-                        action="store_true")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Display error information")
+
 
     args = parser.parse_args()
 
     # If we have a mandatory arg, use it here; if not given, display usage
-    if not args.filename:
+    if not args.target:
         parser.print_help()
         exit(1)
 
     # Now store our args into variables for use
     # NOTE: infile will be a list of files, bc args.filename accepts multiple input files
-    infile = args.filename
+    infile = args.input
     outfile = args.output
     url = args.url
 
@@ -174,11 +173,12 @@ if __name__ == '__main__':
 #   # Add the handler to the logger
 #   logger.addHandler(handler)
 #   logger.debug('Logger initialized')
+#
 # logging statements you can place in code
-#logger.debug('foo')
-#logger.debug('var: url_slices is %s', url_slices)
-#logger.error('foo', exc_info=True)
-#logger.info('Destination File already exists')
+#   logger.debug('foo')
+#   logger.debug('var: url_slices is %s', url_slices)
+#   logger.error('foo', exc_info=True)
+#   logger.info('Destination File already exists')
 
 
 
@@ -306,19 +306,17 @@ def git_update(git_path):
     return
 
 
-def printer(msg, color=ORANGE):
+def printer(msg, color=Colors.RESET):
     """
     A print helper with colors for console output. Not for logging purposes.
 
     Usage:  printer("\n[*] Installing Repository: {}".format(app), color=GREEN)
     """
-    if color == ORANGE and DO_DEBUG:
-        print("{0}[DEBUG] {1!s}{2}".format(color, msg, RESET))
-    elif color != ORANGE:
-        print("{0}{1!s}{2}".format(color, msg, RESET))
+    if DO_DEBUG and color == Colors.ORANGE:
+        print("{0}[DEBUG] {1!s}{2}".format(Colors.ORANGE, msg, Colors.RESET))
+    else:
+        print("{0}{1!s}{2}".format(color, msg, Colors.RESET))
     return
-
-
 
 
 # Enable install of pip requirements within same script file
@@ -336,8 +334,6 @@ def install(packages):
         # Update this to use .run instead?
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
     return
-
-
 #
 #
 # =========================================================================== #
