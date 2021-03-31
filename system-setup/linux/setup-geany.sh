@@ -3,7 +3,7 @@
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Created:  10-Oct-2015     Revised:  28-Mar-2021
+# Created:  10-Oct-2015     Revised:  31-Mar-2021
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Install Geany IDE tool, configure custom settings, and copy in templates.
@@ -17,7 +17,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.8.1"
+__version__="1.8.2"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -98,9 +98,12 @@ check_root
 $SUDO apt-get -qq update
 $SUDO apt-get -y install geany python3-pip
 $SUDO apt-get -y install python3-flake8 python3-pep8-naming
-# Ubuntu causes issues with missing icons if you don't have this package
-$SUDO apt-get -y install yaru-theme-icon
 
+# Unbuntu requires an icon pkg that is not on Kali, nor required
+os=$(cat /etc/os-release | grep '^ID=' | cut -d '=' -f2)
+if [[ $os == "ubuntu" ]]; then
+  $SUDO apt-get -y install yaru-theme-icon
+fi
 
 # =============================[ CONFIGURE GEANY ]================================ #
 $SUDO timeout 5 geany >/dev/null 2>&1
