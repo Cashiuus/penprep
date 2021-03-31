@@ -2,7 +2,7 @@
 ## =============================================================================
 # File:     file.sh
 # Author:   Cashiuus
-# Created:  20-Oct-2020     Revised:
+# Created:  31-Mar-2021     Revised:
 #
 ##-[ Info ]---------------------------------------------------------------------
 # Purpose:  Describe script purpose
@@ -17,7 +17,7 @@
 ##-[ Copyright ]----------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =============================================================================
-__version__="0.1"
+__version__="0.0.1"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
@@ -36,6 +36,7 @@ GREY="\e[90m"           # Subdued Text
 BOLD="\033[01;01m"      # Highlight
 RESET="\033[00m"        # Normal
 ## =============[  CONSTANTS  ]============= ##
+TDATE=$(date +%Y-%m-%d)
 START_TIME=$(date +%s)
 APP_PATH=$(readlink -f $0)
 APP_BASE=$(dirname "${APP_PATH}")
@@ -50,7 +51,28 @@ DEBUG=true
 DO_LOGGING=false
 
 
-## =========================[ START :: LOAD FILES ]========================= ##
+##  Script Arguments
+## =================================== ##
+while [[ "${#}" -gt 0 && ."${1}" == .-* ]]; do
+  opt="${1}";
+  shift;
+  case "$(echo ${opt} | tr '[:upper:]' '[:lower:]')" in
+    -|-- ) break 2;;
+
+    -update|--update )
+      update=true;;
+
+    -burp|--burp )
+      burpPro=true;;
+
+    *) echo -e "${RED}[ERROR]${RESET} Unknown argument passed: ${RED}${opt}${RESET}" 1>&2 \
+      && exit 1;;
+  esac
+done
+
+
+##  Load Config/Settings File(s)
+## =================================== ##
 if [[ -s "${APP_BASE}/../common.sh" ]]; then
     source "${APP_BASE}/../common.sh"
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: success${RESET}"
@@ -59,7 +81,23 @@ else
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: fail${RESET}"
     exit 1
 fi
-## ========================================================================== ##
+
+
+##  Check Internet Connection
+## =================================== ##
+(( STAGE++ )); echo -e "${GREEN}[*]${RESET} (${STAGE}/${TOTAL}) Checking Internet access"
+for i in {1..4}; do ping -c 1 -W ${i} google.com &>/dev/null && break; done
+if [[ "$?" -ne 0 ]]; then
+  for i in {1..4}; do ping -c 1 -W ${i} 8.8.8.8 &/dev/null && break; done
+  if [[ "$?" -eq 0 ]]; then
+    echo -e "${RED}[ERROR]${RESET} Internet partially working, DNS is failing, check resolv.conf"
+    exit 1
+  else
+    echo -e "${RED}[ERROR]${RESET} Internet is completely down, check IP config or router"
+    exit 1
+  fi
+fi
+
 
 
 ##  Running Main
@@ -74,7 +112,7 @@ echo -e
 
 
 
-##  Functions
+##  Functions/Utilities
 ## =================================== ##
 function echo_prompter() {
   PROMPT="${PROMPT}"
@@ -90,6 +128,14 @@ fail() {
 
 
 
+##  End of Script & Capture CTRL+C
+## =================================== ##
+function ctrl_c() {
+  # Capture pressing CTRL+C during script execution to exit gracefully
+  #     Usage:     trap ctrl_c INT
+  echo -e "${GREEN}[*] ${RESET}CTRL+C was pressed -- Shutting down..."
+  trap finish EXIT
+}
 
 
 function finish() {
@@ -116,6 +162,7 @@ trap finish EXIT
 #   - Google's Shell Styleguide: https://google.github.io/styleguide/shell.xml
 #   - Using Exit Codes: http://bencane.com/2014/09/02/understanding-exit-codes-and-how-to-use-them-in-bash-scripts/
 #   - Writing Robust BASH Scripts: http://www.davidpashley.com/articles/writing-robust-shell-scripts/
+#   - Foolproof your Bash Script: https://www.tothenew.com/blog/foolproof-your-bash-script-some-best-practices/
 #
 # -------------------------------
 # Shell Script Development Helper Projects
@@ -126,10 +173,11 @@ trap finish EXIT
 # ---------------------------------------------------------
 ## =============[ Debugging BASH scripts/cmds ]============= ##
 #
-#   Run the script with debug mode enabled:     bash -x script.sh
-#       Syntax check/dry run script:    bash -n script.sh
+#   * Run the script with debug mode enabled:     bash -x script.sh
 #
-# Debug a command (sudo apt-get install strace):  strace <cmd> <args>
+#   * Syntax check/dry run script:                bash -n script.sh
+#
+#   * Debug a command (sudo apt-get install strace):  strace <cmd> <args>
 #
 #
 ## =============[ Styleguide Recommendations ]============= ##
@@ -145,6 +193,27 @@ trap finish EXIT
 #
 #
 #
+## =============[ Run a Script from Inside a Script ]============= ##
+# URL: https://www.tothenew.com/blog/foolproof-your-bash-script-some-best-practices/
+#
+#   Method: Sourcing - sub-scripts run in the same process, if they error, whole thing exits
+#           However, this method allows the parent to access variables inside the subscripts
+#             Ex:     . ./second-script.sh
+#
+#   Method: Simple execution - sub-scripts run as child process, cannot access/modify existing variables
+#           This method allows you to store and act on return status of the subscript also
+#             Ex:     ./second-script.sh
+#                 or
+#                     OUTPUT1=$(./second.sh)
+#                     STATUS1=$? && echo $OUTPUT1
+#
+#   Method: execution with access to variables - call in subshells; separate processes, exit doesn't affect parent.
+#           This method, subscripts can access existing variables from parent, but cannot modify them.
+#             Ex:     (. ./second-script.sh)
+#
+#
+#
+#
 ## =============[ Colorize Output ]============= ##
 #   *NOTE: Formatting generally works, but Blink does not work on xfce4 terminals.
 #
@@ -155,10 +224,9 @@ trap finish EXIT
 #   5         Blink
 #   7         Reverse (invert fg and bg)
 #   8         Hidden
-
-
-
-
+#
+#
+#
 ## -===[ set options ]===- ##
 #
 # set -e
