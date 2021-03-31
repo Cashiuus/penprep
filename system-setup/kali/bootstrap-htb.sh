@@ -2,12 +2,11 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 29-Mar-2021
+# Created:  08-Apr-2020     Revised: 31-Mar-2021
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
-#           install packages needed for HackTheBox challenges. Spend your time
-#           hacking and learning, not troubleshooting!
+#           install packages needed for HackTheBox challenges.
 #
 #
 # Oneliner: wget -qO bootstrap-htb.sh https://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh && bash bootstrap-htb.sh
@@ -15,14 +14,17 @@
 # Shorter: curl -sSL https://raw.githubusercontent.com/Cashiuus/penprep/master/system-setup/kali/bootstrap-htb.sh | bash
 #
 #
+# Credits:  + g0tmi1k for teaching me bash scripting through his kali OS scripts
+#
 ##-[ Changelog ]-----------------------------------------------------------------------
 #   2020-12-27: Removed python 2 from setup completely, as python 3 is the default now
-#
+#   2021-03-29: Massive update on folder structure, installed tools, and Obsidian for notetaking
+#   2021-03-30: Added installation of my dotfiles for bash, zsh, tmux, and aliases
 #
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="2.0.0"
+__version__="2.1.0"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
@@ -39,23 +41,18 @@ BOLD="\033[01;01m"      # Highlight
 RESET="\033[00m"        # Normal
 ## =============[ CONSTANTS ]============= ##
 START_TIME=$(date +%s)
-APP_PATH=$(readlink -f $0)
-APP_BASE=$(dirname "${APP_PATH}")
-APP_NAME=$(basename "${APP_PATH}")
-APP_ARGS=$@
-LINES=$(tput lines)
-COLS=$(tput cols)
-HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
+STAGE=0                                                         # Current task number
+TOTAL=$( grep '(${STAGE}/${TOTAL})' $0 | wc -l );(( TOTAL-- ))  # Total tasks number
 
 ## =======[ EDIT THESE SETTINGS ]======= ##
-VPN_BASE_DIR="${HOME}/vpn"
-HTB_BASE_DIR="${HOME}/htb"
 CREATE_USER_DIRECTORIES=(burpsuite git go msf-scripts tools vpn)  # Subdirectories of $HOME/
 CREATE_OPT_DIRECTORIES=()                                         # Subdirectories of /opt/
 # HTB folder package -- don't delete existing, but you can add more dirs to these
 # Some script routines rely on placing certain git repo's into these subdirs
 CREATE_HTB_DIRS=(boxes credentials notebooks privesc pivoting shells transfers wordlists)
 CREATE_HTB_BOX_SUBDIRS=(scans loot)                               # Future use
+VPN_BASE_DIR="${HOME}/vpn"
+HTB_BASE_DIR="${HOME}/htb"                    # Parent dir for all our HTB stuff
 HTB_BOXES="${HTB_BASE_DIR}/boxes"             # Our challenge boxes artifacts as we go
 HTB_NOTES="${HTB_BASE_DIR}/notebooks"         # Our challenge boxes artifacts as we go
 HTB_PIVOTING="${HTB_BASE_DIR}/pivoting"       # Resources for pivoting/c2
@@ -87,6 +84,26 @@ function install_sudo() {
 }
 
 
+# -- Script Arguments ----------------------------------------------------------
+while [[ "${#}" -gt 0 && ."${1}" == .-* ]]; do
+  opt="${1}";
+  shift;
+  case "$(echo ${opt} | tr '[:upper:]' '[:lower:]')" in
+    -|-- ) break 2;;
+
+    -update|--update )
+      update=true;;
+
+    -burp|--burp )
+      burpPro=true;;
+
+    *) echo -e "${RED}[ERROR]${RESET} Unknown argument passed: ${RED}${opt}${RESET}" 1>&2 \
+      && exit 1;;
+  esac
+done
+
+
+# -- Banner --------------------------------------------------------------------
 function print_banner() {
   clear
   cat << "EOF"
@@ -113,10 +130,11 @@ function print_banner() {
                    ▀▀
 EOF
   echo -e "\n\n${BLUE}. . . . ${RESET}${BOLD}HackTheBox Base Kali Bootstrapper  ${RESET}${BLUE}. . . .${RESET}"
+  echo -e "\t\t${BLUE}v${RESET} ${__version__} ${BLUE}by${RESET} ${__author__}"
   echo -e "${BLUE}---------------------------------------------------${RESET}"
 }
 print_banner
-echo -e "\n${BLUE}[$(date +"%F %T")] ${RESET}Giving Kali a tune-up, please wait..."
+
 
 function check_root() {
   if [[ $EUID -ne 0 ]]; then
@@ -144,7 +162,14 @@ function check_root() {
   fi
 }
 check_root
-# =============================[ Setup VM Tools ]================================ #
+
+
+# ===========================[ Begin Installs ]============================== #
+# Fix display output for GUI programs (when connecting via SSH)
+export DISPLAY=:0.0
+export TERM=xterm-256color
+
+# -- VM Tools First and Foremost ---------
 # https://github.com/vmware/open-vm-tools
 if [[ ! $(which vmware-toolbox-cmd) ]]; then
   echo -e "\n${YELLOW}[WARN] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
@@ -155,7 +180,7 @@ if [[ ! $(which vmware-toolbox-cmd) ]]; then
   $SUDO reboot
 fi
 
-# ===========================[ Bash History Sizes ]============================== #
+# Increase Bash history settings
 file="${HOME}/.bashrc"
 sed -i 's/^HISTSIZE=.*/HISTSIZE=90000/' "${file}"
 sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=9999/' "${file}"
@@ -194,10 +219,10 @@ $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locat
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf tree
 
-echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing commonly used HTB tools"
-$SUDO apt-get -y -qq install dirb dirbuster exploitdb flameshot \
-  libimage-exiftool-perl neo4j nikto rdesktop responder seclists \
-  shellter sqlmap windows-binaries
+echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing common HTB tools"
+$SUDO apt-get -y -qq install dirb dirbuster exploitdb flameshot gdb \
+  libimage-exiftool-perl neo4j nikto proxychains4 rdesktop redsocks \
+  responder seclists shellter sqlmap windows-binaries
 
 # Python 3
 $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
@@ -239,6 +264,7 @@ EOF
 
 $SUDO python3 -m pip install -q -r /tmp/requirements.txt
 
+
 # -- Create Directory Structure -------------------------------------------------
 function asksure() {
   ###
@@ -249,8 +275,8 @@ function asksure() {
   #        echo "Awww, why not :("
   #   fi
   ###
-  echo -n "$1 (Y/N): "
-  while read -r -n 1 -s answer; do
+  echo -e -n "\n\n${GREEN}[+]${RESET} ${1} (Y/N): "
+  while read -r -n 1 -t 20 -s answer; do
     if [[ $answer = [YyNn] ]]; then
       [[ $answer = [Yy] ]] && retval=0
       [[ $answer = [Nn] ]] && retval=1
@@ -262,14 +288,22 @@ function asksure() {
 }
 
 if asksure "Is this install for a pro/specific named lab?"; then
-  read -r -e -p "Enter simple one-word name for the lab: " HTB_LAB_NAME
+  echo -n -e "${GREEN}[+]${RESET} "
+  read -r -e -t 20 -p "Enter simple one-word name for the lab: " HTB_LAB_NAME
 fi
 if [[ $HTB_LAB_NAME != "" ]]; then
-  echo -e "${GREEN}[*] ${RESET} Okay, your parent HackTheBox directory will be: ${ORANGE}htb-${HTB_LAB_NAME}${RESET}"
-  HTB_DIRNAME_FORMATTED="${HTB_BASE_DIR}-${HTB_LAB_NAME}"
+  echo -e "${GREEN}[*]${RESET} Okay, your parent HackTheBox directory will be: ${ORANGE}${HTB_BASE_DIR}-${HTB_LAB_NAME}${RESET}"
+  HTB_BASE_DIR="${HTB_BASE_DIR}-${HTB_LAB_NAME}"
+  # Also need to re-declare these, bc they still have old name in their path
+  HTB_BOXES="${HTB_BASE_DIR}/boxes"
+  HTB_NOTES="${HTB_BASE_DIR}/notebooks"
+  HTB_PIVOTING="${HTB_BASE_DIR}/pivoting"
+  HTB_PRIVESC="${HTB_BASE_DIR}/privesc"
+  HTB_SHELLS="${HTB_BASE_DIR}/shells"
+  HTB_TRANSFERS="${HTB_BASE_DIR}/transfers"
   sleep 1s
 else
-  HTB_DIRNAME_FORMATTED="${HTB_BASE_DIR}"
+  HTB_BASE_DIR="${HTB_BASE_DIR}"
 fi
 
 count=0
@@ -302,57 +336,78 @@ echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB${RESET} core subdirectories"
 for dir in ${CREATE_HTB_DIRS[@]}; do
     mkdir -p "${HTB_BASE_DIR}/${dir}"
 done
+# Doesn't seem to go anywhere else, need some subdirs for notebooks
+mkdir -p "${HTB_NOTES}/templates"
 
 
-# -- Various Extra Tools -------------------------------------------------------
+# -- Penprep repository -----------------------
 if [[ ! -d "${HOME}/git/penprep" ]]; then
   cd "${HOME}/git" && git clone https://github.com/cashiuus/penprep
 fi
 
+# -- Dotfiles -----------------------
+if [[ -d "${HOME}/git/penprep" ]]; then
+  echo -e -n "\n${GREEN}[+]${RESET}"
+  read -e -t 8 -i "Y" -p " Perform simple install of dotfiles? [Y,n]: " response
+  echo -e
+
+  case $response in
+    [Yy]* ) DO_DOTFILES=true;;
+  esac
+else
+  echo -e "{GREEN}[*] ${BLUE}penprep${RESET} repo not found, skipping dotfiles install"
+  sleep 2s
+fi
+
+#[[ $DO_DOTFILES ]] && (. "${HOME}/git/penprep/dotfiles/install-simple.sh")
+[[ $DO_DOTFILES ]] && "${HOME}/git/penprep/dotfiles/install-simple.sh"
+
+# -- Various Extra Tools -------------------------------------------------------
 ### Evil-WinRM install
 echo -e "\n${GREEN}[*] ${RESET}Installing Evil-WinRM"
 $SUDO apt-get -y -qq install rubygems
 $SUDO gem install evil-winrm
 
 # Get common shells to use
-echo -e "\n${GREEN}[*] ${RESET}Grabbing useful shells/backdoors"
+echo -e "\n${GREEN}[*] ${RESET}Grabbing useful ${BOLD}shells/backdoors${RESET}"
 cd "${HTB_SHELLS}"
-git clone https://github.com/infodox/python-pty-shells
-git clone https://github.com/epinna/weevely3
 git clone https://github.com/eb3095/php-shell
+git clone https://github.com/infodox/python-pty-shells
+git clone https://github.com/0dayCTF/reverse-shell-generator
+git clone https://github.com/epinna/weevely3
 
-echo -e "\n${GREEN}[*] ${RESET}Grabbing useful privilege escalation scanners"
+echo -e "\n${GREEN}[*] ${RESET}Grabbing useful ${BOLD}Privilege Escalation${RESET} scanners"
 cd "${HTB_PRIVESC}"
-git clone https://github.com/pentestmonkey/windows-privesc-check
+git clone https://github.com/AlessandroZ/BeRoot
+git clone https://github.com/gentilkiwi/mimikatz
 git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite peass
-git clone https://github.com/etc5had0w/suider
+git clone https://github.com/enjoiz/Privesc Privesc-PS
+git clone https://github.com/n1nj4sec/pupy
+git clone https://github.com/skelsec/pypykatz
 git clone https://github.com/rasta-mouse/Sherlock
+git clone https://github.com/etc5had0w/suider
 git clone https://github.com/rasta-mouse/Watson
 git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester
-git clone https://github.com/gentilkiwi/mimikatz
-git clone https://github.com/skelsec/pypykatz
-git clone https://github.com/AlessandroZ/BeRoot
-git clone https://github.com/enjoiz/Privesc Privesc-PS
-
+git clone https://github.com/pentestmonkey/windows-privesc-check
 
 echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into /opt/..."
 cd /opt
+$SUDO git clone https://github.com/samratashok/ADModule
 $SUDO git clone https://github.com/BloodHoundAD/BloodHound
 $SUDO git clone https://github.com/cobbr/Covenant
 $SUDO git clone https://github.com/leebaird/discover
 $SUDO git clone https://github.com/elceef/dnstwist
 $SUDO git clone https://github.com/TheWover/donut
-$SUDO git clone https://github.com/GhostPack/Seatbelt
-$SUDO git clone https://github.com/byt3bl33d3r/SprayingToolkit
-$SUDO git clone https://github.com/samratashok/ADModule
 $SUDO git clone https://github.com/samratashok/nishang
-$SUDO git clone https://github.com/DominicBreuker/pspy
+$SUDO git clone https://github.com/21y4d/nmapAutomator
 $SUDO git clone https://github.com/PowerShellMafia/PowerSploit
 $SUDO git clone https://github.com/NetSPI/PowerUpSQL
+$SUDO git clone https://github.com/GhostPack/Seatbelt
+$SUDO git clone https://github.com/byt3bl33d3r/SprayingToolkit
 $SUDO git clone https://github.com/abatchy17/WindowsExploits
-$SUDO git clone https://github.com/21y4d/nmapAutomator
 
-$SUDO python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
+
+[[ $(pip3 show autorecon) ]] || $SUDO python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
 if [[ ! $(which autorecon) ]]; then
   cd /opt/
   $SUDO git clone https://github.com/Tib3rius/AutoRecon
@@ -367,53 +422,83 @@ fi
 
 
 # Custom nmap nse script to run CVE checks
-cd /tmp/
-# NOTE: This repo has another "http-vulners-regex.nse" you can read up on
-$SUDO git clone https://github.com/vulnersCom/nmap-vulners
-$SUDO cp /tmp/nmap-vulners/vulners.nse /usr/share/nmap/scripts/
-# Usage: nmap -sV --script vulners --script-args mincvss=7
-
-# Run this after we've imported all new nse scripts to load them
-$SUDO nmap --script-updatedb
-
-
-### Python Impacket install
-echo -e "\n${GREEN}[*] ${RESET}Installing Python Impacket collection"
-cd /opt/
-$SUDO git clone https://github.com/SecureAuthCorp/impacket
-cd impacket
-$SUDO python3 setup.py install
+if [[ ! -f /usr/share/nmap/scripts/vulners.nse ]]; then
+  cd /tmp/
+  # NOTE: This repo has another "http-vulners-regex.nse" you can read up on
+  $SUDO git clone https://github.com/vulnersCom/nmap-vulners
+  $SUDO cp /tmp/nmap-vulners/vulners.nse /usr/share/nmap/scripts/
+  # Usage: nmap -sV --script vulners --script-args mincvss=7
+  # Run this after we've imported all new nse scripts to load them
+  $SUDO nmap --script-updatedb
+fi
 
 
-# -- Singular web director for file transfers ----------------------------------
+### Python Impacket global install -- adds all scripts into PATH for use
+if [[ ! -d /opt/impacket ]]; then
+  echo -e "\n${GREEN}[*]${RESET} Installing Python Impacket collection"
+  cd /opt
+  $SUDO git clone https://github.com/SecureAuthCorp/impacket
+  cd impacket
+  $SUDO python3 setup.py install
+else
+  cd /opt/impacket && $SUDO git pull
+fi
 
-echo -e "${GREEN}[*] ${RESET} Consolidating all our goodies in one place for file transfers (nc, mimi, privesc, etc)"
+
+# -- Singular web directory for file transfers ----------------------------------
+
+echo -e "\n${GREEN}[*]${RESET} Consolidating all our goodies in one place for ${BOLD}remote file transfers${RESET} (nc, mimi, scanners, etc)"
 cd "${HTB_TRANSFERS}"
-cp "/usr/share/windows-binaries/nc.exe" ./
-cp "/usr/share/windows-binaries/wget.exe" ./
-cp "/usr/share/windows-resources/mimikatz/x64/mimikatz.exe" ./
-cp "${HTB_PRIVESC}/peass/linPEAS/linpeas.sh" ./
-cp "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x86/Release/winPEASx86.exe" ./
-cp "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x64/Release/winPEASx64.exe" ./
-cp "${HTB_PRIVESC}/Windows-Exploit-Suggester/windows-exploit-suggester.py" ./
-cp "${HTB_PRIVESC}/Sherlock/Sherlock.ps1" ./
-cp "/opt/PowerSploit/Privesc/PowerUp.ps1" ./
-cp "/opt/PowerSploit/Privesc/Privesc.psd1" ./
-cp "/opt/PowerSploit/Privesc/Privesc.psm1" ./
-cp "/opt/PowerSploit/Recon/PowerView.ps1" ./
-cp "/opt/PowerSploit/AntivirusBypass/Find-AVSignature.ps1" ./
-cp "/opt/ADModule/Import-ActiveDirectory.ps1" ./
-cp "/opt/ADModule/Microsoft.ActiveDirectory.Management.dll" ./
+cp -n "/usr/share/windows-binaries/nc.exe" ./
+cp -n "/usr/share/windows-binaries/wget.exe" ./
+cp -n "/usr/share/windows-resources/mimikatz/x64/mimikatz.exe" ./
+cp -n "${HTB_PRIVESC}/peass/linPEAS/linpeas.sh" ./
+cp -n "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x86/Release/winPEASx86.exe" ./
+cp -n "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x64/Release/winPEASx64.exe" ./
+cp -n "${HTB_PRIVESC}/Windows-Exploit-Suggester/windows-exploit-suggester.py" ./
+cp -n "${HTB_PRIVESC}/Sherlock/Sherlock.ps1" ./
+cp -n "/opt/PowerSploit/Privesc/PowerUp.ps1" ./
+cp -n "/opt/PowerSploit/Privesc/Privesc.psd1" ./
+cp -n "/opt/PowerSploit/Privesc/Privesc.psm1" ./
+cp -n "/opt/PowerSploit/Recon/PowerView.ps1" ./
+cp -n "/opt/PowerSploit/AntivirusBypass/Find-AVSignature.ps1" ./
+cp -n "/opt/ADModule/Import-ActiveDirectory.ps1" ./
+cp -n "/opt/ADModule/Microsoft.ActiveDirectory.Management.dll" ./
 
-
+# pspy the binaries are in 'releases' not in the cloned project, I built them in in /opt/ earlier anyway tho
+if [[ ! -f "${HTB_TRANSFERS}/pspy64s" ]]; then
+  echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Pspy${RESET} binaries"
+  curl -SL 'https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy64s' -o pspy64s
+  curl -SL 'https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy32s' -o pspy32s
+  chmod +x pspy64s
+  chmod +x pspy32s
+fi
+if [[ ! -f "${HTB_TRANSFERS}/chisel.exe" ]]; then
+  echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Chisel${RESET}"
+  curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.6/chisel_1.7.6_windows_amd64.gz' -o chisel.gz
+  gunzip chisel.gz
+  mv chisel chisel.exe
+fi
+if [[ ! -f "${HTB_TRANSFERS}/JuicyPotato.exe" ]]; then
+  echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}JuicyPotato${RESET}"
+  curl -SL 'https://github.com/AyrA/juicy-potato/releases/download/v1.0/JuicyPotato.exe' -o juicypotato.exe
+fi
+if [[ ! -f "${HTB_TRANSFERS}/Invoke-DCSync.ps1" ]]; then
+  echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Invoke-DCSync.ps1${RESET}"
+  curl -SL 'https://gist.githubusercontent.com/HarmJ0y/4ced579bd21db02759a5/raw/724b2d528d7338fce6350190abbdbb32a967a53e/Invoke-DCSync.ps1' -o Invoke-DCSync.ps1
+fi
 
 # -- Burpsuite -----------------------------------------------------------------
+echo -e "\n${GREEN}[*] ${RESET}Centralizing ${BOLD}Burpsuite${RESET} configs, extensions, libs, etc. into ${BURPSUITE_CONFIG_DIR}"
 mkdir -p "${BURPSUITE_CONFIG_DIR}"/{configs,libs,extensions,projects}
-cd "${BURPSUITE_CONFIG_DIR}/libs"
-echo -e "${GREEN}[*] ${RESET}Centralizing burpsuite configs, extensions, libs, etc. into ${BURPSUITE_CONFIG_DIR}"
-jython_url='https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/jython-standalone-2.7.2.jar'
-curl -SL "${jython_url}" -o jython-2.7.2.jar
+if [[ ! -f "${BURPSUITE_CONFIG_DIR}/libs/jython-2.7.2.jar" ]]; then
+  cd "${BURPSUITE_CONFIG_DIR}/libs"
+  jython_url='https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/jython-standalone-2.7.2.jar'
+  echo -e "${GREEN}[*] ${RESET}Downloading ${BOLD}Jython${RESET} lib for Burpsuite (Python add-on support)"
+  curl -SL "${jython_url}" -o jython-2.7.2.jar
+fi
 
+echo -e "\n${GREEN}[*] ${RESET}Grabbing ${BOLD}Burpsuite${RESET} extensions"
 cd "${BURPSUITE_CONFIG_DIR}/extensions"
 git clone https://github.com/bit4woo/domain_hunter
 
@@ -421,18 +506,25 @@ git clone https://github.com/bit4woo/domain_hunter
 # -- Golang & Tools ------------------------------------------------------------
 ### Go packages
 if [[ $(which go) ]]; then
+  # Preferred GOPATH for installed tool binaries is $HOME/go/bin
+  echo -e "\n${GREEN}[*] ${RESET}Installing ${BOLD}Go-based${RESET} tools: chisel, kerbrute"
   GO_VERSION=$(go version | awk '{print $3}' | cut -d 'o' -f2)
-  export PATH=$PATH:$HOME/go/bin
-  go get github.com/ropnop/kerbrute
-
+  export PATH="$PATH:$HOME/go/bin"
+  [[ ! -d "${HOME}/go/bin" ]] && mkdir -p "${HOME}/go/bin"
+  [[ ! $(which chisel) ]] && go get github.com/jpillora/chisel
+  [[ ! $(which kerbrute) ]] && go get github.com/ropnop/kerbrute
+else
+  echo -e "${RED}[ERROR] ${ORANGE}Golang/Go${RESET} is missing or not in your PATH. Fix it to get GO pkgs!"
 fi
 
 
 # -- Wordlists -----------------------------------------------------------------
 # Unzip the infamous rockyou wordlist
-echo -e "\n${GREEN}[*] ${RESET}Decompressing the 'RockYou' wordlist"
-cd /usr/share/wordlists/
-$SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
+if [[ -f /usr/share/wordlists/rockyou.txt.gz ]]; then
+  echo -e "\n${GREEN}[*] ${RESET}Decompressing the ${BOLD}RockYou${RESET} wordlist"
+  cd /usr/share/wordlists/
+  $SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
+fi
 $SUDO ln -s /usr/share/seclists seclists 2>/dev/null
 
 
@@ -440,6 +532,7 @@ $SUDO ln -s /usr/share/seclists seclists 2>/dev/null
 # -- Install Obsidian for Notetaking -------------------------------------------
 function install_obsidian_appimage() {
   if [[ ! $(which obsidian) ]]; then
+    echo -e "${GREEN}[*] ${RESET}Installing and configuring ${BOLD}Obsidian${RESET}, a MD-based notetaking app"
     cd /tmp/
     url='https://github.com/obsidianmd/obsidian-releases/releases/download/v0.11.9/Obsidian-0.11.9.AppImage'
     curl -SL "${url}" -o obsidian
@@ -448,47 +541,97 @@ function install_obsidian_appimage() {
     # First-run but don't create/open a vault yet
     $SUDO timeout 5 "/usr/local/sbin/obsidian --no-sandbox" >/dev/null 2>&1
   fi
-  # Download and install templates we'll use with note and report writing
-  if [[ ! -e /usr/share/pandoc/data/templates/eisvogel.latex ]]; then
-    curl -SL 'https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v2.0.0/Eisvogel-2.0.0.tar.gz' -o eisvogel.tar.gz
-    tar -xvf eisvogel.tar.gz
-    cp /tmp/eisvogel.latex "${HTB_NOTES}/"
-    $SUDO cp /tmp/eisvogel.latex /usr/share/eisvogel.latex /usr/share/pandoc/data/templates/eisvogel.latex
+  # Setup desktop shortcut & icon for Obsidian
+  [[ ! -d "${HOME}/.local/share/icons" ]] && mkdir -p "${HOME}/.local/share/icons"
+  cd "${HOME}/.local/share/icons"
+  curl -SL 'https://onionicons.com/parse/files/macOSicons/f107898bec29e0e6b0500fe2d04405c7_1605605112464_Obsidian.icns' -o obsidian.icns
+  file="${HOME}/Desktop/obsidian.desktop"
+  if [[ ! -f "${file}" ]]; then
+    cat <<EOF > "${file}"
+[Desktop Entry]
+Name=Obsidian
+Comment=Notetaking application in Markdown
+Encoding=UTF-8
+Exec=/usr/local/sbin/obsidian --no-sandbox
+Icon=${HOME}/.local/share/icons/obsidian.icns
+Path=${HTB_NOTES}/
+StartupNotify=true
+Terminal=false
+Type=Application
+EOF
   fi
-  cd "${HOME}/git"
-  git clone https://github.com/noraj/OSCP-Exam-Report-Template-Markdown
-  cp "${HOME}/git/OSCP-Exam-Report-Template-Markdown/src/OSEP-exam-report-template_OS_v1.md" "${HTB_NOTES}/"
+  chmod 0500 "${file}"
 
   # Install extras for this workflow
-  $SUDO apt-get -y install evince pandoc p7zip-full texlive-full
+  # for later, evince permissions error: https://askubuntu.com/questions/1184743/evince-document-viewer-theme-parssing-error-causes-invisible-gui-when-custom-gtk
+  $SUDO apt-get -y install evince pandoc p7zip-full
+  # Specifying exact texlive pkgs to install, avoiding texlive-full because it is 330+ pkgs
+  $SUDO apt-get -y install texlive-latex-recommended
+  $SUDO apt-get -y install texlive-latex-extra texlive-fonts-extra
 
+  # Download and install templates we'll use with note and report writing, into "${HTB_NOTES}/templates"
+  if [[ ! -e /usr/share/pandoc/data/templates/eisvogel.latex ]]; then
+    # Eisvogel is also here: https://github.com/Wandmalfarbe/pandoc-latex-template
+    echo -e "\n${GREEN}[*] ${RESET}Downloading Eisvogel latex template"
+    cd /tmp
+    curl -SL 'https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v2.0.0/Eisvogel-2.0.0.tar.gz' -o eisvogel.tar.gz
+    tar -xf eisvogel.tar.gz
+    cp /tmp/eisvogel.latex "${HTB_NOTES}/templates/"
+    $SUDO cp /tmp/eisvogel.latex /usr/share/pandoc/data/templates/
+  fi
+  cd "${HOME}/git"
+  echo -e "\n${GREEN}[*] ${RESET}Downloading OSEP template for Obsidian & Pandoc"
+  git clone https://github.com/noraj/OSCP-Exam-Report-Template-Markdown
+  cp "${HOME}/git/OSCP-Exam-Report-Template-Markdown/src/OSEP-exam-report-template_OS_v1.md" "${HTB_NOTES}/templates/"
+
+  # Reverse Shells cheat sheet
+  cd "${HTB_NOTES}/templates"
+  echo -e "${GREEN}[*] ${RESET}Downloading Rev Shell Cheatsheet"
+  curl -SL 'https://raw.githubusercontent.com/d4t4s3c/Reverse-Shell-Cheat-Sheet/master/README.md' -o "Reverse-Shells-Cheatsheet.md"
+
+  # TODO: https://learnbyexample.github.io/customizing-pandoc/
   file="${HTB_NOTES}/generate-report.sh"
   if [[ ! -e "${file}" ]]; then
     cat <<EOF > "${file}"
 #!/bin/bash
 
+# Protip: To get pandoc to convert markdown to PDF with image correctly, you must change
+#         every instance of an image from its default format to this:
+#         ![image caption here](image.png "Alt text here)
+#         Ref: https://tex.stackexchange.com/questions/253262/pandoc-markdown-to-pdf-doesnt-show-images
+
+# Also, if you create many .md files, you can "cat *.md > report.md" and then run this on single file.
+
+TDATE=\$(date +%Y-%m-%d)
 if [[ \$# -ne 2 ]]; then
   echo -e " Usage: \$0 <input.md> <output.pdf>"
   exit
 fi
 
-if [[ ! -e /usr/share/pandoc/data/templates/eisvogel.latex ]]; then
-  echo -e "[ERROR] eisvogel.latex file missing, check and try again!"
+if [[ ! -f /usr/share/pandoc/data/templates/eisvogel.latex ]]; then
+  echo -e "[ERROR] eisvogel.latex file missing!"
+  echo -e "  Download it: https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v2.0.0/Eisvogel-2.0.0.tar.gz"
+  echo -e "  Save it to: /usr/share/pandoc/data/templates/eisvogel.latex"
+  echo -e "  Then try again!"
   exit
 fi
 
-pandoc \$1 -o \$2 \
-  --from markdown+yaml_metadata_block+raw_html \
-  --template eisvogel \
-  --table-of-contents \
-  --toc-depth 6 \
-  --number-sections \
-  --top-level-division=chapter \
-  --highlight-style tango
+pandoc \$1 \\
+  -o \$2 \\
+  --from markdown+yaml_metadata_block+raw_html \\
+  --template eisvogel \\
+  --table-of-contents \\
+  --toc-depth 6 \\
+  --number-sections \\
+  --top-level-division=chapter \\
+  --highlight-style tango \\
+  --metadata=title:"Penetration Test Report" \\
+  --metadata=author:"$USER" \\
+  --metadata=date:"\$TDATE"
 
 
 if [[ \$? -eq 0 ]]; then
-  evince \$2
+  evince \$2 &
 fi
 EOF
     chmod u+x "${file}"
@@ -527,6 +670,11 @@ function desktop_tweaks() {
     #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11 -t string -s launcher
     #xfconf-query -n -c xfce4-panel -p /plugins/plugin-11/items -t string -s "geany.desktop" -a
 
+    # Obsidian
+    #ln -sf ~/Desktop/obsidian.desktop ~/.config/xfce4/panel/launcher-12/geany.desktop
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s launcher
+    #xfconf-query -n -c xfce4-panel -p /plugins/plugin-12/items -t string -s "obsidian.desktop" -a
+
     #xfconf-query -n -c xfce4-panel -p /plugins/plugin-12 -t string -s separator
 
   fi
@@ -534,6 +682,54 @@ function desktop_tweaks() {
 desktop_tweaks
 
 
+# -- Firefox -------------------------------------------------------------------
+# Firefox Bookmarks
+# https://www.revshells.com/
+# https://gtfobins.github.io/
+# https://lolbas-project.github.io/
+
+
+# -- Proxychains/Redsocks ------------------------------------------------------
+# Setup useful for later when:
+#   $ ssh -D 1080 -i id_rsa user@ip
+#   $ proxychains nmap -sT -Pn 172.16.1.0/24
+echo -e "\n${GREEN}[*]${RESET} Configuring Proxychains4 and Redsocks settings"
+file="/etc/proxychains4.conf"
+[[ -e "${file}" ]] && $SUDO cp -n "${file}"{,.bkup}
+# Commenting out the default for "tor" and adding ours in
+#   Proxy type choices: http, socks4, socks5
+$SUDO sed -i -E 's/^socks4\s+127.0.0.1\s+9050/#socks4 127.0.0.1 9050/' "${file}"
+grep -q "socks 127.0.0.1 1080" "${file}" 2>/dev/null \
+  || $SUDO sh -c "echo socks4 127.0.0.1 1080 >> ${file}" \
+  && $SUDO sh -c "echo socks5 127.0.0.1 1090 >> ${file}"
+
+file="/etc/redsocks.conf"
+[[ -e "${file}" ]] && $SUDO cp -n "${file}"{,.bkup}
+$SUDO sed -i 's/\tlog_debug.*/\tlog_debug = on;/' "${file}"
+$SUDO sed -i 's/\tlocal_ip =.*/\tlocal_ip = 0.0.0.0/' "${file}"
+$SUDO sed -i 's/\tlocal_port =.*/\tlocal_port = 1122/' "${file}"
+
+
+echo -e "\n${GREEN}[*]${RESET} Adding pivot-helper script into: ${HTB_PIVOTING}"
+file="${HTB_PIVOTING}/pivot-helper.sh"
+cat <<EOF > "${file}"
+#!/bin/bash
+# Change the IP subnet CIDR below to suit the network you are trying to reach
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A OUTPUT -p tcp -d 172.16.1.0/24 -j REDIRECT --to-ports 12345
+iptables -t nat -A PREROUTING -p tcp -d 172.16.1.0/24 -j REDIRECT --to-ports 12345
+/usr/sbin/redsocks -c /etc/redsocks.conf
+EOF
+chmod u+x "${file}"
+
+
+# -- Finished - Script End -----------------------------------------------------
+function ctrl_c() {
+  # Capture pressing CTRL+C during script execution to exit gracefully
+  #     Usage:     trap ctrl_c INT
+  echo -e "${GREEN}[*] ${RESET}CTRL+C was pressed -- Shutting down..."
+  trap finish EXIT
+}
 
 
 function finish() {
@@ -542,27 +738,37 @@ function finish() {
   #
   ###
   #clear
-  echo -e "${GREEN}[*] ${RESET}Cleaning up system and updating locate db"
+  echo -e "${GREEN}[*] ${RESET}Cleaning up system and updating the locate db"
   $SUDO apt-get -qq clean
   $SUDO apt-get -qq autoremove
   $SUDO updatedb
 
   echo -e "\n${GREEN}============================================================${RESET}"
-  echo -e "\n Your system has now been configured! Here is some useful information:\n"
-  echo -e "  Directories:\t\t${HOME}/htb/boxes/"
-  echo -e "  \t\t\t${HOME}/htb/shells/"
-  echo -e "\n  Place VPN Files here:\t${HOME}/vpn/"
-  echo -e "\n\n"
+  echo -e "  Your system has now been configured! Here is some useful information:"
+  echo -e "  HTB Directory Structure:"
+  /usr/bin/tree -d -L 2 "${HTB_BASE_DIR}"
+  #echo -e "\t├──${HTB_BASE_DIR}/boxes/"
+  #echo -e "\t├──${HTB_BASE_DIR}/notebooks/"
+  echo -e ""
+  echo -e "  Burpsuite Files:\t${BURPSUITE_CONFIG_DIR}"
+  echo -e "  Notetaking:\t\t/usr/local/sbin/obsidian (${GREEN}*NOTE:${RESET} Add --no-sandbox if runnning as root!)"
+  echo -e "  VPN Files:\t\t${HOME}/vpn/"
+  echo -e ""
+  echo -e "  Web Browser Bookmarks:"
+  echo -e "\t* https://www.revshells.com/"
+  echo -e "\t* https://gtfobins.github.io/"
+  echo -e "\t* https://lolbas-project.github.io/"
+  echo -e ""
   echo -e "${GREEN}============================================================${RESET}"
-  echo -e "\n${GREEN}[*]${RESET} Setup is complete. Please ${ORANGE}REBOOT${RESET} for desktop settings to take effect."
+  echo -e "\n${GREEN}[*]${RESET} Setup is complete. Open new terminal for dotfiles to take effect."
+  #echo -e "${GREEN}[*] ${RESET}Please ${ORANGE}REBOOT${RESET} for desktop settings to take effect."
   sleep 10
-
+  #$SUDO rm -rf /tmp
   FINISH_TIME=$(date +%s)
-  echo -e "${GREEN}[*] ${BLUE}${APP_NAME}${RESET} Completed Successfully - (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)\n"
+  echo -e "${GREEN}[*] ${RESET}App: ${BLUE}${APP_NAME}${RESET} Completed Successfully - (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)\n"
 }
 # End of script
 trap finish EXIT
-
 
 ## =================================================================================== ##
 ## =============================[  Help :: Core Notes ]=============================== ##

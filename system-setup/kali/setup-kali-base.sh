@@ -106,15 +106,12 @@ fi
 # =============================[ Dotfiles ]================================ #
 if [[ -d "${APP_BASE}/../../dotfiles" ]]; then
   echo -e -n "${GREEN}[+]${RESET}"
-  read -e -t 5 -i "Y" -p " Perform simple install of dotfiles? [Y,n] : " RESPONSE
+  read -e -t 5 -i "Y" -p " Perform simple install of dotfiles? [Y,n] : " response
   echo -e
 
   case $response in
-    [Yy]* ) source "${APP_BASE}/../../dotfiles/install_simple.sh";;
+    [Yy]* ) source "${APP_BASE}/../../dotfiles/install-simple.sh";;
   esac
-  #if [[ $RESPONSE == "Y" ]]; then
-  #  source "${APP_BASE}/../../dotfiles/install_simple.sh"
-  #fi
 fi
 
 # =============================[ APT Packages ]================================ #
