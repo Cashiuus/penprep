@@ -220,7 +220,7 @@ $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locat
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf tree
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing common HTB tools"
-$SUDO apt-get -y -qq install dirb dirbuster exploitdb flameshot gdb \
+$SUDO apt-get -y -qq install dirb dirbuster exploitdb flameshot gdb gobuster \
   libimage-exiftool-perl neo4j nikto proxychains4 rdesktop redsocks \
   responder seclists shellter sqlmap windows-binaries
 
