@@ -3,7 +3,7 @@
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Created:  10-Oct-2015     Revised:  31-Mar-2021
+# Created:  10-Oct-2015     Revised:  05-Apr-2021
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Install Geany IDE tool, configure custom settings, and copy in templates.
@@ -12,12 +12,12 @@
 #-[ Notes ]-------------------------------------------------------------------------------
 #   Latest Change:  Fixed underscore invisible bug in versions < 1.37
 #       - 2020-12-28 - Added network interface code for ifaces like 'ens32' to work
-#
+#       - 2021-04-05 - Bugfix for the *.txt filetype styling additional conf file
 #
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.8.2"
+__version__="1.8.3"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -245,6 +245,7 @@ FT_00_WD=
 EX_00_LB=_Execute
 EX_00_CM=python3 "%f"
 EX_00_WD=
+<<<<<<< Updated upstream
 EOF
 
 <<<<<<< Updated upstream
@@ -266,8 +267,16 @@ EOF
 # TODO: Add this line to ~/.config/geany/filetype_extensions.conf
 # Txt=*.txt;*.hlp;*.gny;*.log
 # can't simply insert, need to find "^Tcl" and insert a line after it for this
->>>>>>> Stashed changes
+# Create a standard style config for .txt files
+file="${filedir}/filetypes.txt"
+cat << EOF > "${file}"
+[keywords]
+primary=Note Warning Syntax Usage Examples Description References Installation
 
+[settings]
+extension=txt,log,gny,hlp
+lexer_filetype=Python
+EOF
 
 # Add custom config for flake8 checking, exclude noisy Error Codes
 file="${HOME}/.config/flake8"
@@ -372,10 +381,12 @@ cd ~
 
 
 # Copy desktop shortcut to the desktop
-cp /usr/share/applications/geany.desktop "${HOME}/Desktop/" 2>/dev/null
-chmod u+x "${HOME}/Desktop/geany.desktop" 2>/dev/null
+file="${HOME}/Desktop/geany.desktop"
+[[ ! -f "${file}" ]] && \
+  cp /usr/share/applications/geany.desktop "${HOME}/Desktop/" 2>/dev/null
+chmod u+x "${file}" 2>/dev/null
 
-echo -e "${GREEN}[*]${RESET} NOTE: If underscore characters are invisible, change font or adjust line height"
+echo -e "\n${GREEN}[*]${RESET} ${BOLD}NOTE:${RESET} If underscore characters are invisible, change font or adjust line height"
 
 function finish() {
   ###
@@ -386,7 +397,8 @@ function finish() {
   [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
   FINISH_TIME=$(date +%s)
   echo -e "${GREEN}[*] Penbuilder Setup :: $APP_NAME :: Completed Successfully ${YELLOW} --(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)--\n${RESET}"
-  echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
+  echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..."
+  [[ "$DEBUG" = true ]] && echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." >> "${LOG_FILE}"
 }
 # End of script
 trap finish EXIT
