@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 31-Mar-2021
+# Created:  08-Apr-2020     Revised: 21-May-2021
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -24,7 +24,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="2.1.0"
+__version__="3.1.0"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
@@ -45,21 +45,23 @@ STAGE=0                                                         # Current task n
 TOTAL=$( grep '(${STAGE}/${TOTAL})' $0 | wc -l );(( TOTAL-- ))  # Total tasks number
 
 ## =======[ EDIT THESE SETTINGS ]======= ##
-CREATE_USER_DIRECTORIES=(burpsuite git go msf-scripts tools vpn)  # Subdirectories of $HOME/
-CREATE_OPT_DIRECTORIES=()                                         # Subdirectories of /opt/
-# HTB folder package -- don't delete existing, but you can add more dirs to these
-# Some script routines rely on placing certain git repo's into these subdirs
-CREATE_HTB_DIRS=(boxes credentials notebooks privesc pivoting shells transfers wordlists)
-CREATE_HTB_BOX_SUBDIRS=(scans loot)                               # Future use
 VPN_BASE_DIR="${HOME}/vpn"
-HTB_BASE_DIR="${HOME}/htb"                    # Parent dir for all our HTB stuff
-HTB_BOXES="${HTB_BASE_DIR}/boxes"             # Our challenge boxes artifacts as we go
-HTB_NOTES="${HTB_BASE_DIR}/notebooks"         # Our challenge boxes artifacts as we go
-HTB_PIVOTING="${HTB_BASE_DIR}/pivoting"       # Resources for pivoting/c2
-HTB_PRIVESC="${HTB_BASE_DIR}/privesc"         # Privesc tools for both Linux and Windows
-HTB_SHELLS="${HTB_BASE_DIR}/shells"           # Various shells we can use (or created along the way)
-HTB_TRANSFERS="${HTB_BASE_DIR}/transfers"     # Everything in one place for file transfers
-BURPSUITE_CONFIG_DIR="${HOME}/burpsuite"      # Burpsuite configs, libs, extensions, etc in one place
+HTB_BASE_DIR="${HOME}/htb"                      # Parent dir for all our HTB stuff
+HTB_TOOLKIT_DIR="${HOME}/toolkit"               # Toolkit dir for use permanently on this system
+HTB_BOXES="${HTB_BASE_DIR}/boxes"               # Our challenge boxes artifacts as we go
+HTB_NOTES="${HTB_TOOLKIT_DIR}/notebooks"        # Our notes repository
+HTB_PIVOTING="${HTB_TOOLKIT_DIR}/pivoting"      # Resources for pivoting/c2
+HTB_PRIVESC="${HTB_TOOLKIT_DIR}/privesc"        # Privesc tools for both Linux and Windows
+HTB_SHELLS="${HTB_TOOLKIT_DIR}/shells"          # Various shells we can use (or created along the way)
+HTB_TRANSFERS="${HTB_TOOLKIT_DIR}/transfers"    # Everything in one place for file transfers
+BURPSUITE_CONFIG_DIR="${HOME}/burpsuite"        # Burpsuite configs, libs, extensions, etc in one place
+
+# Arrays listing all of the dirs we will create
+CREATE_USER_DIRECTORIES=(burpsuite git go toolkit vpn)  # Subdirs of $HOME/
+CREATE_OPT_DIRECTORIES=()                                           # Subdirs of /opt/
+CREATE_TOOLKIT_DIRS=(notebooks msf-scripts pivoting privesc shells transfers)   # Subdirs of $HOME/toolkit/
+CREATE_HTB_DIRS=(boxes credentials wordlists)                       # Project-specific HTB subdirs
+CREATE_HTB_BOX_SUBDIRS=(scans loot)                                 # Future use; subdirs for each box
 
 
 ## ========================================================================== ##
@@ -292,57 +294,61 @@ if asksure "Is this install for a pro/specific named lab?"; then
   read -r -e -t 20 -p "Enter simple one-word name for the lab: " HTB_LAB_NAME
 fi
 if [[ $HTB_LAB_NAME != "" ]]; then
-  echo -e "${GREEN}[*]${RESET} Okay, your parent HackTheBox directory will be: ${ORANGE}${HTB_BASE_DIR}-${HTB_LAB_NAME}${RESET}"
+  echo -e "${GREEN}[*]${RESET} Okay, your HackTheBox lab directory will be: ${ORANGE}${HTB_BASE_DIR}-${HTB_LAB_NAME}${RESET}"
   HTB_BASE_DIR="${HTB_BASE_DIR}-${HTB_LAB_NAME}"
   # Also need to re-declare these, bc they still have old name in their path
   HTB_BOXES="${HTB_BASE_DIR}/boxes"
-  HTB_NOTES="${HTB_BASE_DIR}/notebooks"
-  HTB_PIVOTING="${HTB_BASE_DIR}/pivoting"
-  HTB_PRIVESC="${HTB_BASE_DIR}/privesc"
-  HTB_SHELLS="${HTB_BASE_DIR}/shells"
-  HTB_TRANSFERS="${HTB_BASE_DIR}/transfers"
   sleep 1s
 else
   HTB_BASE_DIR="${HTB_BASE_DIR}"
 fi
 
+# -- Dirs: $HOME core dirs -----------------------
 count=0
 while [ "x${CREATE_USER_DIRECTORIES[count]}" != "x" ]; do
     count=$(( $count + 1 ))
 done
-
 # Create folders in ~
 echo -e "${GREEN}[*]${RESET} Creating ${count} directories in current user's ${GREEN}HOME${RESET} directory path"
 for dir in ${CREATE_USER_DIRECTORIES[@]}; do
     mkdir -p "${HOME}/${dir}"
 done
 
+# -- Dirs: /opt core dirs -----------------------
 count=0
 while [ "x${CREATE_OPT_DIRECTORIES[count]}" != "x" ]; do
     count=$(( $count + 1 ))
 done
-
 # Create folders in /opt
 if [ $count -ge 1 ]; then
   echo -e "${GREEN}[*]${RESET} Creating ${count} directories in /opt/ path"
   for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
-      mkdir -p "/opt/${dir}"
+      $SUDO mkdir -p "/opt/${dir}"
   done
 fi
 
+# -- Dirs: HTB Toolkit -----------------------
+#mkdir -p ~/htb/{boxes,credentials,shells,privesc,wordlists}
+# Create core subdirs in our HTB_TOOLKIT_DIR
+echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB toolkit${RESET} core subdirectories"
+for dir in ${CREATE_TOOLKIT_DIRS[@]}; do
+    mkdir -p "${HTB_TOOLKIT_DIR}/${dir}"
+done
+mkdir -p "${HTB_NOTES}/templates"
+
+# -- Dirs: HTB Boxes -----------------------
 #mkdir -p ~/htb/{boxes,credentials,shells,privesc,wordlists}
 # Create core subdirs in our HTB BASE DIR
-echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB${RESET} core subdirectories"
+echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB project${RESET} core subdirectories"
 for dir in ${CREATE_HTB_DIRS[@]}; do
     mkdir -p "${HTB_BASE_DIR}/${dir}"
 done
-# Doesn't seem to go anywhere else, need some subdirs for notebooks
-mkdir -p "${HTB_NOTES}/templates"
-
 
 # -- Penprep repository -----------------------
 if [[ ! -d "${HOME}/git/penprep" ]]; then
   cd "${HOME}/git" && git clone https://github.com/cashiuus/penprep
+else
+  cd "${HOME}/git/penprep" && git pull
 fi
 
 # -- Dotfiles -----------------------
@@ -520,19 +526,19 @@ fi
 
 # -- Wordlists -----------------------------------------------------------------
 # Unzip the infamous rockyou wordlist
+cd /usr/share/wordlists/
 if [[ -f /usr/share/wordlists/rockyou.txt.gz ]]; then
   echo -e "\n${GREEN}[*] ${RESET}Decompressing the ${BOLD}RockYou${RESET} wordlist"
-  cd /usr/share/wordlists/
   $SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
 fi
-$SUDO ln -s /usr/share/seclists seclists 2>/dev/null
+$SUDO ln -s /usr/share/seclists /usr/share/wordlists/seclists 2>/dev/null
 
 
 
 # -- Install Obsidian for Notetaking -------------------------------------------
 function install_obsidian_appimage() {
   if [[ ! $(which obsidian) ]]; then
-    echo -e "${GREEN}[*] ${RESET}Installing and configuring ${BOLD}Obsidian${RESET}, a MD-based notetaking app"
+    echo -e "${GREEN}[*] ${RESET}Installing and configuring ${BOLD}Obsidian${RESET}, a Markdown-based notetaking app"
     cd /tmp/
     url='https://github.com/obsidianmd/obsidian-releases/releases/download/v0.11.9/Obsidian-0.11.9.AppImage'
     curl -SL "${url}" -o obsidian
@@ -579,10 +585,10 @@ EOF
     cp /tmp/eisvogel.latex "${HTB_NOTES}/templates/"
     $SUDO cp /tmp/eisvogel.latex /usr/share/pandoc/data/templates/
   fi
-  cd "${HOME}/git"
+  cd /tmp
   echo -e "\n${GREEN}[*] ${RESET}Downloading OSEP template for Obsidian & Pandoc"
   git clone https://github.com/noraj/OSCP-Exam-Report-Template-Markdown
-  cp "${HOME}/git/OSCP-Exam-Report-Template-Markdown/src/OSEP-exam-report-template_OS_v1.md" "${HTB_NOTES}/templates/"
+  cp "/tmp/OSCP-Exam-Report-Template-Markdown/src/OSEP-exam-report-template_OS_v1.md" "${HTB_NOTES}/templates/"
 
   # Reverse Shells cheat sheet
   cd "${HTB_NOTES}/templates"
@@ -747,6 +753,7 @@ function finish() {
   echo -e "  Your system has now been configured! Here is some useful information:"
   echo -e "  HTB Directory Structure:"
   /usr/bin/tree -d -L 2 "${HTB_BASE_DIR}"
+  /usr/bin/tree -d -L 2 "${HTB_TOOLKIT_DIR}"
   #echo -e "\t├──${HTB_BASE_DIR}/boxes/"
   #echo -e "\t├──${HTB_BASE_DIR}/notebooks/"
   echo -e ""
@@ -754,7 +761,7 @@ function finish() {
   echo -e "  Notetaking:\t\t/usr/local/sbin/obsidian (${GREEN}*NOTE:${RESET} Add --no-sandbox if runnning as root!)"
   echo -e "  VPN Files:\t\t${HOME}/vpn/"
   echo -e ""
-  echo -e "  Web Browser Bookmarks:"
+  echo -e "  Web Browser Bookmarks to add:"
   echo -e "\t* https://www.revshells.com/"
   echo -e "\t* https://gtfobins.github.io/"
   echo -e "\t* https://lolbas-project.github.io/"

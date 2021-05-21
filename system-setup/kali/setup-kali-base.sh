@@ -301,9 +301,19 @@ for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
     mkdir -p "/opt/${dir}"
 done
 
-# ===============[ Symlinks ]=============
+# ===============[ Wordlists ]=============
 echo -e "${GREEN}[*] ${RESET}Adding extra symlinks"
-ln -s /usr/share/wordlists /wordlists
+$SUDO ln -s /usr/share/wordlists /wordlists
+
+
+# This project has a 20GB wordlist that's useful for real-world cracking
+#cd /usr/share/wordlists
+# Don't clone the project, it's just .md files showing links to the actual downloads
+#$SUDO git clone https://github.com/berzerk0/Probable-Wordlists
+
+# See list of file downloads here: https://github.com/berzerk0/Probable-Wordlists/blob/master/Downloads.md
+
+
 
 
 
