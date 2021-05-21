@@ -587,6 +587,56 @@ function center_text() {
   echo -e "$str"
 
 }
+
+# args:
+# input - $1
+to_lowercase() {
+    #eval $invocation
+
+    echo "$1" | tr '[:upper:]' '[:lower:]'
+    return 0
+}
+
+# args:
+# input - $1
+remove_trailing_slash() {
+    #eval $invocation
+
+    local input="${1:-}"
+    echo "${input%/}"
+    return 0
+}
+
+# args:
+# input - $1
+remove_beginning_slash() {
+    #eval $invocation
+
+    local input="${1:-}"
+    echo "${input#/}"
+    return 0
+}
+
+# args:
+# root_path - $1
+# child_path - $2 - this parameter can be empty
+combine_paths() {
+    eval $invocation
+
+    # TODO: Consider making it work with any number of paths. For now:
+    if [ ! -z "${3:-}" ]; then
+        say_err "combine_paths: Function takes two parameters."
+        return 1
+    fi
+
+    local root_path="$(remove_trailing_slash "$1")"
+    local child_path="$(remove_beginning_slash "${2:-}")"
+    say_verbose "combine_paths: root_path=$root_path"
+    say_verbose "combine_paths: child_path=$child_path"
+    echo "$root_path/$child_path"
+    return 0
+}
+
 # ======================[  END :: STYLING/FORMATTING  ]====================== #
 
 

