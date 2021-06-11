@@ -217,7 +217,7 @@ $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
 $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locate \
   gcc geany git golang gzip jq libssl-dev make net-tools openssl openvpn \
-  powershell tmux wget unzip xclip
+  powershell pv tmux wget unzip xclip
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf tree
 
@@ -231,6 +231,15 @@ $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools 
   echo -e "${YELLOW}[ERROR] Errors occurred installing Python 3.x, you may have issues${RESET}" \
   && sleep 2
 $SUDO apt-get -y install python-is-python3
+
+
+#if [ -z "$(command -v python 2>&1)" ]; then
+  #echo -e "[ERROR] python does not appear to be installed, something is wrong"
+  #exit 1
+#fi
+
+
+
 
 # Pillow depends
 $SUDO apt-get -y -qq install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
@@ -608,6 +617,71 @@ if [[ -f /usr/share/wordlists/rockyou.txt.gz ]]; then
   $SUDO gunzip -d /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
 fi
 $SUDO ln -s /usr/share/seclists /usr/share/wordlists/seclists 2>/dev/null
+
+
+
+# Probable-Wordlists project
+
+
+if [ -n "$(command -v curl 2>&1)" ]; then
+  DL_COM="curl --fail -s"
+  DL_COM_PDATA="--data"
+elif [ -n "$(command -v wget 2>&1)" ]; then
+  DL_COM="wget -q -O -"
+  DL_COM_PDATA="--post-data"
+else
+  echo -e "[ERROR] Missing required curl or wget, install either to be able to download files."
+fi
+
+
+
+function download_torrent() {
+  ###
+  #   NOTE: If using in a VM, network must be bridged. NAT requires
+  #         that you go into Virtual Network Editor and manually fwd
+  #         the port being used, in this case 51413
+
+  ###
+  # We need to download this wordlist via torrent
+  # This package install is not even 1 MB in size
+  if [ -n "$(command -v transmission-cli 2>&1)" ]; then
+    $SUDO apt-get -y install transmission-cli
+  fi
+
+  # to use transmission-cli, we need to update some system settings
+  file="/etc/sysctl.conf"
+  #$SUDO sed -i -E 's/^socks4\s+127.0.0.1\s+9050/#socks4 127.0.0.1 9050/' "${file}"
+  grep -q "net.core.rmem_max = 4194304" "${file}" 2>/dev/null \
+    || $SUDO sh -c "net.core.rmem_max = 4194304 >> ${file}"
+  grep -q "net.core.wmem_max = 1048576" "${file}" 2>/dev/null \
+    || $SUDO sh -c "net.core.wmem_max = 1048576 >> ${file}"
+  $SUDO sysctl -p
+
+  cd "$HOME/Downloads" || cd /tmp
+  transmission-cli $1
+}
+
+
+#cd /tmp
+#url="https://raw.githubusercontent.com/berzerk0/Probable-Wordlists/master/Real-Passwords/Real-Password-Rev-2-Torrents/ProbWL-v2-Real-Passwords-7z.torrent"
+# File Links: https://github.com/berzerk0/Probable-Wordlists/blob/master/Downloads.md
+#curl -SL "${url}" -o pwl.7z.torrent
+#transmission-cli pwl.7z.torrent
+
+
+
+
+# This takes forever, so lets' background it and create a script that will post-process later
+file="/tmp/process-torrent.sh"
+cat <<EOF > "${file}"
+#!/bin/bash
+
+cd /tmp
+p7zip
+
+
+EOF
+
 
 
 
