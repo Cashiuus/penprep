@@ -2,7 +2,7 @@
 ## =============================================================================
 # File:     file.sh
 # Author:   Cashiuus
-# Created:  31-Mar-2021     Revised:
+# Created:  31-May-2021     Revised:
 #
 ##-[ Info ]---------------------------------------------------------------------
 # Purpose:  Describe script purpose
@@ -45,30 +45,9 @@ APP_ARGS=$@
 LINES=$(tput lines)
 COLS=$(tput cols)
 HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
-APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 LOG_FILE="${APP_BASE}/debug.log"
-DEBUG=true
+DEBUG=false
 DO_LOGGING=false
-
-
-##  Script Arguments
-## =================================== ##
-while [[ "${#}" -gt 0 && ."${1}" == .-* ]]; do
-  opt="${1}";
-  shift;
-  case "$(echo ${opt} | tr '[:upper:]' '[:lower:]')" in
-    -|-- ) break 2;;
-
-    -update|--update )
-      update=true;;
-
-    -burp|--burp )
-      burpPro=true;;
-
-    *) echo -e "${RED}[ERROR]${RESET} Unknown argument passed: ${RED}${opt}${RESET}" 1>&2 \
-      && exit 1;;
-  esac
-done
 
 
 ##  Load Config/Settings File(s)
@@ -79,37 +58,8 @@ if [[ -s "${APP_BASE}/../common.sh" ]]; then
 else
     echo -e "${RED} [ERROR]${RESET} common.sh functions file is missing."
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: source files :: fail${RESET}"
-    exit 1
+    #exit 1
 fi
-
-
-##  Check Internet Connection
-## =================================== ##
-(( STAGE++ )); echo -e "${GREEN}[*]${RESET} (${STAGE}/${TOTAL}) Checking Internet access"
-for i in {1..4}; do ping -c 1 -W ${i} google.com &>/dev/null && break; done
-if [[ "$?" -ne 0 ]]; then
-  for i in {1..4}; do ping -c 1 -W ${i} 8.8.8.8 &/dev/null && break; done
-  if [[ "$?" -eq 0 ]]; then
-    echo -e "${RED}[ERROR]${RESET} Internet partially working, DNS is failing, check resolv.conf"
-    exit 1
-  else
-    echo -e "${RED}[ERROR]${RESET} Internet is completely down, check IP config or router"
-    exit 1
-  fi
-fi
-
-
-
-##  Running Main
-## =================================== ##
-echo -e "${ORANGE} + -- -- -- --=[${RESET}  ${APP_NAME}  ${ORANGE}]=-- -- -- -- +${RESET}"
-echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
-echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
-echo -e "${ORANGE} + -- --=[ https://github.com/cashiuus ${RESET}"
-echo -e
-echo -e
-
-
 
 
 ##  Functions/Utilities
@@ -125,6 +75,72 @@ fail() {
   echo "$@, exiting." >&2
   exit 1
 }
+
+function help_menu {
+  echo -e "\n$APP_NAME - $__version__"
+  echo -e "\nUsage: `readlink -f $0` [ARGS]"
+  echo -e "\t-i,\t--input FILE    Input file to use"
+  echo -e "\t-o,\t--output FILE   Output file to save as"
+  echo -e "\n\n"
+}
+
+function check_dependencies() {
+  #
+  # Usage
+  #
+  local dep_fail=0
+  # Check if a program is not installed (use -n to check the opposite way)
+  if [[ -z "$(command -v curl 2>&1)" ]]; then
+    dep_fail=1
+    return 1
+  fi
+}
+
+
+
+##  Running Main
+## =================================== ##
+echo -e "${ORANGE} + -- -- -- --=[${RESET}  ${APP_NAME}  ${ORANGE}]=-- -- -- -- +${RESET}"
+echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
+echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
+echo -e "${ORANGE} + --=[  https://github.com/cashiuus  ]=-- +${RESET}"
+echo -e
+echo -e
+
+##  Script Arguments
+## =================================== ##
+while [[ "${#}" -gt 0 && ."${1}" == .-* ]]; do
+  opt="${1}";
+  shift;
+  case "$(echo ${opt} | tr '[:upper:]' '[:lower:]')" in
+    -|-- ) break 2;;
+    -i|--input)         infile="$opt";    shift;; # Shift extra bc it's actually 2 args
+    -o|--output)        outfile="$opt";   shift;; # Shift extra bc it's actually 2 args
+    -update|--update )  update=true;;
+    -burp|--burp )      burpPro=true;;
+
+    *) echo -e "${RED}[ERROR]${RESET} Unknown argument passed: ${RED}${opt}${RESET}" 1>&2 \
+      && help_menu && exit 1;;
+  esac
+done
+
+##  Check Internet Connection
+(( STAGE++ )); echo -e "${GREEN}[*]${RESET} (${STAGE}/${TOTAL}) Checking Internet access"
+for i in {1..4}; do ping -c 1 -W ${i} google.com &>/dev/null && break; done
+if [[ "$?" -ne 0 ]]; then
+  for i in {1..4}; do ping -c 1 -W ${i} 8.8.8.8 &/dev/null && break; done
+  if [[ "$?" -eq 0 ]]; then
+    echo -e "${RED}[ERROR]${RESET} Internet partially working, DNS is failing, check resolv.conf"
+    exit 1
+  else
+    echo -e "${RED}[ERROR]${RESET} Internet is completely down, check IP config or router"
+    exit 1
+  fi
+fi
+
+
+
+
 
 
 

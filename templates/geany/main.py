@@ -3,7 +3,7 @@
 # ==============================================================================
 # File:         file.py
 # Author:       Cashiuus
-# Created:      20-Mar-2021     -     Revised:
+# Created:      20-May-2021     -     Revised:
 #
 # Depends:      n/a
 # Compat:       3.7+
@@ -48,7 +48,7 @@ USER_HOME = os.environ.get('HOME')
 ACTIVE_SHELL = os.environ['SHELL']
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SAVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved')
-LOG_FILE = os.path.join(BASE_DIR, 'log.txt')
+LOG_FILE = os.path.join(BASE_DIR, 'debug.log')
 #FILE_NAME_WITH_DATE_EXAMPLE = "data_output-" + strftime('%Y%m%d') + ".txt"
 
 
@@ -161,20 +161,36 @@ if __name__ == '__main__':
 # -------------------
 #       LOGGING
 # -------------------
-
+#   Logging Cookbook: https://docs.python.org/3/howto/logging-cookbook.html#logging-cookbook
+#
 # Usage:
+#   This first line must be at top of the file, outside of any functions, so it's global
 #   logger = logging.getLogger(__name__)
+#
+#   Remainder of setup can be placed into main, or its own function and called from main
+#   Tip: the level set in logger determines what messages are sent to handlers, always start with DEBUG
 #   logging.basicConfig(level=logging.DEBUG)
-#   handler = logging.FileHandler('debug.log')
-#   handler.setLevel(logging.DEBUG)
+#   Console Handler - this is so we can change log levels separate from file writing
+#   ch = logging.StreamHandler()
+#   Here is where we can condition whether or not to show DEBUG messages in console
+#   if DEBUG:
+#       ch.setLevel(logging.DEBUG)
+#   else:
+#       ch.setLevel(logging.INFO)
+#   # FileHandler accepts string or Path object for filename; mode 'w' truncates log, 'a' appends
+#   fh = logging.FileHandler(LOG_FILE, mode='w')
+#   fh.setLevel(logging.DEBUG)
 #   # Configure a good format for the logs to save as
-#   formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-#   handler.setFormatter(formatter)
-#   # Add the handler to the logger
-#   logger.addHandler(handler)
+#   See here: https://docs.python.org/3/library/logging.html#logrecord-attributes
+#   formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s : %(message)s')
+#   fh.setFormatter(formatter)
+#   # Add the handlers to the logger
+#   logger.addHandler(fh)
+#   logger.addHandler(ch)
+#   Now, use configured logger to log messages
 #   logger.debug('Logger initialized')
 #
-# logging statements you can place in code
+# logging statements you can place in code - note: use logger to apply our handler settings
 #   logger.debug('foo')
 #   logger.debug('var: url_slices is %s', url_slices)
 #   logger.error('foo', exc_info=True)
