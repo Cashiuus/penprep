@@ -26,6 +26,7 @@ import os
 import platform
 import subprocess
 import sys
+from pathlib import Path
 from random import randrange
 from time import sleep, strftime
 
@@ -46,9 +47,10 @@ DEBUG = 0
 #MY_SETTINGS = 'settings.conf'
 USER_HOME = os.environ.get('HOME')
 ACTIVE_SHELL = os.environ['SHELL']
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SAVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved')
-LOG_FILE = os.path.join(BASE_DIR, 'debug.log')
+BASE_DIR = Path(__file__).resolve(strict=True)
+#BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+SAVE_DIR = BASE_DIR / 'saved'
+LOG_FILE = BASE_DIR /'debug.log'
 #FILE_NAME_WITH_DATE_EXAMPLE = "data_output-" + strftime('%Y%m%d') + ".txt"
 
 
@@ -98,6 +100,7 @@ def main():
     Main function of the script
 
     """
+    print("[TEMPLATE] BASE_DIR is: {}".format(BASE_DIR))
     # Quick 'n dirty args if not using argparse
     args = sys.argv[1:]
 
@@ -108,7 +111,7 @@ def main():
     # -- arg parsing --
     parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(description="Description of this tool")
-    parser.add_argument('target', help='IP/CIDR/URL of target')
+    parser.add_argument('target', help='IP/CIDR/URL of target') # positional arg
     parser.add_argument("-i", "--input-file", dest='input', nargs='*',
                         help="Specify a file containing the output of an nmap "
                              "scan in xml format.")
@@ -120,7 +123,6 @@ def main():
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Display error information")
-
 
     args = parser.parse_args()
 
@@ -202,6 +204,11 @@ if __name__ == '__main__':
 # ================================[ RECIPES ]================================ #
 #
 #
+## Old path constants
+#BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+#SAVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved')
+#LOG_FILE = os.path.join(BASE_DIR, 'debug.log')
+
 
 # ========================[  CORE UTILITY FUNCTIONS  ]======================== #
 # Check - Root user
