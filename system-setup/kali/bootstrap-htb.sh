@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 21-May-2021
+# Created:  08-Apr-2020     Revised: 20-Aug-2021
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -24,7 +24,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="3.1.0"
+__version__="3.1.1"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
@@ -138,6 +138,27 @@ EOF
 print_banner
 
 
+function asksure() {
+  ###
+  # Usage:
+  #   if asksure; then
+  #        echo "Okay, performing rm -rf / then, master...."
+  #   else
+  #        echo "Awww, why not :("
+  #   fi
+  ###
+  echo -e -n "\n\n${GREEN}[+]${RESET} ${1} (Y/N): "
+  while read -r -n 1 -t 20 -s answer; do
+    if [[ $answer = [YyNn] ]]; then
+      [[ $answer = [Yy] ]] && retval=0
+      [[ $answer = [Nn] ]] && retval=1
+      break
+    fi
+  done
+  echo
+  return $retval
+}
+
 function check_root() {
   if [[ $EUID -ne 0 ]]; then
     # If not root, check if sudo package is installed
@@ -173,7 +194,8 @@ export TERM=xterm-256color
 
 # -- VM Tools First and Foremost ---------
 # https://github.com/vmware/open-vm-tools
-if [[ ! $(which vmware-toolbox-cmd) ]]; then
+# VMware vm does not have this file, while AWS boxes do and will be "xen"
+if [[ ! -f /sys/hypervisor/type ]] &&  [[ ! $(which vmware-toolbox-cmd) ]]; then
   echo -e "\n${YELLOW}[WARN] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
   sleep 2
   $SUDO apt-get -y -qq install open-vm-tools-desktop fuse
@@ -194,18 +216,20 @@ if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
 fi
 
 # =============================[ APT Packages ]================================ #
-# Change the apt/sources.list repository listings to just a single entry:
-echo -e "\n${GREEN}[*] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
-file=/etc/apt/sources.list
-[[ -e "${file}" ]] && $SUDO cp -n $file{,.bkup}
-if [[ $SUDO ]]; then
-  echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
-  echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-  echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-else
-  echo "# kali-rolling" > /etc/apt/sources.list
-  echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
-  echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
+if [[ "$update" != true ]]; then
+  # Change the apt/sources.list repository listings to just a single entry:
+  echo -e "\n${GREEN}[*] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
+  file=/etc/apt/sources.list
+  [[ -e "${file}" ]] && $SUDO cp -n $file{,.bkup}
+  if [[ $SUDO ]]; then
+    echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
+    echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+    echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+  else
+    echo "# kali-rolling" > /etc/apt/sources.list
+    echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
+    echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
+  fi
 fi
 
 echo -e "\n${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
@@ -216,15 +240,15 @@ $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
 $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locate \
-  gcc geany git golang gzip jq libssl-dev make net-tools openssl openvpn \
+  gcc geany git gnumeric golang gzip jq libssl-dev make net-tools openssl openvpn \
   powershell pv tmux wget unzip xclip
 
 $SUDO apt-get -y -qq install geany htop sysv-rc-conf tree
 
 echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing common HTB tools"
-$SUDO apt-get -y -qq install dirb dirbuster exploitdb flameshot gdb gobuster \
-  libimage-exiftool-perl neo4j nikto proxychains4 rdesktop redsocks \
-  responder seclists shellter sqlmap windows-binaries
+$SUDO apt-get -y -qq install bloodhound dirb dirbuster docx2txt exploitdb feroxbuster \
+  flameshot gdb gobuster libimage-exiftool-perl neo4j nikto proxychains4 \
+  rdesktop redsocks responder seclists shellter sqlmap sshuttle windows-binaries
 
 # Python 3
 $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
@@ -237,8 +261,6 @@ $SUDO apt-get -y install python-is-python3
   #echo -e "[ERROR] python does not appear to be installed, something is wrong"
   #exit 1
 #fi
-
-
 
 
 # Pillow depends
@@ -254,6 +276,7 @@ file="/tmp/requirements.txt"
 cat <<EOF > "${file}"
 argparse
 beautifulsoup4
+bloodhound
 colorama
 dnspython
 future
@@ -272,68 +295,49 @@ requests
 six
 wheel
 EOF
-
-$SUDO python3 -m pip install -q -r /tmp/requirements.txt
+python3 -m pip install -q -r /tmp/requirements.txt || \
+  $SUDO python3 -m pip install -q -r /tmp/requirements.txt
 
 
 # -- Create Directory Structure -------------------------------------------------
-function asksure() {
-  ###
-  # Usage:
-  #   if asksure; then
-  #        echo "Okay, performing rm -rf / then, master...."
-  #   else
-  #        echo "Awww, why not :("
-  #   fi
-  ###
-  echo -e -n "\n\n${GREEN}[+]${RESET} ${1} (Y/N): "
-  while read -r -n 1 -t 20 -s answer; do
-    if [[ $answer = [YyNn] ]]; then
-      [[ $answer = [Yy] ]] && retval=0
-      [[ $answer = [Nn] ]] && retval=1
-      break
-    fi
+if [[ "$update" != true ]]; then
+  if asksure "Is this install for a pro/specific named lab?"; then
+    echo -n -e "${GREEN}[+]${RESET} "
+    read -r -e -t 20 -p "Enter simple one-word name for the lab: " HTB_LAB_NAME
+  fi
+  if [[ $HTB_LAB_NAME != "" ]]; then
+    echo -e "${GREEN}[*]${RESET} Okay, your HackTheBox lab directory will be: ${ORANGE}${HTB_BASE_DIR}-${HTB_LAB_NAME}${RESET}"
+    HTB_BASE_DIR="${HTB_BASE_DIR}-${HTB_LAB_NAME}"
+    # Also need to re-declare these, bc they still have old name in their path
+    HTB_BOXES="${HTB_BASE_DIR}/boxes"
+    sleep 1s
+  else
+    HTB_BASE_DIR="${HTB_BASE_DIR}"
+  fi
+
+  # -- Dirs: $HOME core dirs -----------------------
+  count=0
+  while [ "x${CREATE_USER_DIRECTORIES[count]}" != "x" ]; do
+      count=$(( $count + 1 ))
   done
-  echo
-  return $retval
-}
-
-if asksure "Is this install for a pro/specific named lab?"; then
-  echo -n -e "${GREEN}[+]${RESET} "
-  read -r -e -t 20 -p "Enter simple one-word name for the lab: " HTB_LAB_NAME
-fi
-if [[ $HTB_LAB_NAME != "" ]]; then
-  echo -e "${GREEN}[*]${RESET} Okay, your HackTheBox lab directory will be: ${ORANGE}${HTB_BASE_DIR}-${HTB_LAB_NAME}${RESET}"
-  HTB_BASE_DIR="${HTB_BASE_DIR}-${HTB_LAB_NAME}"
-  # Also need to re-declare these, bc they still have old name in their path
-  HTB_BOXES="${HTB_BASE_DIR}/boxes"
-  sleep 1s
-else
-  HTB_BASE_DIR="${HTB_BASE_DIR}"
-fi
-
-# -- Dirs: $HOME core dirs -----------------------
-count=0
-while [ "x${CREATE_USER_DIRECTORIES[count]}" != "x" ]; do
-    count=$(( $count + 1 ))
-done
-# Create folders in ~
-echo -e "${GREEN}[*]${RESET} Creating ${count} directories in current user's ${GREEN}HOME${RESET} directory path"
-for dir in ${CREATE_USER_DIRECTORIES[@]}; do
-    mkdir -p "${HOME}/${dir}"
-done
-
-# -- Dirs: /opt core dirs -----------------------
-count=0
-while [ "x${CREATE_OPT_DIRECTORIES[count]}" != "x" ]; do
-    count=$(( $count + 1 ))
-done
-# Create folders in /opt
-if [ $count -ge 1 ]; then
-  echo -e "${GREEN}[*]${RESET} Creating ${count} directories in /opt/ path"
-  for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
-      $SUDO mkdir -p "/opt/${dir}"
+  # Create folders in ~
+  echo -e "${GREEN}[*]${RESET} Creating ${count} directories in current user's ${GREEN}HOME${RESET} directory path"
+  for dir in ${CREATE_USER_DIRECTORIES[@]}; do
+      mkdir -p "${HOME}/${dir}"
   done
+
+  # -- Dirs: /opt core dirs -----------------------
+  count=0
+  while [ "x${CREATE_OPT_DIRECTORIES[count]}" != "x" ]; do
+      count=$(( $count + 1 ))
+  done
+  # Create folders in /opt
+  if [ $count -ge 1 ]; then
+    echo -e "${GREEN}[*]${RESET} Creating ${count} directories in /opt/ path"
+    for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
+        $SUDO mkdir -p "/opt/${dir}"
+    done
+  fi
 fi
 
 # -- Dirs: HTB Toolkit -----------------------
@@ -374,8 +378,8 @@ else
   sleep 2s
 fi
 
-#[[ $DO_DOTFILES ]] && (. "${HOME}/git/penprep/dotfiles/install-simple.sh")
 [[ $DO_DOTFILES ]] && "${HOME}/git/penprep/dotfiles/install-simple.sh"
+
 
 # -- Various Extra Tools -------------------------------------------------------
 ### Evil-WinRM install
@@ -390,6 +394,11 @@ git clone https://github.com/eb3095/php-shell
 git clone https://github.com/infodox/python-pty-shells
 git clone https://github.com/0dayCTF/reverse-shell-generator
 git clone https://github.com/epinna/weevely3
+
+if [[ ! -d "${HTB_SHELLS}/pentestmonkey" ]]; then
+  mkdir pentestmonkey && cd pentestmonkey
+  curl -SL 'https://raw.githubusercontent.com/pentestmonkey/php-reverse-shell/master/php-reverse-shell.php' -o 'php-reverse-shell.php' || echo -e "[ERROR] Failed to download php-reverse-shell.php file"
+fi
 
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful ${BOLD}Privilege Escalation${RESET} scanners"
 cd "${HTB_PRIVESC}"
@@ -406,7 +415,7 @@ git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester
 git clone https://github.com/pentestmonkey/windows-privesc-check
 
 echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into /opt/..."
-cd /opt
+cd /opt/
 $SUDO git clone https://github.com/samratashok/ADModule
 $SUDO git clone https://github.com/BloodHoundAD/BloodHound
 $SUDO git clone https://github.com/leebaird/discover
@@ -469,12 +478,11 @@ Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
 [Install]
 WantedBy=default.target
 EOF
-# After copy, file should have permissions 0644 set automatically, but might want to verify
-$SUDO cp -u "${file}" /etc/systemd/system/covenant.service
-#$SUDO systemctl demon-reload
-#$SUDO systemctl start covenant
-#$SUDO systemctl enable covenant
-
+  # After copy, file should have permissions 0644 set automatically, but might want to verify
+  $SUDO cp -u "${file}" /etc/systemd/system/covenant.service
+  #$SUDO systemctl demon-reload
+  #$SUDO systemctl start covenant
+  #$SUDO systemctl enable covenant
 
 else
   echo -e "${RED}[ERROR] dotnet command not found, install must have failed.${RESET}"
@@ -522,7 +530,6 @@ fi
 
 
 # -- Singular web directory for file transfers ----------------------------------
-
 echo -e "\n${GREEN}[*]${RESET} Consolidating all our goodies in one place for ${BOLD}remote file transfers${RESET} (nc, mimi, scanners, etc)"
 cd "${HTB_TRANSFERS}"
 cp -n "/usr/share/windows-binaries/nc.exe" ./
@@ -562,6 +569,10 @@ fi
 if [[ ! -f "${HTB_TRANSFERS}/Invoke-DCSync.ps1" ]]; then
   echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Invoke-DCSync.ps1${RESET}"
   curl -SL 'https://gist.githubusercontent.com/HarmJ0y/4ced579bd21db02759a5/raw/724b2d528d7338fce6350190abbdbb32a967a53e/Invoke-DCSync.ps1' -o Invoke-DCSync.ps1
+fi
+if [[ ! -f "${HTB_TRANSFERS}/Invoke-Mimikatz.ps1" ]]; then
+  echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Invoke-Mimikatz.ps1${RESET}"
+  curl -SL "https://raw.githubusercontent.com/BC-SECURITY/Empire/master/empire/server/data/module_source/credentials/Invoke-Mimikatz.ps1" -o Invoke-Mimikatz.ps1
 fi
 
 file="shell-$USER.ps1"
@@ -619,7 +630,6 @@ fi
 $SUDO ln -s /usr/share/seclists /usr/share/wordlists/seclists 2>/dev/null
 
 
-
 # Probable-Wordlists project
 
 
@@ -661,7 +671,6 @@ function download_torrent() {
   transmission-cli $1
 }
 
-
 #cd /tmp
 #url="https://raw.githubusercontent.com/berzerk0/Probable-Wordlists/master/Real-Passwords/Real-Password-Rev-2-Torrents/ProbWL-v2-Real-Passwords-7z.torrent"
 # File Links: https://github.com/berzerk0/Probable-Wordlists/blob/master/Downloads.md
@@ -670,17 +679,13 @@ function download_torrent() {
 
 
 
-
 # This takes forever, so lets' background it and create a script that will post-process later
-file="/tmp/process-torrent.sh"
-cat <<EOF > "${file}"
-#!/bin/bash
-
-cd /tmp
-p7zip
-
-
-EOF
+#file="/tmp/process-torrent.sh"
+#cat <<EOF > "${file}"
+##!/bin/bash
+#cd /tmp
+#p7zip
+#EOF
 
 
 
@@ -793,7 +798,7 @@ EOF
     chmod u+x "${file}"
   fi
 }
-install_obsidian_appimage
+[[ "$update" != true ]] && install_obsidian_appimage
 
 
 
@@ -835,7 +840,7 @@ function desktop_tweaks() {
 
   fi
 }
-desktop_tweaks
+[[ "$update" != true ]] && desktop_tweaks
 
 
 # -- Firefox -------------------------------------------------------------------
@@ -846,29 +851,29 @@ desktop_tweaks
 
 
 # -- Proxychains/Redsocks ------------------------------------------------------
-# Setup useful for later when:
-#   $ ssh -D 1080 -i id_rsa user@ip
-#   $ proxychains nmap -sT -Pn 172.16.1.0/24
-echo -e "\n${GREEN}[*]${RESET} Configuring Proxychains4 and Redsocks settings"
-file="/etc/proxychains4.conf"
-[[ -e "${file}" ]] && $SUDO cp -n "${file}"{,.bkup}
-# Commenting out the default for "tor" and adding ours in
-#   Proxy type choices: http, socks4, socks5
-$SUDO sed -i -E 's/^socks4\s+127.0.0.1\s+9050/#socks4 127.0.0.1 9050/' "${file}"
-grep -q "socks 127.0.0.1 1080" "${file}" 2>/dev/null \
-  || $SUDO sh -c "echo socks4 127.0.0.1 1080 >> ${file}" \
-  && $SUDO sh -c "echo socks5 127.0.0.1 1090 >> ${file}"
+function setup_proxytools() {
+  # Setup useful for later when:
+  #   $ ssh -D 1080 -i id_rsa user@ip
+  #   $ proxychains nmap -sT -Pn 172.16.1.0/24
+  echo -e "\n${GREEN}[*]${RESET} Configuring Proxychains4 and Redsocks settings"
+  file="/etc/proxychains4.conf"
+  [[ -e "${file}" ]] && $SUDO cp -n "${file}"{,.bkup}
+  # Commenting out the default for "tor" and adding ours in
+  #   Proxy type choices: http, socks4, socks5
+  $SUDO sed -i -E 's/^socks4\s+127.0.0.1\s+9050/#socks4 127.0.0.1 9050/' "${file}"
+  grep -q "socks 127.0.0.1 1080" "${file}" 2>/dev/null \
+    || $SUDO sh -c "echo socks4 127.0.0.1 1080 >> ${file}" \
+    && $SUDO sh -c "echo socks5 127.0.0.1 1090 >> ${file}"
 
-file="/etc/redsocks.conf"
-[[ -e "${file}" ]] && $SUDO cp -n "${file}"{,.bkup}
-$SUDO sed -i 's/\tlog_debug.*/\tlog_debug = on;/' "${file}"
-$SUDO sed -i 's/\tlocal_ip =.*/\tlocal_ip = 0.0.0.0/' "${file}"
-$SUDO sed -i 's/\tlocal_port =.*/\tlocal_port = 1122/' "${file}"
+  file="/etc/redsocks.conf"
+  [[ -e "${file}" ]] && $SUDO cp -n "${file}"{,.bkup}
+  $SUDO sed -i 's/\tlog_debug.*/\tlog_debug = on;/' "${file}"
+  $SUDO sed -i 's/\tlocal_ip =.*/\tlocal_ip = 0.0.0.0/' "${file}"
+  $SUDO sed -i 's/\tlocal_port =.*/\tlocal_port = 1122/' "${file}"
 
-
-echo -e "\n${GREEN}[*]${RESET} Adding pivot-helper script into: ${HTB_PIVOTING}"
-file="${HTB_PIVOTING}/pivot-helper.sh"
-cat <<EOF > "${file}"
+  echo -e "\n${GREEN}[*]${RESET} Adding pivot-helper script into: ${HTB_PIVOTING}"
+  file="${HTB_PIVOTING}/pivot-helper.sh"
+  cat <<EOF > "${file}"
 #!/bin/bash
 # Change the IP subnet CIDR below to suit the network you are trying to reach
 echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -876,7 +881,9 @@ iptables -t nat -A OUTPUT -p tcp -d 172.16.1.0/24 -j REDIRECT --to-ports 12345
 iptables -t nat -A PREROUTING -p tcp -d 172.16.1.0/24 -j REDIRECT --to-ports 12345
 /usr/sbin/redsocks -c /etc/redsocks.conf
 EOF
-chmod u+x "${file}"
+  chmod u+x "${file}"
+}
+[[ "$update" != true ]] && setup_proxytools
 
 
 # -- Finished - Script End -----------------------------------------------------
@@ -915,6 +922,7 @@ function finish() {
   echo -e "\t* https://www.revshells.com/"
   echo -e "\t* https://gtfobins.github.io/"
   echo -e "\t* https://lolbas-project.github.io/"
+  echo -e "\t* https://book.hacktricks.xyz/"
   echo -e ""
   echo -e "${GREEN}============================================================${RESET}"
   echo -e "\n${GREEN}[*]${RESET} Setup is complete. Open new terminal for dotfiles to take effect."
