@@ -194,6 +194,31 @@ if [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
     ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#999'
 fi
 
+# --[ PS Prompt Customizations ]--
+# Show current git branch when inside a git repo directory
+git-current-branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1) /'
+}
+PS1="\$(git-current-branch)$PS1"
+#export PS1="\$(git-current-branch)$PS1"
+#export PS1="$PS1 \$(git-current-branch) $"
+
+### Python Virtualenv Helper
+# Call virtualenvwrapper's "workon" if .venv exists.
+check_virtualenv() {
+    if [ -e .venv ]; then
+        env=`cat .venv`
+        if [ "$env" != "${VIRTUAL_ENV##*/}" ]; then
+            echo "Found .venv in directory. Calling: workon ${env}"
+            workon $env
+        fi
+    fi
+}
+
+# Call check_virtualenv in case opening directly into a directory (e.g
+# when opening a new tab in Terminal.app).
+check_virtualenv
+
 # Load custom aliases
 [[ -f ~/.aliases ]] && source ~/.aliases
 [[ -f ~/.dotfiles/.aliases ]] && source ~/.dotfiles/.aliases
