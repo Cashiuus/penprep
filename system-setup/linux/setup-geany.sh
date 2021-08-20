@@ -97,7 +97,9 @@ check_root
 # ================================[  BEGIN  ]================================ #
 $SUDO apt-get -qq update
 $SUDO apt-get -y install geany python3-pip
-$SUDO apt-get -y install python3-flake8 python3-pep8-naming
+$SUDO apt-get -y install python3-flake8 python3-pep8-naming shellcheck
+# Use shellcheck with Geany by simply clicking on Build -> Lint and it shows syntax errors
+
 
 # Unbuntu requires an icon pkg that is not on Kali, nor required
 os=$(cat /etc/os-release | grep '^ID=' | cut -d '=' -f2)
@@ -245,24 +247,11 @@ FT_00_WD=
 EX_00_LB=_Execute
 EX_00_CM=python3 "%f"
 EX_00_WD=
-<<<<<<< Updated upstream
 EOF
 
-<<<<<<< Updated upstream
 # Custom file defs for syntax highlighting tweaks
 #cp /usr/share/geany/filedefs/filetypes.sh ${filedir}/
 #cp /usr/share/geany/filedefs/filetypes.python ${filedir}/
-=======
-# Create a standard style config for .txt files
-file="${filedir}/filetypes.Txt"
-cat << EOF > "${file}"
-[keywords]
-primary=Note Warning Syntax Usage Examples Description References Installation
-
-[settings]
-extension=txt,log,gny,hlp
-lexer_filetype=Python
-EOF
 
 # TODO: Add this line to ~/.config/geany/filetype_extensions.conf
 # Txt=*.txt;*.hlp;*.gny;*.log

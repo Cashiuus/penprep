@@ -191,25 +191,46 @@ function asksure() {
 }
 
 
-
-check_sha256() {
-  # Pass file and hash and verify it
-  #   Usage: <file> <known_good_hash_to_verify>
-  ##
-
-  [[ $(which sha256sum) ]] || echo -e "[ERROR] sha256sum missing from system" && return
-
-  if [ $(sha256sum $1 | awk '{print $1}') = $2 ]; then
-    echo -e "[*] SHA256 hash matches what was provided!"
-    retval=1
-  else
-    echo -e "[-] SHA256 hash DOES NOT match what was provided!"
-    retval=0
-  fi
-  return $retval
+function time_elapsed() {
+    # Usage: runtime <START_TIME> <END_TIME>
+    delta=$(($2 - $1))
+    if [[ $delta -lt 0 ]]; then
+        echo -e "[ERR] Invalid parameters resulted in negative number, did you pass args backwards?"
+        return
+    fi
+    #echo -e "[*] raw delta: $delta"
+    hrs=$(($delta / 3600))
+    minutes=$(( (($delta - (($hrs * 3600)) )) / 60 ))
+    #echo -e "[*] raw minutes: $minutes"
+    #echo -e "[*] raw hours: $hrs"
+    days=0
+    while [[ $hrs -gt 24 ]]; do
+        ((hrs-=24))
+        ((days+=1))
+    done
+    if [[ $days -ge 1 ]]; then
+        echo -e "[*] Total Time Elapsed: $days days, $hrs hours, $minutes minutes"
+    else
+        echo -e "[*] Total time elapsed: $hrs hours, $minutes minutes"
+    fi
 }
 
 
+
+
+
+
+#   Functions :: OS & Patching
+# ============================================================================ #
+
+function get_os() {
+  OS_TYPE=$(lsb_release -sd | awk '{print 1}')
+
+
+
+
+
+}
 
 
 patch_system() {
@@ -702,3 +723,23 @@ function md5_compare() {
   echo -e "\n\n"
   sleep 10
 }
+
+
+
+check_sha256() {
+  # Pass file and hash and verify it
+  #   Usage: <file> <known_good_hash_to_verify>
+  ##
+
+  [[ $(which sha256sum) ]] || echo -e "[ERROR] sha256sum missing from system" && return
+
+  if [ $(sha256sum $1 | awk '{print $1}') = $2 ]; then
+    echo -e "[*] SHA256 hash matches what was provided!"
+    retval=1
+  else
+    echo -e "[-] SHA256 hash DOES NOT match what was provided!"
+    retval=0
+  fi
+  return $retval
+}
+

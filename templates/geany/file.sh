@@ -114,8 +114,8 @@ while [[ "${#}" -gt 0 && ."${1}" == .-* ]]; do
   shift;
   case "$(echo ${opt} | tr '[:upper:]' '[:lower:]')" in
     -|-- ) break 2;;
-    -i|--input)         infile="$opt";    shift;; # Shift extra bc it's actually 2 args
-    -o|--output)        outfile="$opt";   shift;; # Shift extra bc it's actually 2 args
+    -i|--input)         infile="$1";    shift;; # Shift extra bc it's actually 2 args
+    -o|--output)        outfile="$1";   shift;; # Shift extra bc it's actually 2 args
     -update|--update )  update=true;;
     -burp|--burp )      burpPro=true;;
 
