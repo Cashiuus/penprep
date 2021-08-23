@@ -79,12 +79,13 @@ check_root
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
 
-echo '[*] Installing Debian Dependencies'
+echo '${GREEN}[*]${RESET} Installing OS Dependencies'
 $SUDO apt-get -qq update
 
 # --[ OS Check ]--
 OS_TYPE=$(lsb_release -sd | awk '{print 1}')
-if [[ "$OS_TYPE" = "Kali" ]] || [[ "$OS_TYPE" = "Debian" ]]; then
+echo -e "${GREEN}[*]${RESET} Your current OS: $OS_TYPE"
+if [[ "$OS_TYPE" = "Kali" || "$OS_TYPE" = "Debian" ]]; then
   $SUDO apt-get -y install cmake firefox-esr python3 python3-pip python-netaddr \
     python3-dev tesseract-ocr xvfb x11utils
   $SUDO apt-get -y install eyewitness
@@ -96,7 +97,7 @@ elif [[ "$OS_TYPE" = "Alpine" ]]; then
   $SUDO apk update
   $SUDO apk add cmake firefox python3 python3-dev py-netaddr py-pip xvfb
 else
-  echo -e "${RED}[ERR]${RESET} OS Not recognized or unsupported. Existing"
+  echo -e "${RED}[ERR]${RESET} OS Not recognized or unsupported. Exiting script!"
   exit 1
 fi
 
@@ -110,7 +111,7 @@ python3 -m pip install pyvirtualdisplay
 python3 -m pip install netaddr
 
 
-if [[ ! "$OS_TYPE" = "Kali" ]] && [[ ! "$OS_TYPE" = "Debian" ]]; then
+if [[ ! "$OS_TYPE" = "Kali" && ! "$OS_TYPE" = "Debian" ]]; then
   mkdir -p ~/git && cd ~/git
   git clone https://github.com/FortyNorthSecurity/EyeWitness
   # symlinks must specify full paths, don't use '.'
