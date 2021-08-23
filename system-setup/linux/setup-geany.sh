@@ -224,10 +224,11 @@ browser_cmd=firefox-esr %c
 grep_cmd=grep
 
 EOF
+
+  $SUDO mv "${tmpfile}" "${file}"
+  # Files in this dir should be writeable to root, read-only to group and everyone else (0655)
+  $SUDO chmod -f 0655 "${file}"
 fi
-$SUDO mv "${tmpfile}" "${file}"
-# Files in this dir should be writeable to root, read-only to group and everyone else (0655)
-$SUDO chmod -f 0655 "${file}"
 
 
 # Build Commands
@@ -293,7 +294,7 @@ sed -i 's/^Sh=\*\.sh;configure;.*/Sh=*.sh;configure;configure.in;configure.in.in
 
 # Geany -> Tools -> Plugin Manger -> Save Actions -> HTML Characters: Enabled. Split Windows: Enabled. Save Actions: Enabled. -> Preferences -> Backup Copy -> Enable -> Directory to save backup files in: /root/Backups/geany/.
 #Directory levels to include in the backup destination: 5 -> Apply -> Ok -> Ok
-$SUDO sed -i 's#^.*active_plugins.*#active_plugins=/usr/lib/geany/htmlchars.so;/usr/lib/geany/saveactions.so;/usr/lib/geany/splitwindow.so;#' "${file}"
+sed -i 's#^.*active_plugins.*#active_plugins=/usr/lib/geany/htmlchars.so;/usr/lib/geany/saveactions.so;/usr/lib/geany/splitwindow.so;#' "${file}"
 
 
 function enable_geany_backups {
@@ -339,7 +340,7 @@ function fix_invisible_underscores() {
     # note: looks like we can copy it from usr share instead.
     #   [styling]
     #   line_height=1;1;
-    $file="~/.config/geany/filedefs/filetypes.common"
+    file="${HOME}/.config/geany/filedefs/filetypes.common"
     cp /usr/share/geany/filedefs/filetypes.common "${file}"
     sed -i 's/^#~ line_height=0;0;/line_height=1;1;/' "${file}"
 }
@@ -360,7 +361,6 @@ geany_templates
 
 
 echo -e "${GREEN}[*]${RESET} Installing custom Geany color themes"
-echo -e "${GREEN}[*]${RESET} Choose a theme from View -> Choose Color Theme"
 cd /tmp
 wget https://github.com/geany/geany-themes/archive/master.zip
 unzip master.zip
@@ -369,13 +369,17 @@ cd geany-themes-master
 cd ~
 
 
-# Copy desktop shortcut to the desktop
-file="${HOME}/Desktop/geany.desktop"
-[[ ! -f "${file}" ]] && \
-  cp /usr/share/applications/geany.desktop "${HOME}/Desktop/" 2>/dev/null
-chmod u+x "${file}" 2>/dev/null
+# Copy desktop shortcut to the desktop, unless we are on a remote server w/o a desktop
+if [[ -d "${HOME}/Desktop" ]]; then
+  file="${HOME}/Desktop/geany.desktop"
+  [[ ! -f "${file}" ]] && \
+    cp /usr/share/applications/geany.desktop "${HOME}/Desktop/" 2>/dev/null
+  chmod u+x "${file}" 2>/dev/null
+fi
 
 echo -e "\n${GREEN}[*]${RESET} ${BOLD}NOTE:${RESET} If underscore characters are invisible, change font or adjust line height"
+echo -e "${GREEN}[*]${RESET} Geany themes installed. Choose a theme from View -> Choose Color Theme"
+
 
 function finish() {
   ###
