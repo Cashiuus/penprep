@@ -57,7 +57,7 @@ function check_root() {
       # This accounts for both root and sudo. If normal user, it'll use sudo.
       # If you run script as root, $SUDO is blank and script will soldier on.
       export SUDO="sudo"
-      echo -e "${YELLOW}[WARN] This script leverages sudo for installation. Enter your password when prompted!${RESET}"
+      echo -e "\n${YELLOW}[WARN] This script leverages sudo for installation. Enter your password when prompted!${RESET}"
       sleep 1
       # Test to ensure this user is able to use sudo
       sudo -l >/dev/null
@@ -79,18 +79,18 @@ check_root
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
 
-echo "${GREEN}[*]${RESET} Installing OS Dependencies"
+echo -e "${GREEN}[*]${RESET} Installing OS Dependencies"
 $SUDO apt-get -qq update
 
 # --[ OS Check ]--
 OS_TYPE=$(lsb_release -sd | awk '{print $1}')
-echo -e "${GREEN}[*]${RESET} Your current OS: $OS_TYPE"
+echo -e "${GREEN}[*] Your current OS:${RESET} $OS_TYPE"
 if [[ "$OS_TYPE" = "Kali" || "$OS_TYPE" = "Debian" ]]; then
-  $SUDO apt-get -y install cmake firefox-esr python3 python3-pip python-netaddr \
-    python3-dev tesseract-ocr xvfb x11utils
+  $SUDO apt-get -y install cmake firefox-esr python3 python3-pip \
+    python3-netaddr python3-dev tesseract-ocr xvfb
   $SUDO apt-get -y install eyewitness
 elif [[ "$OS_TYPE" = "Ubuntu" ]]; then
-  $SUDO apt-get -y install cmake firefox python3 python3-pip python-netaddr \
+  $SUDO apt-get -y install cmake firefox python3 python3-pip python3-netaddr \
   python3-dev tesseract-ocr x11utils
 elif [[ "$OS_TYPE" = "Alpine" ]]; then
   # Here are the basics for Alpine. Ref the setup link at top for full setup.
@@ -102,7 +102,7 @@ else
 fi
 
 
-echo '${GREEN}[*] Installing Python Modules${RESET}'
+echo -e "${GREEN}[*] Installing Python Modules${RESET}"
 pip3 install --upgrade pip
 python3 -m pip install fuzzywuzzy
 python3 -m pip install selenium --upgrade
