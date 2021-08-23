@@ -18,7 +18,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="0.2"
+__version__="0.3"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
@@ -79,11 +79,11 @@ check_root
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
 
-echo '${GREEN}[*]${RESET} Installing OS Dependencies'
+echo "${GREEN}[*]${RESET} Installing OS Dependencies"
 $SUDO apt-get -qq update
 
 # --[ OS Check ]--
-OS_TYPE=$(lsb_release -sd | awk '{print 1}')
+OS_TYPE=$(lsb_release -sd | awk '{print $1}')
 echo -e "${GREEN}[*]${RESET} Your current OS: $OS_TYPE"
 if [[ "$OS_TYPE" = "Kali" || "$OS_TYPE" = "Debian" ]]; then
   $SUDO apt-get -y install cmake firefox-esr python3 python3-pip python-netaddr \
