@@ -50,6 +50,32 @@ DEBUG=true
 DO_LOGGING=false
 
 
+function check_root() {
+  if [[ $EUID -ne 0 ]]; then
+    # If not root, check if sudo package is installed
+    if [[ $(which sudo) ]]; then
+      # This accounts for both root and sudo. If normal user, it'll use sudo.
+      # If you run script as root, $SUDO is blank and script will soldier on.
+      export SUDO="sudo"
+      echo -e "${YELLOW}[WARN] This script leverages sudo for installation. Enter your password when prompted!${RESET}"
+      sleep 1
+      # Test to ensure this user is able to use sudo
+      sudo -l >/dev/null
+      if [[ $? -eq 1 ]]; then
+        # sudo pkg is installed but current user is not in sudoers group to use it
+        echo -e "${RED}[ERROR]${RESET} You are not able to use sudo. Running install to fix."
+        read -r -t 5
+        install_sudo
+      fi
+    else
+      echo -e "${YELLOW}[WARN]${RESET} The 'sudo' package is not installed."
+      echo -e "${YELLOW}[+]${RESET} Press any key to install it (*You'll be prompted to enter sudo password). Otherwise, manually cancel script now..."
+      read -r -t 5
+      install_sudo
+    fi
+  fi
+}
+check_root
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
 
