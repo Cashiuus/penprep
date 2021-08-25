@@ -87,11 +87,11 @@ OS_TYPE=$(lsb_release -sd | awk '{print $1}')
 echo -e "${GREEN}[*] Your current OS:${RESET} $OS_TYPE"
 if [[ "$OS_TYPE" = "Kali" || "$OS_TYPE" = "Debian" ]]; then
   $SUDO apt-get -y install cmake firefox-esr python3 python3-pip \
-    python3-netaddr python3-dev tesseract-ocr xvfb
+    python3-netaddr python3-dev python3-venv tesseract-ocr xsltproc xvfb
   $SUDO apt-get -y install eyewitness
 elif [[ "$OS_TYPE" = "Ubuntu" ]]; then
   $SUDO apt-get -y install cmake firefox python3 python3-pip python3-netaddr \
-  python3-dev tesseract-ocr x11utils
+  python3-dev python3-venv tesseract-ocr xsltproc x11utils
 elif [[ "$OS_TYPE" = "Alpine" ]]; then
   # Here are the basics for Alpine. Ref the setup link at top for full setup.
   $SUDO apk update
@@ -138,6 +138,21 @@ if [ -e /usr/bin/geckodriver ]; then
   $SUDO rm /usr/bin/geckodriver
 fi
 $SUDO ln -s /usr/sbin/geckodriver /usr/bin/geckodriver
+
+
+
+# --[ WitnessMe Tool ]--
+# https://github.com/byt3bl33d3r/WitnessMe
+# This is currently not reliable.
+#if [[ $(which docker) ]]; then
+#  docker pull byt3bl33d3r/witnessme
+#else
+#  python3 -m pip install --user pipx
+#  export PATH=$PATH:$HOME/.local/bin
+#  pipx install witnessme
+#fi
+
+
 
 ## ==================================================================================== ##
 
