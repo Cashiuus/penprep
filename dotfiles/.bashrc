@@ -16,14 +16,14 @@ case $- in
       *) return;;
 esac
 
-### Load the shell dotfiles, and then some:
-#       * ~/.path can be used to extend `$PATH`.
-#       * ~/.extra can be used for other settings you don’t want to commit.
-if [[ -f "${HOME}/.dotfiles/bash/.bash_profile" ]]; then
-    source "${HOME}/.dotfiles/bash/.bash_profile"
-elif [[ -f "${HOME}/.bash_profile" ]]; then
-    source "${HOME}/.bash_profile"
-fi
+#### Load the shell dotfiles, and then some:
+##       * ~/.path can be used to extend `$PATH`.
+##       * ~/.extra can be used for other settings you don’t want to commit.
+#if [[ -f "${HOME}/.dotfiles/bash/.bash_profile" ]]; then
+    #source "${HOME}/.dotfiles/bash/.bash_profile"
+#elif [[ -f "${HOME}/.bash_profile" ]]; then
+    #source "${HOME}/.bash_profile"
+#fi
 
 ### Enable the ssh-agent handler that helps with ssh keys
 if [[ -s "${HOME}/.dotfiles/bash/.bash_sshagent" ]]; then
@@ -143,10 +143,10 @@ export EDITOR=nano
 [[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion"
 
 # Go Lang PATH support
-[[ -d "${HOME}/workspace" ]] && export GOPATH="${HOME}/workspace" \
-    && export GOBIN="${HOME}/workspace/bin" && export GOROOT=/usr/lib/go
+[[ -d "${HOME}/go" ]] && export GOPATH="${HOME}/go" \
+    && export GOBIN="${HOME}/go/bin" && export GOROOT=/usr/local/go
 
 # Go support
 PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 # set PATH so it includes user's local bin, python now uses by default
-PATH=$PATH:$HOME/.local/bin:/snap/bin
+PATH=$HOME/.local/bin:/snap/bin:$PATH

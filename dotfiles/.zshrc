@@ -227,10 +227,24 @@ check_virtualenv
 [[ -s "/usr/local/bin/virtualenvwrapper.sh" ]] && source "/usr/local/bin/virtualenvwrapper.sh"
 [[ -d "$HOME/.virtualenvs" ]] && export WORKON_HOME="$HOME/.virtualenvs"
 
-# Go Lang PATH support - official docs use workspace as ~/go/
-[[ -d "$HOME/go" ]] && export GOPATH="$HOME/go" \
-    && export GOBIN="$GOPATH/bin" && export GOROOT=/usr/lib/go
+### Load RVM to PATH for scripting
+#TODO: Not sure which of these lines is correct
+#[[ -d "${HOME}/.rvm" ]] && export PATH="${HOME}/.rvm/bin:$PATH"
+# This line loads rvm and ensures that scripts can call 'rvm' in them
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
 
-# Add PATH for Go Python3, Pipx, and snapd -- if you experience errors, put these
-# local paths BEFORE $PATH instead of at the end.
-PATH=$PATH:$HOME/.local/bin:${GOPATH}/bin:/snap/bin
+# RVM Loading for Kali and will override the previous line
+[[ -s "/etc/profile.d/rvm.sh" ]] && source "/etc/profile.d/rvm.sh"
+
+# NVM preloading & bash completions
+[[ -d "${HOME}/.nvm" ]] && export NVM_DIR="${HOME}/.nvm"
+[[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh"
+
+# Go Lang PATH support
+[[ -d "${HOME}/go" ]] && export GOPATH="${HOME}/go" \
+    && export GOBIN="${HOME}/go/bin" && export GOROOT=/usr/local/go
+
+# Go support
+PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+# set PATH so it includes user's local bin, python now uses by default
+PATH=$HOME/.local/bin:/snap/bin:$PATH

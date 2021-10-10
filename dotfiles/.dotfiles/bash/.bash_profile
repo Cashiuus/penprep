@@ -46,3 +46,5 @@ check_virtualenv() {
 # Call function directly in case opening directly into a directory
 # (e.g. opening a new tab in Terminal)
 check_virtualenv
+
+[[ -s "$HOME/.bashrc" ]] && source "$HOME/.bashrc"
