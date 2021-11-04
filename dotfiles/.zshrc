@@ -241,8 +241,9 @@ check_virtualenv
 [[ -s "${NVM_DIR}/nvm.sh" ]] && . "${NVM_DIR}/nvm.sh"
 
 # Go Lang PATH support
-[[ -d "${HOME}/go" ]] && export GOPATH="${HOME}/go" \
-    && export GOBIN="${HOME}/go/bin" && export GOROOT=/usr/local/go
+# NOTE: in kali, GOROOT is /usr/lib/go, while on everywhere else it's /usr/local/go
+[[ -d "${HOME}/go" ]] && export GOPATH="${HOME}/go" && export GOBIN="${HOME}/go/bin"
+export GOROOT=/usr/lib/go
 
 # Go support
 PATH=$GOPATH/bin:$GOROOT/bin:$PATH
