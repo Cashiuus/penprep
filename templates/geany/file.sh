@@ -66,13 +66,13 @@ fi
 ## =================================== ##
 function echo_prompter() {
   PROMPT="${PROMPT}"
-  echo "$PROMPT $@"
+  echo -e "$PROMPT $@"
 }
 
-fail() {
+function fail() {
   # Something failed, exit.
 
-  echo "$@, exiting." >&2
+  echo -e "$@, exiting." >&2
   exit 1
 }
 
@@ -84,15 +84,15 @@ function help_menu {
   echo -e "\n\n"
 }
 
-function check_dependencies() {
+function program_exists() {
   #
-  # Usage
+  # Usage: if program_exists go; then
   #
-  local dep_fail=0
-  # Check if a program is not installed (use -n to check the opposite way)
-  if [[ -z "$(command -v curl 2>&1)" ]]; then
-    dep_fail=1
+  # Check if a program is installed (use -n to check the opposite way)
+  if [[ "$(command -v $1 2>&1)" ]]; then
     return 1
+  else
+    return 0
   fi
 }
 
