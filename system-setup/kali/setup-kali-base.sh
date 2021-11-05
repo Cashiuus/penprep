@@ -71,7 +71,7 @@ gsettings set org.gnome.desktop.session idle-delay 0
 
 
 function print_banner() {
-    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2017 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
+    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2021 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
     cat /etc/os-release
     cat /proc/version
     uname -a
@@ -133,7 +133,7 @@ $SUDO apt-get -qq update
 $SUDO apt-get -y upgrade
 $SUDO apt-get -y -q dist-upgrade
 $SUDO apt-get -y install bash-completion build-essential curl dos2unix locate \
-  gcc git jq make net-tools sudo
+  gcc git jq make net-tools sudo wget unzip
 # Extra Packages - Utilities
 $SUDO apt-get -y install geany htop strace sysv-rc-conf tree xclip
 
@@ -144,7 +144,8 @@ $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
 # Extra packages - just in case they are missing
 $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
   mitmproxy neo4j nikto openssh-server openssl proxychains rdesktop responder \
-  screen shellter sqlmap swftools tmux tshark vlan whatweb wifite windows-binaries \
+  screen shellter snmp-mibs-downloader sqlmap swftools tmux tshark vlan \
+  whatweb wifite windows-binaries \
   wpscan yersinia zsh
 
 # Enabling python 3 default
