@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     htb-bootstrap.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 20-Aug-2021
+# Created:  08-Apr-2020     Revised: 28-Aug-2021
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -24,7 +24,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="3.1.1"
+__version__="3.2.1"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
@@ -218,7 +218,7 @@ fi
 # =============================[ APT Packages ]================================ #
 if [[ "$update" != true ]]; then
   # Change the apt/sources.list repository listings to just a single entry:
-  echo -e "\n${GREEN}[*] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
+  echo -e "\n${GREEN}[ * ] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
   file=/etc/apt/sources.list
   [[ -e "${file}" ]] && $SUDO cp -n $file{,.bkup}
   if [[ $SUDO ]]; then
@@ -232,27 +232,27 @@ if [[ "$update" != true ]]; then
   fi
 fi
 
-echo -e "\n${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
+echo -e "\n${GREEN}[ * ] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
 export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
   -o Dpkg::Options::="--force-confold" dist-upgrade
 
-echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing core utilities"
+echo -e "\n${GREEN}[ * ] ${BLUE}apt-get ::${RESET} Installing core utilities"
 $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locate \
   gcc geany git gnumeric golang gzip jq libssl-dev make net-tools openssl openvpn \
   powershell pv tmux wget unzip xclip
 
-$SUDO apt-get -y -qq install geany htop sysv-rc-conf tree
+$SUDO apt-get -y -qq install geany htop strace sysv-rc-conf tree
 
-echo -e "\n${GREEN}[*] ${RESET}apt-get :: Installing common HTB tools"
-$SUDO apt-get -y -qq install bloodhound dirb dirbuster docx2txt exploitdb feroxbuster \
+echo -e "\n${GREEN}[ * ] ${BLUE}apt-get ::${RESET} Installing common HTB tools"
+$SUDO apt-get -y -qq install bloodhound brutespray dirb dirbuster docx2txt exploitdb feroxbuster \
   flameshot gdb gobuster libimage-exiftool-perl neo4j nikto proxychains4 \
   rdesktop redsocks responder seclists shellter sqlmap sshuttle windows-binaries
 
 # Python 3
 $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
-  echo -e "${YELLOW}[ERROR] Errors occurred installing Python 3.x, you may have issues${RESET}" \
+  echo -e "${YELLOW}[ERR] Errors occurred installing Python 3.x, you may have issues${RESET}" \
   && sleep 2
 $SUDO apt-get -y install python-is-python3
 
@@ -505,16 +505,20 @@ if [[ ! $(which autorecon) ]]; then
 fi
 
 
-# Custom nmap nse script to run CVE checks
-if [[ ! -f /usr/share/nmap/scripts/vulners.nse ]]; then
-  cd /tmp
-  # NOTE: This repo has another "http-vulners-regex.nse" you can read up on
-  $SUDO git clone https://github.com/vulnersCom/nmap-vulners
-  $SUDO cp /tmp/nmap-vulners/vulners.nse /usr/share/nmap/scripts/
-  # Usage: nmap -sV --script vulners --script-args mincvss=7
-  # Run this after we've imported all new nse scripts to load them
-  $SUDO nmap --script-updatedb
-fi
+function install_vulners() {
+  # Custom nmap nse script to run CVE checks
+  if [[ ! -f /usr/share/nmap/scripts/vulners.nse ]]; then
+    cd /tmp
+    # NOTE: This repo has another "http-vulners-regex.nse" you can read up on
+    $SUDO git clone https://github.com/vulnersCom/nmap-vulners
+    $SUDO cp /tmp/nmap-vulners/vulners.nse /usr/share/nmap/scripts/
+    # Usage: nmap -sV --script vulners --script-args mincvss=7
+    # Run this after we've imported all new nse scripts to load them
+    $SUDO nmap --script-updatedb
+  fi
+}
+# Disabling because I haven't found this useful and it's VERY noisy.
+#install_vulners
 
 
 ### Python Impacket global install -- adds all scripts into PATH for use
@@ -595,6 +599,7 @@ echo -e "\n${GREEN}[*] ${RESET}Centralizing ${BOLD}Burpsuite${RESET} configs, ex
 mkdir -p "${BURPSUITE_CONFIG_DIR}"/{configs,libs,extensions,projects}
 if [[ ! -f "${BURPSUITE_CONFIG_DIR}/libs/jython-2.7.2.jar" ]]; then
   cd "${BURPSUITE_CONFIG_DIR}/libs"
+  # Jython 2.7.2 is still latest version available as of Sept 2, 2021
   jython_url='https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/jython-standalone-2.7.2.jar'
   echo -e "${GREEN}[*] ${RESET}Downloading ${BOLD}Jython${RESET} lib for Burpsuite (Python add-on support)"
   curl -SL "${jython_url}" -o jython-2.7.2.jar
@@ -603,6 +608,12 @@ fi
 echo -e "\n${GREEN}[*] ${RESET}Grabbing ${BOLD}Burpsuite${RESET} extensions"
 cd "${BURPSUITE_CONFIG_DIR}/extensions"
 git clone https://github.com/bit4woo/domain_hunter
+
+# Paramalyzer - analyze a site's parameters; useful on large-scale site testing
+curl -SL "https://github.com/JGillam/burp-paramalyzer/releases/download/v2.0.0/paramalyzer-2.0.0.jar" -o paramalyzer.jar
+# Load this up into BurpSuite from: Extender -> Extensions -> Add
+
+
 
 
 # -- Golang & Tools ------------------------------------------------------------
