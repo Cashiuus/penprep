@@ -308,3 +308,16 @@ function ctrl_c() {
   echo -e "${GREEN}[*] ${RESET}CTRL+C was pressed -- Shutting down..."
   trap finish EXIT
 }
+
+
+# -- Git Setup Notes -----------------------------------------------------------
+#
+# How to change existing repo's from http to ssh
+#       cd ~/git/dir
+#       git remote -v
+#       git remote set-url origin git@github.com:<forked_user>/<forked_repo>
+#       git remote set-url upstream git@github.com:<orig_user>/<orig_repo>
+#       git remote -v
+#       git pull
+#
+#
