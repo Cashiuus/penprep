@@ -26,15 +26,19 @@ __author__="Cashiuus"
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
 # [https://en.wikipedia.org/wiki/ANSI_escape_code]
+RESET="\033[00m"        # Normal
 GREEN="\033[01;32m"     # Success
-YELLOW="\033[01;33m"    # Warnings/Information
-RED="\033[01;31m"       # Issues/Errors
-BLUE="\033[01;34m"      # Heading
-ORANGE="\033[38;5;208m" # Debugging
+YELLOW="\033[01;33m"    # Warnings (some terminals its yellow)
+RED="\033[01;31m"       # Errors
+BLUE="\033[01;34m"      # Headings
 PURPLE="\033[01;35m"    # Other
 GREY="\e[90m"           # Subdued Text
-BOLD="\033[01;01m"      # Highlight
-RESET="\033[00m"        # Normal
+BOLD="\033[01;01m"      # Normal fg color, but bold
+ORANGE="\033[38;5;208m" # Debugging
+BGRED="\033[41m"        # BG Red
+BGPURPLE="\033[45m"     # BG Purple
+BGYELLOW="\033[43m"     # BG Yellow
+BGBLUE="\033[104m"      # White font with blue background (could also use 44)
 ## =============[  CONSTANTS  ]============= ##
 TDATE=$(date +%Y-%m-%d)
 START_TIME=$(date +%s)
@@ -76,6 +80,7 @@ function fail() {
   exit 1
 }
 
+
 function help_menu {
   echo -e "\n$APP_NAME - $__version__"
   echo -e "\nUsage: `readlink -f $0` [ARGS]"
@@ -84,12 +89,13 @@ function help_menu {
   echo -e "\n\n"
 }
 
-function program_exists() {
-  #
-  # Usage: if program_exists go; then
-  #
+function is_installed() {
   # Check if a program is installed (use -n to check the opposite way)
+  #
+  #   Usage: if program_exists go; then
+  #
   if [[ "$(command -v $1 2>&1)" ]]; then
+    # command exists/is installed, so return true
     return 1
   else
     return 0
@@ -108,7 +114,7 @@ echo -e
 echo -e
 
 ##  Script Arguments
-## =================================== ##
+## ================= ##
 while [[ "${#}" -gt 0 && ."${1}" == .-* ]]; do
   opt="${1}";
   shift;
@@ -172,6 +178,18 @@ trap finish EXIT
 
 ## ===================================================================================== ##
 ## =====================[ Template File Code Help :: Core Notes ]======================= ##
+#
+#
+# Recipes for sed/grep
+#$SUDO sed -i -E 's/^socks4\s+127.0.0.1\s+9050/#socks4 127.0.0.1 9050/' "${file}"
+#
+#  grep -q "socks 127.0.0.1 1080" "${file}" 2>/dev/null \
+#    || $SUDO sh -c "echo socks4 127.0.0.1 1080 >> ${file}" \
+#    && $SUDO sh -c "echo socks5 127.0.0.1 1090 >> ${file}"
+#
+#
+#
+#
 #
 ## -=====[  BASH/Scripting GUIDES  ]=====- ##
 #   - https://lug.fh-swf.de/vim/vim-bash/StyleGuideShell.en.pdf
