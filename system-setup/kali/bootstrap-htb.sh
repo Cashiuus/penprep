@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 ## =======================================================================================
-# File:     htb-bootstrap.sh
+# File:     bootstrap-htb.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 28-Aug-2021
+# Created:  08-Apr-2020     Revised: 11-Jan-2022
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -20,6 +20,7 @@
 #   2020-12-27: Removed python 2 from setup completely, as python 3 is the default now
 #   2021-03-29: Massive update on folder structure, installed tools, and Obsidian for notetaking
 #   2021-03-30: Added installation of my dotfiles for bash, zsh, tmux, and aliases
+#   2022-01-11: Added adfind.exe utility to toolkit
 #
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
@@ -251,7 +252,7 @@ $SUDO apt-get -y -qq install bloodhound brutespray dirb dirbuster docx2txt explo
   rdesktop redsocks responder seclists shellter sqlmap sshuttle windows-binaries
 
 # Python 3
-$SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools || \
+$SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools python3-venv || \
   echo -e "${YELLOW}[ERR] Errors occurred installing Python 3.x, you may have issues${RESET}" \
   && sleep 2
 $SUDO apt-get -y install python-is-python3
@@ -535,7 +536,9 @@ fi
 
 # -- Singular web directory for file transfers ----------------------------------
 echo -e "\n${GREEN}[*]${RESET} Consolidating all our goodies in one place for ${BOLD}remote file transfers${RESET} (nc, mimi, scanners, etc)"
+
 cd "${HTB_TRANSFERS}"
+
 cp -n "/usr/share/windows-binaries/nc.exe" ./
 cp -n "/usr/share/windows-binaries/wget.exe" ./
 cp -n "/usr/share/windows-resources/mimikatz/x64/mimikatz.exe" ./
@@ -577,6 +580,14 @@ fi
 if [[ ! -f "${HTB_TRANSFERS}/Invoke-Mimikatz.ps1" ]]; then
   echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Invoke-Mimikatz.ps1${RESET}"
   curl -SL "https://raw.githubusercontent.com/BC-SECURITY/Empire/master/empire/server/data/module_source/credentials/Invoke-Mimikatz.ps1" -o Invoke-Mimikatz.ps1
+fi
+
+if [[ ! -f "${HTB_TRANSFERS}/adfind.exe" ]]; then
+  curl -i -s -k -X $'POST' \
+    -H $'Host: www.joeware.net' -H $'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0' -H $'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' -H $'Accept-Language: en-US,en;q=0.5' -H $'Accept-Encoding: gzip, deflate' -H $'Content-Type: application/x-www-form-urlencoded' -H $'Content-Length: 42' -H $'Origin: https://www.joeware.net' -H $'Referer: https://www.joeware.net/freetools/tools/adfind/index.htm' -H $'Upgrade-Insecure-Requests: 1' -H $'Sec-Fetch-Dest: document' -H $'Sec-Fetch-Mode: navigate' -H $'Sec-Fetch-Site: same-origin' -H $'Sec-Fetch-User: ?1' -H $'Te: trailers' -H $'Connection: close' \
+    -b $'__gads=ID=8c44f1e487ca6836-22a17a2511cf00ed:T=1641912544:RT=1641912544:S=ALNI_Ma9NL3OyAP_Y9koOInmukUZtF2Qhw' \
+    --data-binary $'download=AdFind.zip&email=&B1=Download+Now' \
+    $'https://www.joeware.net/downloads/dl2.php' -o adfind.exe
 fi
 
 file="shell-$USER.ps1"
