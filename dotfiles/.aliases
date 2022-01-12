@@ -41,7 +41,8 @@ alias lynx='lynx -force_html -width=$COLUMNS' #best settings for viewing HTML
 alias links='links -force-html' #need to enable colour in config menu manually
 alias strings="strings -a"
 alias screen="screen -xRR"
-alias tmux="tmux attach || tmux new"
+# Disabling as this causes issues with all attempts at running normal tmux commands
+#alias tmux="tmux attach || tmux new"
 
 # Stopwatch
 alias timer='echo "Timer started. Stop with Ctrl-D." && date && time cat && date'
