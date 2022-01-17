@@ -33,7 +33,7 @@ RESET="\033[00m"        # Normal
 if [[ "${SHELL}" == "/usr/bin/zsh" ]]; then
     SHELL_NAME="zsh"
     SHELL_FILE=~/.zshrc
-if [[ "${SHELL}" == "/usr/local/bin/zsh" ]]; then
+elif [[ "${SHELL}" == "/usr/local/bin/zsh" ]]; then
     SHELL_NAME="zsh"
     SHELL_FILE=~/.zshrc
 elif [[ "${SHELL}" == "/bin/bash" ]]; then
@@ -705,10 +705,10 @@ function version_check () {
   # Usage: version_check 7.5 6.5 (or) version_check $openssh_version 6.5
   #
 
-  if [ $(version $1) -ge $(version $2) ]; then
+  if [[ $(version $1) -ge $(version $2) ]]; then
     echo "$1 is newer than $2" >/dev/null
     return 0
-  elif [ $(version $1) -lt $(version $2) ]; then
+  elif [[ $(version $1) -lt $(version $2) ]]; then
     echo "$1 is older than $2" >/dev/null
     return 1
   fi

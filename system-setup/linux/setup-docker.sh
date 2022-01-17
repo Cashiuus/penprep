@@ -124,36 +124,37 @@ $SUDO apt-get -y install apt-transport-https ca-certificates \
 
 OS=$(. /etc/os-release; echo "$ID")
 
-if [[ $OS == "kali" ]];then
-  #curl -fsSL https://download.docker.com/linux/debian/gpg | $SUDO apt-key add -
-  curl -fsSL https://download.docker.com/linux/debian/gpg | $SUDO gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-  $SUDO chmod a+r /usr/share/keyrings/docker-archive-keyring.gpg
-  echo -e "${GREEN}[*]${RESET} Adding docker repository"
-  #$SUDO add-apt-repository \
-  "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID_LIKE") \
-  buster \
-  stable"
-  echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
-  buster stable" | $SUDO tee /etc/apt/sources.list.d/docker.list > /dev/null
-else
-  #curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | $SUDO apt-key add -
-  curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | $SUDO gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-  $SUDO chmod a+r /usr/share/keyrings/docker-archive-keyring.gpg
-  echo -e "${GREEN}[*]${RESET} Adding docker repository"
-  #$SUDO add-apt-repository \
-  "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
-  $(lsb_release -cs) \
-  stable"
-  echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
-  $(lsb_release -cs) stable" | $SUDO tee /etc/apt/sources.list.d/docker.list > /dev/null
+if [[ ! -f /usr/share/keyrings/docker-archive-keyring.gpg ]]; then
+  if [[ $OS == "kali" ]];then
+    #curl -fsSL https://download.docker.com/linux/debian/gpg | $SUDO apt-key add -
+    curl -fsSL https://download.docker.com/linux/debian/gpg | $SUDO gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    $SUDO chmod a+r /usr/share/keyrings/docker-archive-keyring.gpg
+    echo -e "${GREEN}[*]${RESET} Adding docker repository"
+    #$SUDO add-apt-repository \
+    #"deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID_LIKE") \
+    #buster \
+    #stable"
+    echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
+    buster stable" | $SUDO tee /etc/apt/sources.list.d/docker.list > /dev/null
+  else
+    #curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | $SUDO apt-key add -
+    curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | $SUDO gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    $SUDO chmod a+r /usr/share/keyrings/docker-archive-keyring.gpg
+    echo -e "${GREEN}[*]${RESET} Adding docker repository"
+    #$SUDO add-apt-repository \
+    #"deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
+    #$(lsb_release -cs) \
+    #stable"
+    echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
+    $(lsb_release -cs) stable" | $SUDO tee /etc/apt/sources.list.d/docker.list > /dev/null
+  fi
 fi
-
 # Verify key via: sudo apt-key fingerprint
 
 if [[ ! -f /usr/share/keyrings/docker-archive-keyring.gpg ]]; then
-  echo -e "[ERR] Failed to setup docker gpg keyring. Check and try again!"
+  echo -e "${RED}[ERR]${RESET} Failed to setup docker gpg keyring. Check and try again!"
   exit 1
 fi
 
@@ -164,7 +165,7 @@ fi
 #   List available versions:  apt-cache madison docker-ce
 #   Better:           $(apt-cache madison docker-ce | cut -d '|' -f2)
 #   Specify Install Version:  "sudo apt-get -y install docker-ce=18.06.1~ce~3-0~debian"
-echo -e "${GREEN}[*]${RESET} Installing Docker-CE via apt-get"
+echo -e "${GREEN}[*]${RESET} Installing Docker-CE via apt-get..."
 $SUDO apt-get -qq update
 $SUDO apt-get -y install docker-ce docker-ce-cli containerd.io
 
@@ -189,7 +190,7 @@ $SUDO chmod +x /usr/local/bin/docker-compose
 
 # Setup bash/zsh completions
 # Place the completion script in /etc/bash_completion.d/
-echo -e "[*] Your current shell is $SHELL_NAME. Adding docker completions for it now."
+echo -e "${GREEN}[*]${RESET} Your current shell is $SHELL_NAME. Adding docker completions for it now."
 if [[ "$SHELL_NAME" == "bash" ]]; then
   $SUDO curl -L https://raw.githubusercontent.com/docker/compose/1.29.2/contrib/completion/bash/docker-compose -o /etc/bash_completion.d/docker-compose
 elif [[ "$SHELL_NAME" == "zsh" ]]; then
@@ -203,13 +204,8 @@ elif [[ "$SHELL_NAME" == "zsh" ]]; then
   grep -q '^autoload -Uz' "${SHELL_FILE}" 2>/dev/null \
     || echo 'autoload -Uz compinit && compinit -i' >> "${SHELL_FILE}"
   # reload your shell
-  exec $SHELL -l
+  #exec $SHELL -l
 fi
-
-
-
-
-
 
 
 ### =========[ Manage Docker as a Non-Root User ]======== ###
@@ -218,8 +214,7 @@ fi
 
 # Create group 'docker' -- may already exist
 echo -e "${GREEN}[*]${RESET} Configuring user ${ORANGE}${USER}${RESET} into the docker group"
-$SUDO groupadd docker
-
+$SUDO groupadd docker 2>/dev/null
 # Add current user to group 'docker'
 $SUDO usermod -aG docker $USER
 newgrp docker
@@ -242,6 +237,7 @@ fi
 # Start the service
 echo -e "${GREEN}[*]${RESET} Starting Docker daemon service"
 $SUDO systemctl start docker.service
+#$SUDO systemctl start containerd.service
 # Set it for autostart
 echo -e "${GREEN}[*]${RESET} Setting Docker service to autostart on boot"
 $SUDO systemctl enable docker.service
