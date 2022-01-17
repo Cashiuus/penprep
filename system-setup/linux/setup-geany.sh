@@ -97,7 +97,8 @@ check_root
 # ================================[  BEGIN  ]================================ #
 $SUDO apt-get -qq update
 $SUDO apt-get -y install geany python3-pip
-$SUDO apt-get -y install python3-flake8 python3-pep8-naming shellcheck
+$SUDO apt-get -y install flake8 pycodestyle shellcheck
+$SUDO apt-get -y install python3-flake8 python3-pep8-naming
 # Use shellcheck with Geany by simply clicking on Build -> Lint and it shows syntax errors
 
 
@@ -239,7 +240,7 @@ file="${filedir}/filetypes.python"
 cat << EOF > "${file}"
 [build-menu]
 FT_01_LB=Check
-FT_01_CM=flake8 --show-source "%f"
+FT_01_CM=check_python_code "%f"
 FT_01_WD=
 error_regex=([^:]+):([0-9]+):([0-9:]+)? .*
 FT_00_LB=Py_Compile
@@ -249,6 +250,8 @@ EX_00_LB=_Execute
 EX_00_CM=python3 "%f"
 EX_00_WD=
 EOF
+# NOTE: I changed check command from this: FT_01_CM=flake8 --show-source "%f"  over to the helper script (11/20/2021)
+
 
 # Custom file defs for syntax highlighting tweaks
 #cp /usr/share/geany/filedefs/filetypes.sh ${filedir}/
@@ -268,7 +271,9 @@ extension=txt,log,gny,hlp
 lexer_filetype=Python
 EOF
 
+
 # Add custom config for flake8 checking, exclude noisy Error Codes
+# Help: https://wiki.geany.org/howtos/check_python_code
 file="${HOME}/.config/flake8"
 cat << EOF > "${file}"
 # E***/W*** Codes are PEP8, F*** codes are PyFlakes,
@@ -285,6 +290,30 @@ ignore = F403,E265,E266,E402
 max-line-length = 90
 exclude = tests/*,.git,__pycache
 EOF
+
+
+# check your python code helper script
+dir="${HOME}/.local/bin"
+file="${dir}/check_python_code"
+[[ ! -d "${dir}" ]] && mkdir -p "${dir}"
+cat << EOF > "${file}"
+#!/bin/sh
+
+#export PYTHONPATH="$PYTHONPATH:\${HOME}/.pylint.d"
+
+echo "======  pycodestyle  ======"
+pycodestyle \$1
+echo "\n======  pyflakes  ======"
+pyflakes \$1
+echo "\n======  pylint  ======"
+pylint --msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" --reports=n \$1
+pylint -f parseable -r n \$1
+EOF
+chmod u+x "${file}"
+echo -e "${GREEN}[*]${RESET} Python code check script helper has been added to ${HOME}/.local/bin/check_python_code"
+echo -e "${GREEN}[*]${RESET} Ensure this path is in your PATH so it can be leveraged by Geany"
+
+
 
 # Add other files to filetype coloring config
 file="${HOME}/.config/geany/filetype_extensions.conf"

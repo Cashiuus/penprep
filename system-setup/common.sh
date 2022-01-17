@@ -31,8 +31,13 @@ RESET="\033[00m"        # Normal
 
 # Determine user's active shell to update the correct resource file
 if [[ "${SHELL}" == "/usr/bin/zsh" ]]; then
+    SHELL_NAME="zsh"
+    SHELL_FILE=~/.zshrc
+if [[ "${SHELL}" == "/usr/local/bin/zsh" ]]; then
+    SHELL_NAME="zsh"
     SHELL_FILE=~/.zshrc
 elif [[ "${SHELL}" == "/bin/bash" ]]; then
+    SHELL_NAME="bash"
     SHELL_FILE=~/.bashrc
 else
     # Just in case I add other shells in the future
