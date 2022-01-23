@@ -300,6 +300,17 @@ python3 -m pip install -q -r /tmp/requirements.txt || \
   $SUDO python3 -m pip install -q -r /tmp/requirements.txt
 
 
+
+# -- Flameshot screenshotting, make it the default so global hotkeys work
+function keybindings_flameshot() {
+  # Ensure that we make Flameshot the default app for global hotkeys "PrntScr" and "Ctrl+PrntScr"
+  xfconf-query -n -c xfce4-keyboard-shortcuts -p '/commands/custom/Print' -t string -s "/usr/bin/flameshot gui"
+  xfconf-query -n -c xfce4-keyboard-shortcuts -p '/commands/custom/<Primary>Print' -t string -s "/usr/bin/flameshot gui"
+  xfconf-query -n -c xfce4-keyboard-shortcuts -p '/commands/custom/<Super>Print' -t string -s "/usr/bin/flameshot gui"
+}
+
+
+
 # -- Create Directory Structure -------------------------------------------------
 if [[ "$update" != true ]]; then
   if asksure "Is this install for a pro/specific named lab?"; then
@@ -504,6 +515,9 @@ if [[ ! $(which autorecon) ]]; then
   # TODO: which symlink option is better? If i put it local, do i still need sudo?
   #ln -s /opt/AutoRecon/src/autorecon/autorecon.py "${HOME}/.local/bin/autorecon"
 fi
+
+# Tools needed by AutoRecon
+$SUDO apt-get -y install redis-tools wkhtmltopdf oscanner tnscmd10g
 
 
 function install_vulners() {
