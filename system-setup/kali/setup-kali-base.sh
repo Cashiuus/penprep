@@ -98,9 +98,9 @@ read -e -t 10 -p " Enter new hostname or just press enter : " RESPONSE
 echo -e
 if [[ $RESPONSE != "" ]]; then
   $SUDO hostname $RESPONSE
-  echo "$RESPONSE" > /etc/hostname
+  echo "$RESPONSE" | $SUDO tee /etc/hostname
   file=/etc/hosts
-  #sed -i 's|^127\.0\.0\.1.*|127.0.1.1 $RESPONSE|' "${file}"
+  $SUDO sed -i 's|^127\.0\.0\.1.*|127.0.1.1 $RESPONSE|' "${file}"
 fi
 
 # =============================[ Dotfiles ]================================ #
