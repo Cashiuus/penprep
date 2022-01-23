@@ -2,16 +2,10 @@
 ## =======================================================================================
 # File:     file.sh
 # Author:   Cashiuus
-# Created:  09-Oct-2020     Revised:
+# Created:  20-Jan-2022     Revised:
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Describe script purpose
-#
-#
-# Notes:
-#
-#
-##-[ Links/Credit ]-----------------------------------------------------------------------
 #
 #
 ##-[ Copyright ]--------------------------------------------------------------------------
@@ -34,20 +28,18 @@ BOLD="\033[01;01m"      # Highlight
 RESET="\033[00m"        # Normal
 ## =============[ CONSTANTS ]============= ##
 START_TIME=$(date +%s)
-APP_PATH=$(readlink -f $0)
-APP_BASE=$(dirname "${APP_PATH}")
-APP_NAME=$(basename "${APP_PATH}")
-APP_ARGS=$@
-LINES=$(tput lines)
-COLS=$(tput cols)
-HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
+APP_PATH=$(readlink -f $0)              # Absolute path and filename
+APP_BASE=$(dirname "${APP_PATH}")       # Absolute path to directory
+APP_NAME=$(basename "${APP_PATH}")      # Filename with extension
 
 
 ## ========================================================================== ##
 # ================================[  BEGIN  ]================================ #
 
 
-
+echo -e "app path: ${APP_PATH}"
+echo -e "app base: ${APP_BASE}"
+echo -e "app name: ${APP_NAME}"
 
 
 

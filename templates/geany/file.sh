@@ -2,13 +2,11 @@
 ## =============================================================================
 # File:     file.sh
 # Author:   Cashiuus
-# Created:  31-May-2021     Revised:
+# Created:  20-Jan-2022     Revised:
 #
 ##-[ Info ]---------------------------------------------------------------------
 # Purpose:  Describe script purpose
 #
-#
-# Notes:
 #
 #
 ##-[ Links/Credit ]-------------------------------------------------------------
@@ -48,7 +46,6 @@ APP_NAME=$(basename "${APP_PATH}")
 APP_ARGS=$@
 LINES=$(tput lines)
 COLS=$(tput cols)
-HOST_ARCH=$(dpkg --print-architecture)      # (e.g. output: "amd64")
 LOG_FILE="${APP_BASE}/debug.log"
 DEBUG=false
 DO_LOGGING=false
@@ -73,11 +70,31 @@ function echo_prompter() {
   echo -e "$PROMPT $@"
 }
 
-function fail() {
-  # Something failed, exit.
+function print() {
+  echo -e "${GREEN}[*]${RESET} $1"
+}
 
-  echo -e "$@, exiting." >&2
-  exit 1
+function print_error() {
+  echo -e "${RED}[ERR]${RESET} $1"
+}
+
+function print_debug() {
+  [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DBG]${RESET} $1"
+}
+
+function check_error() {
+  # Immediately following any statement, do this to check it was successful, exit if failed
+  #   Usage:  check_error <description of what was attempted>
+  #           check_error "Python core installation"
+  if [[ "$?" -eq 0 ]]; then
+    print_debug "successful, no errors"
+  else
+    # Something failed, exit.
+    print_debug "$1 failed. Check and try again"
+    exit 1
+    #echo -e "$@, exiting." >&2
+    exit 1
+  fi
 }
 
 
@@ -130,8 +147,8 @@ while [[ "${#}" -gt 0 && ."${1}" == .-* ]]; do
   esac
 done
 
-##  Check Internet Connection
-(( STAGE++ )); echo -e "${GREEN}[*]${RESET} (${STAGE}/${TOTAL}) Checking Internet access"
+#  Check Internet Connection
+echo -e "${GREEN}[*]${RESET} Checking Internet access"
 for i in {1..4}; do ping -c 1 -W ${i} google.com &>/dev/null && break; done
 if [[ "$?" -ne 0 ]]; then
   for i in {1..4}; do ping -c 1 -W ${i} 8.8.8.8 &/dev/null && break; done
@@ -150,12 +167,17 @@ fi
 
 
 
+
+
+
+
+
 ##  End of Script & Capture CTRL+C
 ## =================================== ##
 function ctrl_c() {
   # Capture pressing CTRL+C during script execution to exit gracefully
   #     Usage:     trap ctrl_c INT
-  echo -e "${GREEN}[*] ${RESET}CTRL+C was pressed -- Shutting down..."
+  echo -e "${GREEN}[*]${RESET} CTRL+C was pressed -- Shutting down..."
   trap finish EXIT
 }
 
@@ -170,7 +192,7 @@ function finish() {
   echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
 
   FINISH_TIME=$(date +%s)
-  echo -e "${BLUE} -=[ Penbuilder${RESET} :: ${BLUE}$APP_NAME ${BLUE}]=- ${GREEN}Completed Successfully ${RESET}-${ORANGE} (Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
+  echo -e "${BLUE}[ Penbuilder${RESET} :: ${BLUE}$APP_NAME ${BLUE}]${RESET} Completed Successfully - ${ORANGE}(Time: $(( $(( FINISH_TIME - START_TIME )) / 60 )) minutes)${RESET}\n"
 }
 # End of script
 trap finish EXIT
