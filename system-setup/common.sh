@@ -3,13 +3,13 @@
 #APP_PATH=$(readlink -f $0)
 #APP_BASE=$(dirname "${APP_PATH}")
 #APP_NAME=$(basename "${APP_PATH}")
-LINES=$(tput lines)
-COLS=$(tput cols)
 ## =============[ Default Settings ]============== ##
 APP_SETTINGS="${HOME}/.config/penbuilder/settings.conf"
 APP_SETTINGS_DIR=$(dirname ${APP_SETTINGS})
 
 ### SYSTEM SHAPING VARIABLES
+LINES=$(tput lines)
+COLS=$(tput cols)
 # Can specify the user account for installation scripts, but not needed.
 INSTALL_USER=${USER}
 LSB_RELEASE=$(lsb_release -cs)
@@ -198,14 +198,14 @@ function asksure() {
 
 function time_elapsed() {
     # Usage: runtime <START_TIME> <END_TIME>
-    delta=$(($2 - $1))
+    delta=$(( $2 - $1 ))
     if [[ $delta -lt 0 ]]; then
         echo -e "[ERR] Invalid parameters resulted in negative number, did you pass args backwards?"
         return
     fi
     #echo -e "[*] raw delta: $delta"
-    hrs=$(($delta / 3600))
-    minutes=$(( (($delta - (($hrs * 3600)) )) / 60 ))
+    hrs=$(( $delta / 3600 ))
+    minutes=$(( (( $delta - (( $hrs * 3600 )) )) / 60 ))
     #echo -e "[*] raw minutes: $minutes"
     #echo -e "[*] raw hours: $hrs"
     days=0
@@ -230,22 +230,28 @@ function time_elapsed() {
 
 function get_os() {
   OS_TYPE=$(lsb_release -sd | awk '{print 1}')
+  os_release=$(lsb_release -r | awk '{print $2}')
 
 
-
+  # Ubuntu specific
+  if [[ "$os_release" == "18."* || "20."* ]]; then
+    echo -e "[*] OS is Ubuntu 18 or 20"
+  else
+    echo -e "[*] OS is not a version of Ubuntu we are checking for"
+  fi
 
 
 }
 
 
 patch_system() {
-  #Make sure all currently installed packages are updated.  This has the added benefit
-  #that we update the package metadata for later installing new packages.
+  # Make sure all currently installed packages are updated.  This has the added benefit
+  # that we update the package metadata for later installing new packages.
 
   if [ -x /usr/bin/apt-get -a -x /usr/bin/dpkg-query ]; then
     while ! $SUDO sudo add-apt-repository universe ; do
-      echo "Error subscribing to universe repository, perhaps because a system update is running; will wait 60 seconds and try again." >&2
-      sleep 60
+      echo "Error subscribing to universe repository, perhaps because a system update is running; will wait 30 seconds and try again." >&2
+      sleep 30
     done
     while ! $SUDO apt-get -q -y update >/dev/null ; do
       echo "Error updating package metadata, perhaps because a system update is running; will wait 60 seconds and try again." >&2
@@ -288,7 +294,7 @@ patch_system() {
 
 
 
-install_tool() {
+function install_tool() {
   # Install a program.
   #   $1 holds the name of the executable we need
   #   $2 is one or more packages that can supply that executable
@@ -512,7 +518,6 @@ pygraphviz
 six
 EOF
 
-
     echo -e "${GREEN}[*]${RESET} Creating a virtualenv for Django..."
     mkvirtualenv django-py3 -p /usr/bin/python3
     if [[ $? -eq 0 ]] && [[ -e "${WORKON_HOME}/django-requirements.txt" ]]; then
@@ -538,8 +543,7 @@ function install_cookiecutter() {
     # For timezone, default is UTC, but can type in "EST"
     # Cloud provider is for serving static/media files.
     # If you choose None, make sure to choose "y" for Whitenoise later.
-
-    # Postgres Version: Choose 12
+    # Postgres Version: Choose 14
 
 }
 
@@ -548,26 +552,23 @@ function install_cookiecutter() {
 #   Function :: Postgresql DB Install/Setup (typically for Django prod)
 # ============================================================================ #
 function install_postgresql() {
-    # Install Postgresql -- atm it'll be version 12; this must match cookiecutter choices
-
-
-    # Create the file repository configuration:
-    $SUDO sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+    # Install Postgresql -- atm it'll be version 14; this must match cookiecutter choices
+    # OLD: Create the file repository configuration:
+    #$SUDO sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 
     # Import the repository signing key:
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+    #wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
     # Update the package lists:
     $SUDO apt-get update
 
     # Install the latest version of PostgreSQL.
-    # If you want a specific version, use 'postgresql-12' or similar instead of 'postgresql':
-    $SUDO apt-get -y install postgresql-12
+    # If you want a specific version, use 'postgresql-14' or similar instead of 'postgresql':
+    $SUDO apt-get -y install postgresql-14
 
 
     #Success. You can now start the database server using:
-    #pg_ctlcluster 12 main start
-
+    #pg_ctlcluster 14 main start
 
 }
 
@@ -581,7 +582,7 @@ function install_postgresql() {
 function test_networking() {
   $SUDO apt-get -qq update
   if [[ "$?" -ne 0 ]]; then
-    echo -e "${RED} [ERROR]${RESET} Network issues preventing apt-get. Check and try again."
+    echo -e "${RED}[ERROR]${RESET} Network issues preventing apt-get. Check and try again."
     exit 1
   fi
 }
@@ -592,9 +593,7 @@ function print_banner() {
   #   argv1 = title text of banner
   #   argv2 = program version number
   #
-
   length=${#1}
-
 
   echo -e "\n${BLUE}===================[  ${RESET}${BOLD}$1  ${RESET}${BLUE}]===================${RESET}\n"
 
@@ -611,12 +610,12 @@ function center_text() {
   clear
   tput cup $((height / 2)) $(((width / 2) - (length / 2)))
   echo -e "$str"
-
 }
+
 
 # args:
 # input - $1
-to_lowercase() {
+function to_lowercase() {
     #eval $invocation
 
     echo "$1" | tr '[:upper:]' '[:lower:]'
@@ -625,7 +624,7 @@ to_lowercase() {
 
 # args:
 # input - $1
-remove_trailing_slash() {
+function remove_trailing_slash() {
     #eval $invocation
 
     local input="${1:-}"
@@ -635,7 +634,7 @@ remove_trailing_slash() {
 
 # args:
 # input - $1
-remove_beginning_slash() {
+function remove_beginning_slash() {
     #eval $invocation
 
     local input="${1:-}"
@@ -646,7 +645,7 @@ remove_beginning_slash() {
 # args:
 # root_path - $1
 # child_path - $2 - this parameter can be empty
-combine_paths() {
+function combine_paths() {
     eval $invocation
 
     # TODO: Consider making it work with any number of paths. For now:
@@ -662,7 +661,6 @@ combine_paths() {
     echo "$root_path/$child_path"
     return 0
 }
-
 # ======================[  END :: STYLING/FORMATTING  ]====================== #
 
 

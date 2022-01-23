@@ -83,20 +83,32 @@ function print_debug() {
 }
 
 function check_error() {
-  # Immediately following any statement, do this to check it was successful, exit if failed
+  # Run this following a statement. If it failed, return 1, else return 0 (successful)
   #   Usage:  check_error <description of what was attempted>
   #           check_error "Python core installation"
+  #           if check_error "stuff"; do # now do stuff that asserts it failed
+  if [[ "$?" -eq 0 ]]; then
+    print_debug "successful, no errors"
+  else
+    # Something failed, exit.
+    print_error "$1 failed to execute correctly"
+    print_debug "$1 failed to execute correctly"
+  fi
+}
+
+function check_error_exit() {
+  # Immediately following any statement, do this to check it was successful, exit if failed
+  #   Usage:  check_error <description of what was attempted>
+  #           check_error_exit "Python core installation"
   if [[ "$?" -eq 0 ]]; then
     print_debug "successful, no errors"
   else
     # Something failed, exit.
     print_debug "$1 failed. Check and try again"
-    exit 1
     #echo -e "$@, exiting." >&2
     exit 1
   fi
 }
-
 
 function help_menu {
   echo -e "\n$APP_NAME - $__version__"
@@ -117,6 +129,14 @@ function is_installed() {
   else
     return 0
   fi
+}
+
+function install_pkgs() {
+  # Install the array of packages provided as $1
+  #   Usage: install_pkgs ${pkg_list[@]}
+  #   Array: declare -a pkg_list=(gcc git curl make wget)
+
+
 }
 
 
