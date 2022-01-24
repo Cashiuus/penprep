@@ -2,7 +2,7 @@
 ## =============================================================================
 # File:     file.sh
 # Author:   Cashiuus
-# Created:  20-Jan-2022     Revised:
+# Created:  24-Jan-2022     Revised:
 #
 ##-[ Info ]---------------------------------------------------------------------
 # Purpose:  Describe script purpose
@@ -17,9 +17,6 @@
 ## =============================================================================
 __version__="0.0.1"
 __author__="Cashiuus"
-## =======[ EDIT THESE SETTINGS ]======= ##
-
-
 ## ==========[  TEXT COLORS  ]============= ##
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -49,6 +46,10 @@ COLS=$(tput cols)
 LOG_FILE="${APP_BASE}/debug.log"
 DEBUG=false
 DO_LOGGING=false
+## =======[ EDIT THESE SETTINGS ]======= ##
+
+
+
 
 
 ##  Load Config/Settings File(s)
@@ -88,7 +89,7 @@ function check_error() {
   #           check_error "Python core installation"
   #           if check_error "stuff"; do # now do stuff that asserts it failed
   if [[ "$?" -eq 0 ]]; then
-    print_debug "successful, no errors"
+    print_debug "check_error evaluated as successful, no errors"
   else
     # Something failed, exit.
     print_error "$1 failed to execute correctly"
@@ -101,33 +102,27 @@ function check_error_exit() {
   #   Usage:  check_error <description of what was attempted>
   #           check_error_exit "Python core installation"
   if [[ "$?" -eq 0 ]]; then
-    print_debug "successful, no errors"
+    print_debug "check_error_exit evaluated as successful, no errors"
   else
     # Something failed, exit.
-    print_debug "$1 failed. Check and try again"
+    print_debug "$1 failed during error_check_exit. Check and try again"
     #echo -e "$@, exiting." >&2
     exit 1
   fi
 }
 
-function help_menu {
-  echo -e "\n$APP_NAME - $__version__"
-  echo -e "\nUsage: `readlink -f $0` [ARGS]"
-  echo -e "\t-i,\t--input FILE    Input file to use"
-  echo -e "\t-o,\t--output FILE   Output file to save as"
-  echo -e "\n\n"
-}
-
 function is_installed() {
   # Check if a program is installed (use -n to check the opposite way)
   #
-  #   Usage: if program_exists go; then
+  #   Usage: if program_exists "go"; then
   #
   if [[ "$(command -v $1 2>&1)" ]]; then
     # command exists/is installed, so return true
-    return 1
-  else
+    print_debug "is_installed evaluated to true, the checked pkg exists"
     return 0
+  else
+    print_debug "is_installed evaluated to false, the checked pkg does not exist or is missing from PATH"
+    return 1
   fi
 }
 
@@ -139,6 +134,13 @@ function install_pkgs() {
 
 }
 
+function help_menu {
+  echo -e "\n$APP_NAME - $__version__"
+  echo -e "\nUsage: $APP_NAME [ARGS]"
+  echo -e "\t-i,\t--input FILE    Input file to use"
+  echo -e "\t-o,\t--output FILE   Output file to save as"
+  echo -e "\n\n"
+}
 
 
 ##  Running Main
@@ -234,6 +236,7 @@ trap finish EXIT
 #
 #
 ## -=====[  BASH/Scripting GUIDES  ]=====- ##
+#
 #   - https://lug.fh-swf.de/vim/vim-bash/StyleGuideShell.en.pdf
 #   - Google's Shell Styleguide: https://google.github.io/styleguide/shell.xml
 #   - Using Exit Codes: http://bencane.com/2014/09/02/understanding-exit-codes-and-how-to-use-them-in-bash-scripts/
@@ -257,6 +260,7 @@ trap finish EXIT
 #
 #
 ## =============[ Styleguide Recommendations ]============= ##
+#
 #   line length =   80 (I'm using 90-100 though)
 #   functions   =   lower-case with underscores, must use () after func, "function" optional, be consistent
 #                   Place all functions at top below constants, don't hide exec code between functions
@@ -270,6 +274,7 @@ trap finish EXIT
 #
 #
 ## =============[ Run a Script from Inside a Script ]============= ##
+#
 # URL: https://www.tothenew.com/blog/foolproof-your-bash-script-some-best-practices/
 #
 #   Method: Sourcing - sub-scripts run in the same process, if they error, whole thing exits
