@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     bootstrap-htb.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 11-Jan-2022
+# Created:  08-Apr-2020     Revised: 24-Jan-2022
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -17,6 +17,7 @@
 # Credits:  + g0tmi1k for teaching me bash scripting through his kali OS scripts
 #
 ##-[ Changelog ]-----------------------------------------------------------------------
+#   2022-01-24: Minor bugfixes; Added firepwd go the git clone list
 #   2020-12-27: Removed python 2 from setup completely, as python 3 is the default now
 #   2021-03-29: Massive update on folder structure, installed tools, and Obsidian for notetaking
 #   2021-03-30: Added installation of my dotfiles for bash, zsh, tmux, and aliases
@@ -25,7 +26,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="3.2.1"
+__version__="3.2.2"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 # [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
@@ -441,6 +442,12 @@ $SUDO git clone https://github.com/GhostPack/Seatbelt
 $SUDO git clone https://github.com/cobbr/SharpGen       # setup requires cmd: `dotnet build`
 $SUDO git clone https://github.com/byt3bl33d3r/SprayingToolkit
 $SUDO git clone https://github.com/abatchy17/WindowsExploits
+
+
+cd "${HTB_TOOLKIT_DIR}"
+git clone https://github.com/lclevy/firepwd         # Firefox password extractor
+git clone https://github.com/epinna/tplmap          # Template scanner for SSTI vulns
+
 
 # -- Covenant C2 Framework (requires dotnet) -------
 echo -e "\n${GREEN}[*] ${RESET}Installing the Covenant C2 Framework for advanced labs"
