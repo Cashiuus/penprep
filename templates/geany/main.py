@@ -3,7 +3,7 @@
 # ==============================================================================
 # File:         file.py
 # Author:       Cashiuus
-# Created:      20-May-2021     -     Revised:
+# Created:      09-Feb-2022     -     Revised:
 #
 # Depends:      n/a
 # Compat:       3.7+
@@ -17,11 +17,12 @@
 __version__ = '0.0.1'
 __author__ = 'Cashiuus'
 __license__ = 'MIT'
-__copyright__ = 'Copyright (C) 2021 Cashiuus'
-
-## =======[ IMPORT & CONSTANTS ]========= ##
+__copyright__ = 'Copyright (C) 2022 Cashiuus'
+## =======[ IMPORTS ]========= ##
 import argparse
 import errno
+import logging
+from logging import handlers
 import os
 import platform
 import subprocess
@@ -41,19 +42,6 @@ else:
     import urlparse
     import urllib
 
-
-VERBOSE = 1
-DEBUG = 0
-#MY_SETTINGS = 'settings.conf'
-USER_HOME = os.environ.get('HOME')
-ACTIVE_SHELL = os.environ['SHELL']
-BASE_DIR = Path(__file__).resolve(strict=True)
-#BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
-SAVE_DIR = BASE_DIR / 'saved'
-LOG_FILE = BASE_DIR /'debug.log'
-#FILE_NAME_WITH_DATE_EXAMPLE = "data_output-" + strftime('%Y%m%d') + ".txt"
-
-
 ## =========[  TEXT COLORS  ]============= ##
 class Colors(object):
     """ Access these via 'Colors.GREEN'   """
@@ -70,6 +58,19 @@ class Colors(object):
     BACKCYAN = '\033[46m'   # Cyan background
     BACKRED = '\033[41m'    # Red background
     BACKWHITE = '\033[47m'  # White background
+
+
+## =======[ Constants & Settings ]========= ##
+VERBOSE = 1
+DEBUG = 1
+#MY_SETTINGS = 'settings.conf'
+USER_HOME = os.environ.get('HOME')
+ACTIVE_SHELL = os.environ['SHELL']
+BASE_DIR = Path(__file__).resolve(strict=True)
+#BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+SAVE_DIR = BASE_DIR / 'saved'
+LOG_FILE = BASE_DIR /'debug.log'
+#FILE_NAME_WITH_DATE_EXAMPLE = "data_output-" + strftime('%Y%m%d') + ".txt"
 
 
 # ==========================[ BEGIN APPLICATION ]========================== #
@@ -163,27 +164,30 @@ if __name__ == '__main__':
 # -------------------
 #       LOGGING
 # -------------------
-#   Logging Cookbook: https://docs.python.org/3/howto/logging-cookbook.html#logging-cookbook
+#   Logging Cookbook: https://docs.python.org/3/howto/logging-cookbook.html
 #
 # Usage:
-#   This first line must be at top of the file, outside of any functions, so it's global
+#   # This first line must be at top of the file, outside of any functions, so it's global
 #   logger = logging.getLogger(__name__)
 #
-#   Remainder of setup can be placed into main, or its own function and called from main
-#   Tip: the level set in logger determines what messages are sent to handlers, always start with DEBUG
-#   logging.basicConfig(level=logging.DEBUG)
-#   Console Handler - this is so we can change log levels separate from file writing
+#   # Remainder of setup can be placed into main, or its own function and called from main
+#   # Tip: the level set in logger determines what messages are sent to handlers
+#   # Set root log level first, and to the most verbose level you plan to use (always start with DEBUG)
+#   logger.setLevel(logging.DEBUG)
+#   # Console Handler - this is so we can change log levels separate from file writing
 #   ch = logging.StreamHandler()
-#   Here is where we can condition whether or not to show DEBUG messages in console
+#   # Here is where we can condition whether or not to show DEBUG messages in console
 #   if DEBUG:
 #       ch.setLevel(logging.DEBUG)
 #   else:
 #       ch.setLevel(logging.INFO)
 #   # FileHandler accepts string or Path object for filename; mode 'w' truncates log, 'a' appends
 #   fh = logging.FileHandler(LOG_FILE, mode='w')
+#   # Or you can use a rotating file handler: https://docs.python.org/3/howto/logging-cookbook.html#cookbook-rotator-namer
+#   #fh = handlers.RotatingFileHandler(LOG_FILE, max_bytes=104857600, backupCount=4)
 #   fh.setLevel(logging.DEBUG)
 #   # Configure a good format for the logs to save as
-#   See here: https://docs.python.org/3/library/logging.html#logrecord-attributes
+#   # See here: https://docs.python.org/3/library/logging.html#logrecord-attributes
 #   formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s : %(message)s')
 #   fh.setFormatter(formatter)
 #   # Add the handlers to the logger
@@ -197,7 +201,14 @@ if __name__ == '__main__':
 #   logger.debug('var: url_slices is %s', url_slices)
 #   logger.error('foo', exc_info=True)
 #   logger.info('Destination File already exists')
-
+#
+# ----- Levels
+# logger.debug('msg')
+# logger.info('msg')
+# logger.warning('msg')
+# logger.error('msg')
+# logger.critical('msg')
+# --------------------------
 
 
 # =========================================================================== #
