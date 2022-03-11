@@ -3,7 +3,7 @@
 # ==============================================================================
 # File:         file.py
 # Author:       Cashiuus
-# Created:      09-Feb-2022     -     Revised:
+# Created:      11-Mar-2022     -     Revised:
 #
 # Depends:      n/a
 # Compat:       3.7+
@@ -42,6 +42,11 @@ else:
     import urlparse
     import urllib
 
+# Logging Cookbook: https://docs.python.org/3/howto/logging-cookbook.html
+# This first line must be at top of the file, outside of any functions, so it's global
+logger = logging.getLogger(__name__)
+
+
 ## =========[  TEXT COLORS  ]============= ##
 class Colors(object):
     """ Access these via 'Colors.GREEN'   """
@@ -61,12 +66,12 @@ class Colors(object):
 
 
 ## =======[ Constants & Settings ]========= ##
-VERBOSE = 1
-DEBUG = 1
+VERBOSE = True
+DEBUG = True
 #MY_SETTINGS = 'settings.conf'
 USER_HOME = os.environ.get('HOME')
 ACTIVE_SHELL = os.environ['SHELL']
-BASE_DIR = Path(__file__).resolve(strict=True)
+BASE_DIR = Path(__file__).resolve(strict=True).parent       # one parent means dir of this file
 #BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 SAVE_DIR = BASE_DIR / 'saved'
 LOG_FILE = BASE_DIR /'debug.log'
@@ -101,6 +106,35 @@ def main():
     Main function of the script
 
     """
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    # FileHandler accepts string or Path object for filename; mode 'w' truncates log, 'a' appends
+    fh = logging.FileHandler(LOG_FILE, mode='w')
+    # Or you can use a rotating file handler: https://docs.python.org/3/howto/logging-cookbook.html#cookbook-rotator-namer
+    #fh = handlers.RotatingFileHandler(LOG_FILE, max_bytes=104857600, backupCount=4)
+    if DEBUG:
+        ch.setLevel(logging.DEBUG)
+        fh.setLevel(logging.DEBUG)
+    else:
+        ch.setLevel(logging.INFO)
+        fh.setLevel(logging.INFO)
+    # Message Format - See here: https://docs.python.org/3/library/logging.html#logrecord-attributes
+    formatter = logging.Formatter('%(funcName)s : %(levelname)-8s %(message)s')
+    ch.setFormatter(formatter)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s : %(message)s')
+    fh.setFormatter(formatter)
+    # Add the handlers to the logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+    logger.debug('Logger initialized')
+    # ----- Levels
+    #logger.debug('msg')
+    #logger.info('msg')
+    #logger.warning('msg')
+    #logger.error('msg')
+    #logger.error('foo', exc_info=True)
+    #logger.critical('msg')
+    # --------------------------
     print("[TEMPLATE] BASE_DIR is: {}".format(BASE_DIR))
     # Quick 'n dirty args if not using argparse
     args = sys.argv[1:]
@@ -161,55 +195,6 @@ if __name__ == '__main__':
     main()
 
 
-# -------------------
-#       LOGGING
-# -------------------
-#   Logging Cookbook: https://docs.python.org/3/howto/logging-cookbook.html
-#
-# Usage:
-#   # This first line must be at top of the file, outside of any functions, so it's global
-#   logger = logging.getLogger(__name__)
-#
-#   # Remainder of setup can be placed into main, or its own function and called from main
-#   # Tip: the level set in logger determines what messages are sent to handlers
-#   # Set root log level first, and to the most verbose level you plan to use (always start with DEBUG)
-#   logger.setLevel(logging.DEBUG)
-#   # Console Handler - this is so we can change log levels separate from file writing
-#   ch = logging.StreamHandler()
-#   # Here is where we can condition whether or not to show DEBUG messages in console
-#   if DEBUG:
-#       ch.setLevel(logging.DEBUG)
-#   else:
-#       ch.setLevel(logging.INFO)
-#   # FileHandler accepts string or Path object for filename; mode 'w' truncates log, 'a' appends
-#   fh = logging.FileHandler(LOG_FILE, mode='w')
-#   # Or you can use a rotating file handler: https://docs.python.org/3/howto/logging-cookbook.html#cookbook-rotator-namer
-#   #fh = handlers.RotatingFileHandler(LOG_FILE, max_bytes=104857600, backupCount=4)
-#   fh.setLevel(logging.DEBUG)
-#   # Configure a good format for the logs to save as
-#   # See here: https://docs.python.org/3/library/logging.html#logrecord-attributes
-#   formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s : %(message)s')
-#   fh.setFormatter(formatter)
-#   # Add the handlers to the logger
-#   logger.addHandler(fh)
-#   logger.addHandler(ch)
-#   Now, use configured logger to log messages
-#   logger.debug('Logger initialized')
-#
-# logging statements you can place in code - note: use logger to apply our handler settings
-#   logger.debug('foo')
-#   logger.debug('var: url_slices is %s', url_slices)
-#   logger.error('foo', exc_info=True)
-#   logger.info('Destination File already exists')
-#
-# ----- Levels
-# logger.debug('msg')
-# logger.info('msg')
-# logger.warning('msg')
-# logger.error('msg')
-# logger.critical('msg')
-# --------------------------
-
 
 # =========================================================================== #
 # ================================[ RECIPES ]================================ #
@@ -221,7 +206,7 @@ if __name__ == '__main__':
 #LOG_FILE = os.path.join(BASE_DIR, 'debug.log')
 
 
-# ========================[  CORE UTILITY FUNCTIONS  ]======================== #
+# =======================[  CORE UTILITY FUNCTIONS  ]======================== #
 # Check - Root user
 # TODO: If not root, run with sudo
 def root_check():
@@ -239,6 +224,7 @@ def delay(max=10):
 
 
 def install_pkg(package):
+    import os, pip, platform
     pip.main(['install', package])
     if platform.system() == 'Linux':
         if os.geteuid() != 0:
@@ -248,19 +234,22 @@ def install_pkg(package):
             pass
     else:
         pass
-
+    return
 
 def make_dirs(path):
     """
-    Make all directories en route to the full provided path
+    Make all directories en route to the full provided path.
     """
     # If 'path' is a single directory path, create it, else treat as a list of paths
     # for i in path:
     if not os.path.isdir(path):
         try:
             os.makedirs(path)
+            logger.debug("Directory created: {}".format(path))
         except:
             print("[ERROR] Error creating directory: {}".format(str(path)))
+            logger.error("Error creating directory: {}".format(str(path)))
+            sys.exit(1)
     return
 
 

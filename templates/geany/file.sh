@@ -46,6 +46,7 @@ COLS=$(tput cols)
 LOG_FILE="${APP_BASE}/debug.log"
 DEBUG=false
 DO_LOGGING=false
+[[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DBG] constants :: Script initializing${RESET}"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
 
@@ -126,21 +127,27 @@ function is_installed() {
   fi
 }
 
-function install_pkgs() {
-  # Install the array of packages provided as $1
-  #   Usage: install_pkgs ${pkg_list[@]}
-  #   Array: declare -a pkg_list=(gcc git curl make wget)
-
-
+function time_elapsed() {
+    # Usage: time_elapsed <start> <end>
+    delta=$(($2 - $1))
+    if [[ $delta -lt 0 ]]; then
+        echo -e "Invalid params. Usage: time_elapsed <start> <end>"
+        return
+    fi
+    hrs=$(($delta / 3600))
+    minutes=$(( (($delta - (($hrs * 3600)) )) / 60 ))
+    days=0
+    while [[ $hrs -gt 24 ]]; do
+        ((hrs-=24))
+        ((days+=1))
+    done
+    if [[ $days -ge 1 ]]; then
+        echo -e "${GREEN}[*] Total time elapsed:${RESET} $days, $hrs hours, $minutes minutes"
+    else
+        echo -e "${GREEN}[*] Total time elapsed:${RESET} $hrs hours, $minutes minutes"
+    fi
 }
 
-function help_menu {
-  echo -e "\n$APP_NAME - $__version__"
-  echo -e "\nUsage: $APP_NAME [ARGS]"
-  echo -e "\t-i,\t--input FILE    Input file to use"
-  echo -e "\t-o,\t--output FILE   Output file to save as"
-  echo -e "\n\n"
-}
 
 
 ##  Running Main
@@ -148,32 +155,43 @@ function help_menu {
 echo -e "${ORANGE} + -- -- -- --=[${RESET}  ${APP_NAME}  ${ORANGE}]=-- -- -- -- +${RESET}"
 echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
 echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
-echo -e "${ORANGE} + --=[  https://github.com/cashiuus  ]=-- +${RESET}"
+echo -e "${ORANGE}    + -- -- --=[  https://github.com/cashiuus  ]=-- -- -- +${RESET}"
 echo -e
 echo -e
 
 ##  Script Arguments
 ## ================= ##
+function help_menu() {
+  #echo -e "\n$APP_NAME - $__version__"
+  echo -e "\nUsage: $APP_NAME [ARGS]"
+  echo -e "\t-i,--input FILE    Input file to use"
+  echo -e "\t-o,--output FILE   Output file to save as"
+  echo -e "\n\n"
+}
+
 while [[ "${#}" -gt 0 && ."${1}" == .-* ]]; do
   opt="${1}";
   shift;
   case "$(echo ${opt} | tr '[:upper:]' '[:lower:]')" in
     -|-- ) break 2;;
+    -c|--config)        config="$1";    shift;; # Shift extra bc it's actually 2 args
     -i|--input)         infile="$1";    shift;; # Shift extra bc it's actually 2 args
     -o|--output)        outfile="$1";   shift;; # Shift extra bc it's actually 2 args
     -update|--update )  update=true;;
-    -burp|--burp )      burpPro=true;;
 
     *) echo -e "${RED}[ERROR]${RESET} Unknown argument passed: ${RED}${opt}${RESET}" 1>&2 \
       && help_menu && exit 1;;
   esac
 done
 
+
+
+
 #  Check Internet Connection
 echo -e "${GREEN}[*]${RESET} Checking Internet access"
 for i in {1..4}; do ping -c 1 -W ${i} google.com &>/dev/null && break; done
 if [[ "$?" -ne 0 ]]; then
-  for i in {1..4}; do ping -c 1 -W ${i} 8.8.8.8 &/dev/null && break; done
+  for i in {1..4}; do ping -c 1 -W ${i} 8.8.8.8 &>/dev/null && break; done
   if [[ "$?" -eq 0 ]]; then
     echo -e "${RED}[ERROR]${RESET} Internet partially working, DNS is failing, check resolv.conf"
     exit 1
