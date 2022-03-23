@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     bootstrap-htb.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 24-Jan-2022
+# Created:  08-Apr-2020     Revised: 20-Mar-2022
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -17,6 +17,7 @@
 # Credits:  + g0tmi1k for teaching me bash scripting through his kali OS scripts
 #
 ##-[ Changelog ]-----------------------------------------------------------------------
+#   2022-03-20: Re-organized transfer-stage so that pivoting, shells, & privesc tools are all in here (we transfer all of them)
 #   2022-01-24: Minor bugfixes; Added firepwd go the git clone list
 #   2020-12-27: Removed python 2 from setup completely, as python 3 is the default now
 #   2021-03-29: Massive update on folder structure, installed tools, and Obsidian for notetaking
@@ -26,12 +27,9 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="3.2.2"
+__version__="3.2.3"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
-# [http://misc.flogisoft.com/bash/tip_colors_and_formatting]
-# [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
-# [https://en.wikipedia.org/wiki/ANSI_escape_code]
 GREEN="\033[01;32m"     # Success
 YELLOW="\033[01;33m"    # Warnings/Information
 RED="\033[01;31m"       # Issues/Errors
@@ -49,17 +47,17 @@ TOTAL=$( grep '(${STAGE}/${TOTAL})' $0 | wc -l );(( TOTAL-- ))  # Total tasks nu
 ## =======[ EDIT THESE SETTINGS ]======= ##
 VPN_BASE_DIR="${HOME}/vpn"
 HTB_BASE_DIR="${HOME}/htb"                      # Parent dir for all our HTB stuff
-HTB_TOOLKIT_DIR="${HOME}/toolkit"               # Toolkit dir for use permanently on this system
 HTB_BOXES="${HTB_BASE_DIR}/boxes"               # Our challenge boxes artifacts as we go
+HTB_TOOLKIT_DIR="${HOME}/toolkit"               # Toolkit dir for use permanently on this system
 HTB_NOTES="${HTB_TOOLKIT_DIR}/notebooks"        # Our notes repository
-HTB_PIVOTING="${HTB_TOOLKIT_DIR}/pivoting"      # Resources for pivoting/c2
-HTB_PRIVESC="${HTB_TOOLKIT_DIR}/privesc"        # Privesc tools for both Linux and Windows
-HTB_SHELLS="${HTB_TOOLKIT_DIR}/shells"          # Various shells we can use (or created along the way)
-HTB_TRANSFERS="${HTB_TOOLKIT_DIR}/transfers"    # Everything in one place for file transfers
+HTB_TRANSFERS="${HOME}/transfer-stage"        # Everything in one place for file transfers
+HTB_PIVOTING="${HTB_TRANSFERS}/pivoting"      # Resources for pivoting/c2
+HTB_PRIVESC="${HTB_TRANSFERS}/privesc"        # Privesc tools for both Linux and Windows
+HTB_SHELLS="${HTB_TRANSFERS}/shells"            # Various shells we can use (or created along the way)
 BURPSUITE_CONFIG_DIR="${HOME}/burpsuite"        # Burpsuite configs, libs, extensions, etc in one place
 
 # Arrays listing all of the dirs we will create
-CREATE_USER_DIRECTORIES=(burpsuite git go toolkit vpn)  # Subdirs of $HOME/
+CREATE_USER_DIRECTORIES=(burpsuite git go toolkit vpn)              # Subdirs of $HOME/
 CREATE_OPT_DIRECTORIES=()                                           # Subdirs of /opt/
 CREATE_TOOLKIT_DIRS=(notebooks msf-scripts pivoting privesc shells transfers)   # Subdirs of $HOME/toolkit/
 CREATE_HTB_DIRS=(boxes credentials wordlists)                       # Project-specific HTB subdirs
@@ -248,9 +246,10 @@ $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locat
 $SUDO apt-get -y -qq install geany htop strace sysv-rc-conf tree
 
 echo -e "\n${GREEN}[ * ] ${BLUE}apt-get ::${RESET} Installing common HTB tools"
-$SUDO apt-get -y -qq install bloodhound brutespray dirb dirbuster docx2txt exploitdb feroxbuster \
-  flameshot gdb gobuster libimage-exiftool-perl neo4j nikto proxychains4 \
-  rdesktop redsocks responder seclists shellter sqlmap sshuttle windows-binaries
+$SUDO apt-get -y -qq install bloodhound brutespray dirb dirbuster docx2txt exploitdb \
+  fcrackzip feroxbuster flameshot gdb gobuster ipmitool libimage-exiftool-perl neo4j \
+  nikto proxychains4 rdesktop redsocks responder seclists shellter sqlmap \
+  sshuttle windows-binaries
 
 # Python 3
 $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools python3-venv || \
@@ -403,10 +402,12 @@ $SUDO gem install evil-winrm
 # Get common shells to use
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful ${BOLD}shells/backdoors${RESET}"
 cd "${HTB_SHELLS}"
+git clone https://github.com/borjmz/aspx-reverse-shell
 git clone https://github.com/eb3095/php-shell
 git clone https://github.com/infodox/python-pty-shells
 git clone https://github.com/0dayCTF/reverse-shell-generator
 git clone https://github.com/epinna/weevely3
+
 
 if [[ ! -d "${HTB_SHELLS}/pentestmonkey" ]]; then
   mkdir pentestmonkey && cd pentestmonkey
@@ -427,26 +428,6 @@ git clone https://github.com/rasta-mouse/Watson
 git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester
 git clone https://github.com/pentestmonkey/windows-privesc-check
 
-echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into /opt/..."
-cd /opt/
-$SUDO git clone https://github.com/samratashok/ADModule
-$SUDO git clone https://github.com/BloodHoundAD/BloodHound
-$SUDO git clone https://github.com/leebaird/discover
-$SUDO git clone https://github.com/elceef/dnstwist
-$SUDO git clone https://github.com/TheWover/donut
-$SUDO git clone https://github.com/samratashok/nishang
-$SUDO git clone https://github.com/21y4d/nmapAutomator
-$SUDO git clone https://github.com/PowerShellMafia/PowerSploit
-$SUDO git clone https://github.com/NetSPI/PowerUpSQL
-$SUDO git clone https://github.com/GhostPack/Seatbelt
-$SUDO git clone https://github.com/cobbr/SharpGen       # setup requires cmd: `dotnet build`
-$SUDO git clone https://github.com/byt3bl33d3r/SprayingToolkit
-$SUDO git clone https://github.com/abatchy17/WindowsExploits
-
-
-cd "${HTB_TOOLKIT_DIR}"
-git clone https://github.com/lclevy/firepwd         # Firefox password extractor
-git clone https://github.com/epinna/tplmap          # Template scanner for SSTI vulns
 
 
 # -- Covenant C2 Framework (requires dotnet) -------
@@ -510,17 +491,39 @@ else
 fi
 
 
+echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into \${HOME}/git/"
+cd "${HOME}/git"
+git clone https://github.com/samratashok/ADModule
+git clone https://github.com/BloodHoundAD/BloodHound
+git clone https://github.com/leebaird/discover
+git clone https://github.com/elceef/dnstwist
+git clone https://github.com/TheWover/donut
+git clone https://github.com/samratashok/nishang
+git clone https://github.com/21y4d/nmapAutomator
+git clone https://github.com/PowerShellMafia/PowerSploit
+git clone https://github.com/NetSPI/PowerUpSQL
+git clone https://github.com/GhostPack/Seatbelt
+git clone https://github.com/byt3bl33d3r/SprayingToolkit
+git clone https://github.com/abatchy17/WindowsExploits
+git clone https://github.com/lclevy/firepwd         # Firefox password extractor
+git clone https://github.com/epinna/tplmap          # Template scanner for SSTI vulns
+
+git clone https://github.com/cobbr/SharpGen       # setup requires cmd: `dotnet build`
+cd SharpGen && dotnet build
+
+
+
 [[ $(pip3 show autorecon 2>/dev/null) ]] || $SUDO python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
 if [[ ! $(which autorecon) ]]; then
-  cd /opt/
-  $SUDO git clone https://github.com/Tib3rius/AutoRecon
+  cd "${HOME}/git"
+  git clone https://github.com/Tib3rius/AutoRecon
   cd AutoRecon
   # TODO: Better to use a virtualenv, but only if it's easy for
   # users to auto-activate it anytime they want to use AutoRecon
-  $SUDO python3 -m pip install -r requirements.txt
-  $SUDO ln -s /opt/AutoRecon/src/autorecon/autorecon.py local/bin/autorecon
+  python3 -m pip install -r requirements.txt
+  $SUDO ln -s "${HOME}/git/AutoRecon/src/autorecon/autorecon.py" local/bin/autorecon
   # TODO: which symlink option is better? If i put it local, do i still need sudo?
-  #ln -s /opt/AutoRecon/src/autorecon/autorecon.py "${HOME}/.local/bin/autorecon"
+  #ln -s "${HOME}/git/AutoRecon/src/autorecon/autorecon.py" "${HOME}/.local/bin/autorecon"
 fi
 
 # Tools needed by AutoRecon
@@ -559,7 +562,6 @@ fi
 echo -e "\n${GREEN}[*]${RESET} Consolidating all our goodies in one place for ${BOLD}remote file transfers${RESET} (nc, mimi, scanners, etc)"
 
 cd "${HTB_TRANSFERS}"
-
 cp -n "/usr/share/windows-binaries/nc.exe" ./
 cp -n "/usr/share/windows-binaries/wget.exe" ./
 cp -n "/usr/share/windows-resources/mimikatz/x64/mimikatz.exe" ./
@@ -568,15 +570,15 @@ cp -n "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x86/Release/winPEASx86.e
 cp -n "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x64/Release/winPEASx64.exe" ./
 cp -n "${HTB_PRIVESC}/Windows-Exploit-Suggester/windows-exploit-suggester.py" ./
 cp -n "${HTB_PRIVESC}/Sherlock/Sherlock.ps1" ./
-cp -n "/opt/PowerSploit/Privesc/PowerUp.ps1" ./
-cp -n "/opt/PowerSploit/Privesc/Privesc.psd1" ./
-cp -n "/opt/PowerSploit/Privesc/Privesc.psm1" ./
-cp -n "/opt/PowerSploit/Recon/PowerView.ps1" ./
-cp -n "/opt/PowerSploit/AntivirusBypass/Find-AVSignature.ps1" ./
-cp -n "/opt/ADModule/Import-ActiveDirectory.ps1" ./
-cp -n "/opt/ADModule/Microsoft.ActiveDirectory.Management.dll" ./
+cp -n "${HOME}/git/PowerSploit/Privesc/PowerUp.ps1" ./
+cp -n "${HOME}/git/PowerSploit/Privesc/Privesc.psd1" ./
+cp -n "${HOME}/git/PowerSploit/Privesc/Privesc.psm1" ./
+cp -n "${HOME}/git/PowerSploit/Recon/PowerView.ps1" ./
+cp -n "${HOME}/git/PowerSploit/AntivirusBypass/Find-AVSignature.ps1" ./
+cp -n "${HOME}/git/ADModule/Import-ActiveDirectory.ps1" ./
+cp -n "${HOME}/git/ADModule/Microsoft.ActiveDirectory.Management.dll" ./
 
-# pspy the binaries are in 'releases' not in the cloned project, I built them in in /opt/ earlier anyway tho
+# pspy the binaries are in 'releases' not in the cloned project
 if [[ ! -f "${HTB_TRANSFERS}/pspy64s" ]]; then
   echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Pspy${RESET} binaries"
   curl -SL 'https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy64s' -o pspy64s
@@ -586,9 +588,12 @@ if [[ ! -f "${HTB_TRANSFERS}/pspy64s" ]]; then
 fi
 if [[ ! -f "${HTB_TRANSFERS}/chisel.exe" ]]; then
   echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Chisel${RESET}"
-  curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.6/chisel_1.7.6_windows_amd64.gz' -o chisel.gz
+  curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_windows_amd64.gz' -o chisel.gz
   gunzip chisel.gz
   mv chisel chisel.exe
+  curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz' -o chisel.gz
+  gunzip chisel.gz
+  chmod +x chisel
 fi
 if [[ ! -f "${HTB_TRANSFERS}/JuicyPotato.exe" ]]; then
   echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}JuicyPotato${RESET}"
@@ -980,5 +985,14 @@ trap finish EXIT
 
 ## =================================================================================== ##
 ## =============================[  Help :: Core Notes ]=============================== ##
+#
+#
+#
+#
+# [Additional Tools]
+# Some additional tools that may come in handy, not added to script yet:
+#
+#
+#
 #
 ## =================================================================================== ##

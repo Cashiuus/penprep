@@ -3,7 +3,7 @@
 # File:     setup-geany.sh
 #
 # Author:   Cashiuus
-# Created:  10-Oct-2015     Revised:  05-Apr-2021
+# Created:  10-Oct-2015     Revised:  24-Jan-2022
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Install Geany IDE tool, configure custom settings, and copy in templates.
@@ -14,10 +14,15 @@
 #       - 2020-12-28 - Added network interface code for ifaces like 'ens32' to work
 #       - 2021-04-05 - Bugfix for the *.txt filetype styling additional conf file
 #
+##-[ Changelog ]-----------------------------------------------------------------------
+#
+# 2022-01-24: Added enabling 2 plugins and more custom settings to geany.conf
+#
+#
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.8.3"
+__version__="1.8.4"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 # [https://wiki.archlinux.org/index.php/Color_Bash_Prompt]
@@ -108,6 +113,28 @@ if [[ $os == "ubuntu" ]]; then
   $SUDO apt-get -y install yaru-theme-icon
 fi
 
+
+# Plugins - https://github.com/geany/geany-plugins
+$SUDO apt-get -y install geany-plugins  # pkg doesn't exist in Kali OS, so run this by itself
+
+if [[ "$?" -ne 0 ]]; then
+  echo -e "${GREEN}[*]${RESET} Building geany-plugins from scratch, please wait..."
+  # Potential Dependencies for some plugins - if you do a manual make/configure type install
+  # Markdown
+  cd /opt
+  $SUDO git clone https://github.com/geany/geany-plugins
+  if [[ "$?" -ne 0 ]]; then
+    echo -e "[ERR] Failed to clone geany-plugins, skipping"
+  else
+    cd geany_plugins
+    $SUDO apt-get -y install libwebkit2gtk-4.0-dev
+    $SUDO apt-get -y install automake autopoint
+    $SUDO ./autogen.sh
+    make
+    $SUDO make install
+  fi
+fi
+
 # =============================[ CONFIGURE GEANY ]================================ #
 $SUDO timeout 5 geany >/dev/null 2>&1
 sleep 3s
@@ -118,6 +145,11 @@ file="${HOME}/.config/geany/geany.conf"
 if [[ -e "${file}" ]]; then
   cp -n $file{,.bkup}
   #sed -i 's/^.*editor_font=.*/editor_font=Monospace\ 10/' "${file}"
+
+  # - Pref UI Section: General
+
+
+  sed -i 's/^beep_on_errors=.*/beep_on_errors=false/' "${file}"
   sed -i 's/^sidebar_pos=.*/sidebar_pos=1/' "${file}"
   sed -i 's/^sidebar_page=.*/sidebar_page=1/' "${file}"
   sed -i 's/^tab_order_beside=.*/tab_order_beside=true/' "${file}"
@@ -142,6 +174,11 @@ if [[ -e "${file}" ]]; then
   sed -i 's/^pref_editor_ensure_convert_line_endings=.*/pref_editor_ensure_convert_line_endings=true/' "${file}"
   sed -i 's/^pref_editor_replace_tabs=.*/pref_editor_replace_tabs=true/' "${file}"
   sed -i 's/^pref_editor_trail_space=.*/pref_editor_trail_space=true/' "${file}"
+
+  # Plugins section of geany.conf
+  sed -i 's/^load_plugins=.*/load_plugins=true/' "${file}"
+  sed -i 's/^active_plugins=.*/active_plugins=/usr/lib/x86_64-linux-gnu/geany/filebrowser.so;/usr/lib/x86_64-linux-gnu/geany/splitwindow.so;/' "${file}"
+
   #sed -i 's/^pref_toolbar_append_to_menu=.*/pref_toolbar_append_to_menu=true/' "${file}"
   #sed -i 's/^pref_toolbar_use_gtk_default_style=.*/pref_toolbar_use_gtk_default_style=false/' "${file}"
   #sed -i 's/^pref_toolbar_use_gtk_default_icon=.*/pref_toolbar_use_gtk_default_icon=false/' "${file}"
@@ -168,6 +205,7 @@ else
   #$SUDO touch "${file}" || echo -e "${RED}[ERROR] Failed to create new file${RESET}" && $SUDO echo "" > "${file}"
   cat <<EOF > "${tmpfile}"
 [geany]
+beep_on_errors=false
 check_detect_indent=true
 detect_indent_width=true
 use_tab_to_indent=true
@@ -224,6 +262,10 @@ terminal_cmd=x-terminal-emulator -e "/bin/sh %c"
 browser_cmd=firefox-esr %c
 grep_cmd=grep
 
+[plugins]
+load_plugins=true
+custom_plugin_path=
+active_plugins=/usr/lib/x86_64-linux-gnu/geany/filebrowser.so;/usr/lib/x86_64-linux-gnu/geany/splitwindow.so;
 EOF
 
   $SUDO mv "${tmpfile}" "${file}"
@@ -424,3 +466,28 @@ function finish() {
 }
 # End of script
 trap finish EXIT
+
+exit 0
+## ===================================================================================== ##
+
+## =====================[   Geany Plugins   ]======================= ##
+# Install Plugins: https://plugins.geany.org/install.html
+#
+#
+#   Addons            Collection of small utility helpers, Copy URI, bookmark list,
+#                     task list, word highlight
+#
+#   Auto-Close        Auto close for code brackers and quotes
+#
+#   Code Navigation   Facilitates navigation across source files
+#
+#   Djynn             A PM type plugin, can sort lines, comments, keybindings, addtl settings
+#
+#
+#
+#   LaTeX Wizard      Generate latex files from an open file. Not easy to use.
+#                     Tips: https://www.dedoimedo.com/computers/latex-lyx-tips.html
+
+
+
+## ===================================================================================== ##
