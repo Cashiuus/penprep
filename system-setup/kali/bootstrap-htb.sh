@@ -208,7 +208,8 @@ function install_or_update_git() {
     echo -e "${RED}[ERR]${RESET} Not enough args to install or update the provided git repo"
     return 1
   fi
-  git clone "$2" "$1" 2>/dev/null
+  # depth=1 makes it a shallow clone, which just means less history and is efficient for non-dev use of tools
+  git clone --depth=1 "$2" "$1" 2>/dev/null
   if [[ $? -ne 0 ]]; then
     # git clone failed, so try to cd in and update it
     echo -e "${YELLOW}[WRN]${RESET} ${2} is already installed. Updating it instead..."
