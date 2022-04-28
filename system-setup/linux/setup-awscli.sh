@@ -1,23 +1,20 @@
 #!/usr/bin/env bash
 ## =============================================================================
-# File:     file.sh
+# File:     setup-awscli.sh
 # Author:   Cashiuus
-# Created:  31-May-2021     Revised:
+# Created:  31-May-2021     Revised: 25-Apr-2022
 #
 ##-[ Info ]---------------------------------------------------------------------
-# Purpose:  Describe script purpose
+# Purpose:  Quick installer for awscli tools in linux
 #
 #
 # Notes:
-#
-#
-##-[ Links/Credit ]-------------------------------------------------------------
-#
+#   - awscli install instructions: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
 #
 ##-[ Copyright ]----------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =============================================================================
-__version__="0.0.1"
+__version__="0.0.2"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
@@ -71,7 +68,6 @@ function echo_prompter() {
 
 fail() {
   # Something failed, exit.
-
   echo "$@, exiting." >&2
   exit 1
 }
@@ -84,19 +80,6 @@ function help_menu {
   echo -e "\n\n"
 }
 
-function check_dependencies() {
-  #
-  # Usage
-  #
-  local dep_fail=0
-  # Check if a program is not installed (use -n to check the opposite way)
-  if [[ -z "$(command -v curl 2>&1)" ]]; then
-    dep_fail=1
-    return 1
-  fi
-}
-
-
 
 ##  Running Main
 ## =================================== ##
@@ -107,43 +90,7 @@ echo -e "${ORANGE} + --=[  https://github.com/cashiuus  ]=-- +${RESET}"
 echo -e
 echo -e
 
-##  Script Arguments
-## =================================== ##
-while [[ "${#}" -gt 0 && ."${1}" == .-* ]]; do
-  opt="${1}";
-  shift;
-  case "$(echo ${opt} | tr '[:upper:]' '[:lower:]')" in
-    -|-- ) break 2;;
-    -i|--input)         infile="$opt";    shift;; # Shift extra bc it's actually 2 args
-    -o|--output)        outfile="$opt";   shift;; # Shift extra bc it's actually 2 args
-    -update|--update )  update=true;;
-    -burp|--burp )      burpPro=true;;
-
-    *) echo -e "${RED}[ERROR]${RESET} Unknown argument passed: ${RED}${opt}${RESET}" 1>&2 \
-      && help_menu && exit 1;;
-  esac
-done
-
-##  Check Internet Connection
-(( STAGE++ )); echo -e "${GREEN}[*]${RESET} (${STAGE}/${TOTAL}) Checking Internet access"
-for i in {1..4}; do ping -c 1 -W ${i} google.com &>/dev/null && break; done
-if [[ "$?" -ne 0 ]]; then
-  for i in {1..4}; do ping -c 1 -W ${i} 8.8.8.8 &/dev/null && break; done
-  if [[ "$?" -eq 0 ]]; then
-    echo -e "${RED}[ERROR]${RESET} Internet partially working, DNS is failing, check resolv.conf"
-    exit 1
-  else
-    echo -e "${RED}[ERROR]${RESET} Internet is completely down, check IP config or router"
-    exit 1
-  fi
-fi
-
-
-# awscli install instructions: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
-
-
-
-$(which unzip) || $SUDO apt-get -y install unzip
+$(which unzip &>/dev/null) || $SUDO apt-get -y install unzip
 
 # These should also already be on most linux distros
 #$SUDO apt-get -y install glibc groff less
@@ -153,6 +100,7 @@ cd /tmp
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip -q awscliv2.zip
 $SUDO ./aws/install
+rm /tmp/awscliv2.zip
 
 # This installs it at path: /usr/local/bin/aws
 # Launch configure routine to setup the tool, you can't use it w/o doing this.
@@ -171,6 +119,8 @@ aws --version && aws configure
 # You can create more than just the first "default" profile for other access profiles
 #aws configure --profile <profile_name>
 # Then use it: aws s3 ls --profile <profile_name>
+# Check a key: aws sts get-caller-identity --profile <name>
+# Check a key: aws sts get-access-key-info --access-key-id <key_id> --profile <name>
 
 
 
