@@ -17,6 +17,7 @@
 # Credits:  + g0tmi1k for teaching me bash scripting through his kali OS scripts
 #
 ##-[ Changelog ]-----------------------------------------------------------------------
+#   2022-05-18: Added xsshunter-client and ppmap (proto pollution scanner)
 #   2022-04-28: Added win php shell, enhanced updater capability, now grabs IP to put into saved shells
 #   2022-03-20: Re-organized transfer-stage so that pivoting, shells, & privesc tools are all in here (we transfer all of them)
 #   2022-01-24: Minor bugfixes; Added firepwd go the git clone list
@@ -28,7 +29,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="3.2.4"
+__version__="3.2.5"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 GREEN="\033[01;32m"     # Success
@@ -623,9 +624,11 @@ gittools["Bloodhound"]="https://github.com/BloodHoundAD/BloodHound"
 gittools["discover"]="https://github.com/leebaird/discover"
 gittools["dnstwist"]="https://github.com/elceef/dnstwist"
 gittools["donut"]="https://github.com/TheWover/donut"
+gittools["dotdotpwn"]="https://github.com/wireghoul/dotdotpwn"
 gittools["nishang"]="https://github.com/samratashok/nishang"
 gittools["nmapAutomator"]="https://github.com/21y4d/nmapAutomator"
-gittools["PowerSploit"]="https://github.com/PowerShellMafia/PowerSploit"
+#gittools["PowerSploit"]="https://github.com/PowerShellMafia/PowerSploit"
+gittools["PowerSploit"]="https://github.com/ZeroDayLab/PowerSploit"   # This version has some PowerView additions
 gittools["PowerUpSQL"]="https://github.com/NetSPI/PowerUpSQL"
 gittools["Seatbelt"]="https://github.com/GhostPack/Seatbelt"
 gittools["SprayingToolkit"]="https://github.com/byt3bl33d3r/SprayingToolkit"
@@ -635,6 +638,8 @@ gittools["tplmap"]="https://github.com/epinna/tplmap"
 gittools["SharpGen"]="https://github.com/cobbr/SharpGen"
 gittools["cupp"]="https://github.com/Mebus/cupp"
 gittools["mentalist"]="https://github.com/sc0tfree/mentalist"
+gittools["ppmap"]="https://github.com/kleiton0x00/ppmap"
+gittools["xsshunter-client"]="https://github.com/mandatoryprogrammer/xsshunter_client"
 
 #git clone https://github.com/samratashok/ADModule
 #git clone https://github.com/BloodHoundAD/BloodHound
@@ -719,6 +724,11 @@ if [[ ! -d /opt/impacket ]]; then
   $SUDO python3 setup.py install
 else
   cd /opt/impacket && $SUDO git pull
+  cd impacket
+  # Still must run this installation so that the example scripts we use are copied with latest.
+  # Meaning, files like /usr/local/bin/secretsdump.py are not symlinks, they need to be overwritten
+  # with latest version, or we might get a python exception error about parsing the impacket version.
+  $SUDO python3 setup.py install
 fi
 
 
@@ -743,7 +753,6 @@ cp -n "${HOME}/git/ADModule/Microsoft.ActiveDirectory.Management.dll" ./
 curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/download/20220424/linpeas.sh' -o 'linpeas.sh'
 curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/download/20220424/winPEAS.bat' -o 'winpeas.bat'
 curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/download/20220424/winPEASany.exe' -o 'winpeas.exe'
-
 
 
 # pspy the binaries are in 'releases' not in the cloned project
@@ -784,6 +793,21 @@ if [[ ! -f "${HTB_TRANSFERS}/adfind.exe" ]]; then
     --data-binary $'download=AdFind.zip&email=&B1=Download+Now' \
     $'https://www.joeware.net/downloads/dl2.php' -o adfind.exe
 fi
+
+
+function get_rubeus() {
+  # Rubeus is a great complementary tool to have in your AD attacking toolkit
+  #   Project: https://github.com/GhostPack/Rubeus
+  #   Great Tutorial: https://www.hackingarticles.in/a-detailed-guide-on-rubeus/
+  #   Pre-Compiled Binaries: https://github.com/r3motecontrol/Ghostpack-CompiledBinaries
+  #
+  cd "${HTB_TRANSFERS}"
+  curl -SL 'https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/Rubeus.exe' -o Rubeus.exe
+
+}
+get_rubeus
+
+
 
 file="ps-revshell-$USER.ps1"
 cat <<EOF > "${file}"
