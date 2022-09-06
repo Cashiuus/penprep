@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     setup-vscode.sh
 # Author:   Cashiuus
-# Created:  12-Oct-2021     Revised:
+# Created:  12-Oct-2021     Revised: 03-Sep-2022
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup VSCode
@@ -13,16 +13,16 @@
 #
 ##-[ Links/Credit ]-----------------------------------------------------------------------
 #
-#       https://computingforgeeks.com/how-to-install-visual-studio-code-on-kali-linux/
-#       https://code.visualstudio.com/docs/setup/linux
-#
+#       
+#   - https://code.visualstudio.com/docs/setup/linux
+#	- https://computingforgeeks.com/how-to-install-visual-studio-code-on-kali-linux/
 #
 #
 #
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="0.1"
+__version__="0.2"
 __author__="Cashiuus"
 ## =======[ EDIT THESE SETTINGS ]======= ##
 
@@ -104,25 +104,38 @@ check_root
 
 
 $SUDO apt -qq update
-$SUDO apt -y install curl gpg software-properties-common apt-transport-https
+$SUDO apt -y install curl gpg software-properties-common apt-transport-https wget
 
-file="/etc/apt/sources.list.d/vscode.list"
-if [[ ! -f "${file}" ]]; then
-    #curl -sSL https://packages.microsoft.com/keys/microsoft.asc | $SUDO apt-key add
-    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-    $SUDO install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
-    $SUDO sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
-    rm -rf packages.microsoft.gpg
-    #echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" | $SUDO tee /etc/apt/sources.list.d/vscode.list
-fi
+function install_vscode_official() {
+	#
+	#	This install is intended for Debian/Ubuntu systems
+	#
+	file="/etc/apt/sources.list.d/vscode.list"
+	if [[ ! -f "${file}" ]]; then
+		cd /tmp
+		wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+		$SUDO install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+		$SUDO sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
+		rm -rf packages.microsoft.gpg
+		#echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" | $SUDO tee /etc/apt/sources.list.d/vscode.list
+	fi
+}
+install_vscode_official
+
 
 $SUDO apt -qq update
 $SUDO apt -y install code       # or code-insiders
 
 
+# Essential Plugins to install (named exactly how they are listed to find them:
 
-
-
+# Docker (author: Microsoft)
+# ilspy-vscode (author: Sharp Develop Team)
+# PowerShell (author: Microsoft)
+# Python (author: Microsoft)
+# Remote-Containers (author: Microsoft)
+# Remote - SSH (author: Microsoft)
+# YAML (author: RedHat)
 
 
 

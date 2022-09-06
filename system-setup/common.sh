@@ -229,18 +229,24 @@ function time_elapsed() {
 # ============================================================================ #
 
 function get_os() {
-  OS_TYPE=$(lsb_release -sd | awk '{print 1}')
-  os_release=$(lsb_release -r | awk '{print $2}')
-
-
-  # Ubuntu specific
-  if [[ "$os_release" == "18."* || "20."* ]]; then
-    echo -e "[*] OS is Ubuntu 18 or 20"
+	# Query various ways to identify the family and version of our OS for use with setup processes.
+	#
+	#	return debian 10
+	#
+  if [[ -f "/etc/os-release" ]]; then
+		OS_FAMILY=$(cat /etc/os-release | egrep "^ID=" | cut -d "=" -f2)	# e.g. "debian"
+		OS_VERSION=$(cat /etc/os-release | grep "VERSION_ID=" | cut -d "=" -f2 | cut -d '"' -f2)	# e.g. 10
   else
-    echo -e "[*] OS is not a version of Ubuntu we are checking for"
+		OS_FAMILY=$(lsb_release -sd | awk '{print 1}')
+		OS_VERSION=$(lsb_release -r | awk '{print $2}')
+		# -- Ubuntu specific
+		if [[ "$OS_VERSION" == "18."* || "20."* ]]; then
+			echo -e "[*] OS is Ubuntu 18 or 20"
+			return "$OS_FAMILY" "$OS_VERSION"
+		fi
   fi
-
-
+  echo -e "[Get OS] $OS_FAMILY $OS_VERSION\n"
+  return "$OS_FAMILY" "$OS_VERSION"	# e.g. returns "debian" "10"
 }
 
 

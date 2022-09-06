@@ -105,6 +105,49 @@ function setup_alternatives() {
 #setup_alternatives
 
 
+function install_python3_version {
+    #
+    #	This function accepts input of the python version number to try to install
+    #		install_python3_version "3.10.6"
+    #
+    echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
+    #VERSION='3.9.13'
+    #V_SHORT='3.9'
+    VERSION="${1}"
+    V_SHORT=$(echo ${VERSION} | cut -d "." -f1-2)
+    echo -e "${GREEN}[*]${RESET} Trying version ${VERSION} / ${V_SHORT}"
+    sleep 10s
+    #$SUDO apt-get -qq update
+    echo -e "${GREEN}[*]${RESET} Installing apt-get dependencies..."
+    $SUDO apt-get -y install build-essential curl zlib1g-dev libncurses5-dev \
+		libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev \
+        libffi-dev libbz2-dev
+    cd /tmp
+    echo -e "${GREEN}[*]${RESET} Downloading Python installer package.."
+    curl -O https://www.python.org/ftp/python/${VERSION}/Python-${VERSION}.tar.xz
+    tar -xf Python-${VERSION}.tar.xz
+    cd Python-${VERSION}
+    echo -e "${GREEN}[*]${RESET} Running initial configure prep..."
+    ./configure --enable-optimizations
+    # Start build, specify number of cores in your processor
+    PROCS=$(nproc)
+    make -j ${PROCS}
+    # Install it, don't use `make install` as it'll overwrite
+    # the default system `python3` binary.
+    echo -e "${GREEN}[*]${RESET} Installing this Python version to update-alternatives"
+    $SUDO make altinstall
+    # Version check to ensure it installed
+    echo -e -n "${GREEN}[*]${RESET} Python version check: "
+    python${V_SHORT} --version
+    #mkvirtualenv base-${VERSION} -p /usr/bin/python${V_SHORT}
+    echo -e "${GREEN}[*]${RESET} Finished, look for this to be installed at /usr/local/bin/"
+}
+install_python3_version "3.9.13"
+install_python3_version "3.10.6"
+# NOTE: Altinstall means these will create binaries in /usr/local/bin/python3.x
+
+
+
 # =====[  Python 3.9  ]======= #
 # In case it's needed
 function install_python39 {
@@ -112,7 +155,7 @@ function install_python39 {
     #
     #
     echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
-    VERSION='3.9.1'
+    VERSION='3.9.13'
     V_SHORT='3.9'
     #$SUDO apt-get -qq update
     $SUDO apt-get -y install build-essential curl zlib1g-dev libncurses5-dev \
@@ -141,6 +184,10 @@ function finish {
     #
     # Any script-termination routines go here, but function cannot be empty
     #
+    
+    echo -e "${GREEN}===== Update-Alternatives Listing =====${RESET}"
+    update-alternatives --list python
+    echo -e ""
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
     echo -e "\n${GREEN}[*]${RESET} Python system setup is now complete!"
     echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, Goodbye!"
