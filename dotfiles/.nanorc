@@ -1,17 +1,27 @@
 ### -== User nanorc settings ==- ###
 # Other good nano configs: https://github.com/scopatz/nanorc
 #
+# Nano docs: https://www.nano-editor.org/dist/latest/nanorc.5.html
 ###
 
 # Include custom syntax highlighting files
-include "~/.dotfiles/nano/conf.nanorc"
-include "~/.dotfiles/nano/dotfiles.nanorc"
-include "~/.dotfiles/nano/mk.nanorc"
+
+#include "~/.dotfiles/nano/conf.nanorc"
+#include "~/.dotfiles/nano/dotfiles.nanorc"
+#include "~/.dotfiles/nano/mk.nanorc"
 
 
 ### General settings
 set smooth
 set autoindent
+set linenumbers
+
+# default to saving files as unix rather than the file format it was in
+set unix
+
+# line wrapping
+set softwrap
+set atblanks
 
 # Remove blank line just below titlecar for more editing space
 set morespace
@@ -24,3 +34,7 @@ set tabsize 4
 # Convert tabs to spaces
 #set tabstospaces
 
+
+### Set certain keybindings that match other editors
+bind ^F whereis
+bind F3 findnext
