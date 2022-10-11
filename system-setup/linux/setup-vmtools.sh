@@ -62,19 +62,19 @@ function check_root() {
 }
 
 function install_vmtools() {
-	local SYSMANUF=$($SUDO dmidecode -s system-manufacturer)
-	local SYSPRODUCT=$($SUDO dmidecode -s system-product-name)
-	if [[ $SYSMANUF == "Xen" ]] || [[ $SYSMANUF == "VMware, Inc." ]] || [[ $SYSPRODUCT == "VirtualBox" ]]; then
-		# https://github.com/vmware/open-vm-tools
-		if [[ ! $(which vmware-toolbox-cmd) ]]; then
-		  echo -e "${YELLOW}[INFO] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
-		  sleep 4
-		  $SUDO apt-get -y install open-vm-tools-desktop fuse
-		  $SUDO reboot
-		else
-			echo -e "${GREEN}[*]${RESET} VM Tools appears to already be installed. All done."
-		fi
-	fi
+        local SYSMANUF=$($SUDO dmidecode -s system-manufacturer)
+        local SYSPRODUCT=$($SUDO dmidecode -s system-product-name)
+        if [[ $SYSMANUF == "Xen" ]] || [[ $SYSMANUF == "VMware, Inc." ]] || [[ $SYSPRODUCT == "VirtualBox" ]]; then
+                # https://github.com/vmware/open-vm-tools
+                if [[ ! $(which vmware-toolbox-cmd) ]]; then
+                  echo -e "${YELLOW}[INFO] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
+                  sleep 4
+                  $SUDO apt-get -y install open-vm-tools-desktop fuse
+                  $SUDO reboot
+                else
+                        echo -e "${GREEN}[*]${RESET} VM Tools appears to already be installed. All done."
+                fi
+        fi
 }
 
 
@@ -82,8 +82,20 @@ function install_vmtools() {
 ## =================================== ##
 
 check_root
+install_vmtools
+exit 0
 
 
 
 
 
+###
+# troubleshooting steps
+systemctl stop run-vmblock\\x2dfuse.mount
+killall -q -w vmtoolsd
+
+systemctl start run-vmblock\\x2dfuse.mount
+systemctl enable run-vmblock\\x2dfuse.mount
+
+vmware-user-suid-wrapper vmtoolsd -n vmusr 2>/dev/null
+vmtoolsd -b /var/run/vmroot 2>/dev/null

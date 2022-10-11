@@ -30,7 +30,7 @@ if [[ $retval -eq 0 ]]; then
     ip_address=$(hostname -I | awk '{print $2}')
     echo -e "${GREEN}[*]${RESET} Your VPN client IP is: $ip_address"
     export aip="$ip_address"
-    echo -e "${GREEN}[*]${RESET} Created 'aip' env var with your VPN IP you can use in this terminal's session"
+    echo -e "${GREEN}[*]${RESET} Created '${BLUE}aip${RESET}' env var with your VPN IP you can use in this terminal's session"
 fi
 
 

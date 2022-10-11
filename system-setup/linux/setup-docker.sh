@@ -183,7 +183,7 @@ $SUDO apt-get -y install docker-ce docker-ce-cli containerd.io
 
 # Download the release binary from their Github releases
 # Site: https://github.com/docker/compose/releases
-$SUDO curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+$SUDO curl -fsSL "https://github.com/docker/compose/releases/download/v2.3.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 $SUDO chmod +x /usr/local/bin/docker-compose
 # If /usr/local/bin isn't typically in your path, you can symlink it
 #$SUDO ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose

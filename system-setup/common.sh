@@ -221,6 +221,98 @@ function time_elapsed() {
 }
 
 
+function make_tmp_dir() {
+    # <doc:make_tmp_dir> {{{
+    #
+    # This function taken from a vmware tool install helper to securely
+    # create temp files. (installer.sh)
+    #
+    # Usage: make_tmp_dir dirname prefix
+    #
+    # Required Variables:
+    #
+    #   dirname
+    #   prefix
+    #
+    # Return value: null
+    #
+    # </doc:make_tmp_dir> }}}
+
+    local dirname="$1" # OUT
+    local prefix="$2"  # IN
+    local tmp
+    local serial
+    local loop
+
+    tmp="${TMPDIR:-/tmp}"
+
+    # Don't overwrite existing user data
+    # -> Create a directory with a name that didn't exist before
+    #
+    # This may never succeed (if we are racing with a malicious process), but at
+    # least it is secure
+    serial=0
+    loop='yes'
+    while [ "$loop" = 'yes' ]; do
+    # Check the validity of the temporary directory. We do this in the loop
+    # because it can change over time
+    if [ ! -d "$tmp" ]; then
+      echo 'Error: "'"$tmp"'" is not a directory.'
+      echo
+      exit 1
+    fi
+    if [ ! -w "$tmp" -o ! -x "$tmp" ]; then
+      echo 'Error: "'"$tmp"'" should be writable and executable.'
+      echo
+      exit 1
+    fi
+
+    # Be secure
+    # -> Don't give write access to other users (so that they can not use this
+    # directory to launch a symlink attack)
+    if mkdir -m 0755 "$tmp"'/'"$prefix$serial" >/dev/null 2>&1; then
+      loop='no'
+    else
+      serial=`expr $serial + 1`
+      serial_mod=`expr $serial % 200`
+      if [ "$serial_mod" = '0' ]; then
+        echo 'Warning: The "'"$tmp"'" directory may be under attack.'
+        echo
+      fi
+    fi
+    done
+
+    eval "$dirname"'="$tmp"'"'"'/'"'"'"$prefix$serial"'
+}
+
+
+function is_process_alive() {
+  # Checks if the given pid represents a live process.
+  # Returns 0 if the pid is a live process, 1 otherwise
+  #
+  # Usage: is_process_alive 29833
+  #   [[ $? -eq 0 ]] && echo -e "Process is alive"
+
+  local pid="$1" # IN
+  ps -p $pid | grep $pid > /dev/null 2>&1
+}
+
+
+function finish {
+    ###
+    # finish function
+    # Any script-termination routines go here, but function cannot be empty
+    #
+    ###
+    clear
+    [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
+    echo -e "${GREEN}[$(date +"%F %T")] ${RESET}App Shutting down, please wait..." | tee -a "${LOG_FILE}"
+    # Redirect app output to log, sending both stdout and stderr
+    # *NOTE: This method will not parse color codes, therefore fails color output
+    # cmd_here 2>&1 | tee -a "${LOG_FILE}"
+}
+# End of script
+trap finish EXIT
 
 
 
@@ -470,29 +562,39 @@ EOF
 #   Function :: Python 2 Install/Setup
 # ============================================================================ #
 function install_python2() {
+  PY2_VERSION="2.7"
+  DEFAULT_PY2_ENV="default-py2"
 
-    PY2_VERSION="2.7"
-    DEFAULT_PY2_ENV="default-py2"
+  $SUDO apt-get -y -qq update
+  echo -e "\n${GREEN}[*]${RESET} Installing/Configuring Python 2"
+  $SUDO apt-get -y install python python2-dev \
+    python-setuptools python2-setuptools-whl \
+    virtualenv
 
-    $SUDO apt-get -y -qq update
-    echo -e "\n${GREEN}[*]${RESET} Installing/Configuring Python 2"
-    $SUDO apt-get -y install python python-dev \
-        python-setuptools virtualenv
+  $SUDO apt-get -y install python-pip
+  if [[ "$?" -eq 0 ]]; then
+    PIP2_SUCCESSFUL=true
+  else
+    # Fallback method of installing pip:
+    cd /tmp && wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
+    $SUDO python2 get-pip.py
+    python2 -m pip --version
+  fi
 
-    $SUDO apt-get -y install python-pip
-    [[ "$?" -eq 0 ]] && PIP2_SUCCESSFUL=true
+  if [[ ${PIP2_SUCCESSFUL} = true ]]; then
+    echo -e "\n${GREEN}[*]${RESET} Installing baseline pip pkgs for Python 2"
+    pip install -r /tmp/requirements.txt
+  else
+    python2 -m pip install -r requirements.txt
+  fi
 
-    if [[ ${PIP2_SUCCESSFUL} = true ]]; then
-        echo -e "\n${GREEN}[*]${RESET} Installing baseline pip pkgs for Python 2"
-        pip install -r /tmp/requirements.txt
-    fi
-
-    # Virtual Environment Setup - Python 2.7.x
-    echo -e "\n${GREEN}[*]${RESET} Creating a Python 2 standard virtualenv"
-    mkvirtualenv "${DEFAULT_PY2_ENV}" -p /usr/bin/python${PY2_VERSION}
-    pip install --upgrade pip
-    pip install --upgrade setuptools
-    deactivate
+  # Virtual Environment Setup - Python 2.7.x
+  echo -e "\n${GREEN}[*]${RESET} Creating a Python 2 standard virtualenv"
+  mkvirtualenv "${DEFAULT_PY2_ENV}" -p /usr/bin/python${PY2_VERSION}
+  workon "${DEFAULT_PY2_ENV}"
+  pip install --upgrade pip
+  pip install --upgrade setuptools
+  deactivate
 
 }
 
@@ -716,6 +818,34 @@ function version_check () {
     echo "$1 is older than $2" >/dev/null
     return 1
   fi
+}
+
+function check_version_java() {
+    ###
+    #   Check the installed/active version of java
+    #
+    #   Usage: check_version_java
+    #
+    ###
+    if type -p java; then
+        echo found java executable in PATH
+        _java=java
+    elif [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then
+        echo found java executable in JAVA_HOME
+        _java="$JAVA_HOME/bin/java"
+    else
+        echo "no java"
+    fi
+
+    if [[ "$_java" ]]; then
+        version=$("$_java" -version 2>&1 | awk -F '"' '/version/ {print $2}')
+        echo version "$version"
+        if [[ "$version" > "1.5" ]]; then
+            echo version is more than 1.5
+        else
+            echo version is less than 1.5
+        fi
+    fi
 }
 
 function md5_compare() {

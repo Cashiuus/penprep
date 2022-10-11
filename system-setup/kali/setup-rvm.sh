@@ -91,6 +91,8 @@ grep -q '"/etc/profile.d/rvm.sh\" .*' "${file}"  2>/dev/null \
 source ~/.bashrc
 exit 0
 
+
+
 ### Clean out all traces of RVM
 # https://rvm.io/support/troubleshooting
 ##!/bin/bash
@@ -98,3 +100,26 @@ exit 0
 #/usr/bin/sudo /usr/sbin/groupdel rvm
 #/bin/echo "RVM is removed. Please check all .bashrc|.bash_profile|.profile|.zshrc for RVM source lines and delete
 #or comment out if this was a Per-User installation."
+
+###
+#
+#
+#
+### Ruby version files
+# Place a .ruby_version file inside a parent directory and specify the ruby version it requires
+# e.g. file contents: "ruby-2.0.0"
+
+# File ".ruby_gemset" can be the name of an rvm environment, place file inside a parent directory
+# and it will automatically rvm to that ruby when you cd into the directory
+# e.g. file contents: "whitechapel"
+
+# If a project is using the old .rvmrc file method, you can switch to the
+# preferred ruby-version method by issuing the command:
+#   rvm rvmrc to ruby-version
+
+# Or, to ignore the warning for all files, run:
+#   rvm rvmrc warning ignore all.rvmrcs
+
+
+
+

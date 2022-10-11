@@ -750,9 +750,10 @@ cp -n "${HOME}/git/ADModule/Import-ActiveDirectory.ps1" ./
 cp -n "${HOME}/git/ADModule/Microsoft.ActiveDirectory.Management.dll" ./
 
 # --- linpeas/winpeas newest version method
-curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/download/20220424/linpeas.sh' -o 'linpeas.sh'
-curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/download/20220424/winPEAS.bat' -o 'winpeas.bat'
-curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/download/20220424/winPEASany.exe' -o 'winpeas.exe'
+curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh' -o 'linpeas.sh'
+curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEAS.bat' -o 'winpeas.bat'
+curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASany.exe' -o 'winpeas.exe'
+
 
 
 # pspy the binaries are in 'releases' not in the cloned project
