@@ -3,7 +3,7 @@
 # File:     setup-pycharm.sh
 #
 # Author:   Cashiuus
-# Created:  10-Dec-2016     Revised: 25-Mar-2021
+# Created:  10-Dec-2016     Revised: 13-Sep-2022
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Download, setup pycharm, backup original pycharm settings if applicable,
@@ -26,7 +26,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.0.1"
+__version__="1.0.2"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]========== ##
 GREEN="\033[01;32m"     # Success
@@ -44,9 +44,13 @@ APP_BASE=$(dirname "${APP_PATH}")
 APP_NAME=$(basename "${APP_PATH}")
 APP_ARGS=$@
 DEBUG=true
+
+# -- Edit Settings --
 BACKUPS_PATH="${HOME}/Backups"
 # TODO: Get latest pycharm version programmatically
-PYCHARM_VERSION="2020.3.4"
+PYCHARM_VERSION="2022.2.1"
+
+
 
 #======[ ROOT PRE-CHECK ]=======#
 if [[ $EUID -ne 0 ]];then
@@ -66,6 +70,7 @@ fi
 java -version >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then
     echo -e "${YELLOW}[*] ${RESET}Java not found, attempting to install"
+    $SUDO apt-get -qq update
     $SUDO apt-get -y install openjdk-11-jdk || $SUDO apt-get -f install openjdk-11-jdk
 else
     echo -e "${GREEN}[*]${RESET} Java detected, continuing with installation"
