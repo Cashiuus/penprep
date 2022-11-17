@@ -50,19 +50,24 @@ TOTAL=$( grep '(${STAGE}/${TOTAL})' $0 | wc -l );(( TOTAL-- ))  # Total tasks nu
 VPN_BASE_DIR="${HOME}/vpn"
 HTB_BASE_DIR="${HOME}/htb"                      # Parent dir for all our HTB stuff
 HTB_BOXES="${HTB_BASE_DIR}/boxes"               # Our challenge boxes artifacts as we go
-HTB_TOOLKIT_DIR="${HOME}/toolkit"               # Toolkit dir for use permanently on this system
-HTB_NOTES="${HTB_TOOLKIT_DIR}/notebooks"        # Our notes repository
-HTB_TRANSFERS="${HOME}/transfer-stage"        # Everything in one place for file transfers
-HTB_PIVOTING="${HTB_TRANSFERS}/pivoting"      # Resources for pivoting/c2
-HTB_PRIVESC="${HTB_TRANSFERS}/privesc"        # Privesc tools for both Linux and Windows
+HTB_TOOLKIT_DIR="${HOME}/git"                   # Toolkit dir for use permanently on this system
+HTB_NOTES="${HOME}/notebooks"                   # Our notes repository
+HTB_TRANSFERS="${HOME}/transfer-stage"          # Everything in one place for file transfers
+HTB_PIVOTING="${HTB_TRANSFERS}/pivoting"        # Resources for pivoting/c2
+HTB_PRIVESC="${HTB_TRANSFERS}/privesc"          # Privesc tools for both Linux and Windows
 HTB_SHELLS="${HTB_TRANSFERS}/shells"            # Various shells we can use (or created along the way)
 BURPSUITE_CONFIG_DIR="${HOME}/burpsuite"        # Burpsuite configs, libs, extensions, etc in one place
 PORT='9000'                                     # Port you want inserted into saved reverse shells
 
+
+# Uncomment These Variables instead if you prefer a "root" type of Kali environment
+#HTB_TOOLKIT_DIR="/opt"
+
+
 # Arrays listing all of the dirs we will create
-CREATE_USER_DIRECTORIES=(burpsuite git go toolkit vpn)              # Subdirs of $HOME/
+CREATE_USER_DIRECTORIES=(burpsuite git go vpn)                      # Subdirs of $HOME/
 CREATE_OPT_DIRECTORIES=()                                           # Subdirs of /opt/
-CREATE_TOOLKIT_DIRS=(notebooks msf-scripts pivoting privesc shells transfers)   # Subdirs of $HOME/toolkit/
+CREATE_TOOLKIT_DIRS=(pivoting privesc shells transfers)
 CREATE_HTB_DIRS=(boxes credentials wordlists)                       # Project-specific HTB subdirs
 CREATE_HTB_BOX_SUBDIRS=(scans loot)                                 # Future use; subdirs for each box
 
@@ -297,17 +302,17 @@ update_os_apt
 
 function install_core_hacker_bundle() {
   echo -e "\n${GREEN}[*] ${BLUE}apt-get ::${RESET} Installing core utilities"
-  $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix locate \
-    gcc geany git gnumeric golang gzip jq libssl-dev make net-tools openssl openvpn \
-    powershell pv tmux wget unzip xclip
+  $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix \
+    libreadline-dev gcc geany git gnumeric golang gzip jq libssl-dev locate \
+    make net-tools openssl openvpn powershell pv tmux wget unzip xclip
 
   $SUDO apt-get -y -qq install geany htop strace sysv-rc-conf tree
 
   echo -e "\n${GREEN}[*] ${BLUE}apt-get ::${RESET} Installing common HTB tools"
-  $SUDO apt-get -y -qq install bloodhound brutespray dirb dirbuster docx2txt exploitdb \
-    fcrackzip feroxbuster flameshot gdb gobuster ipmitool libimage-exiftool-perl neo4j \
-    nikto proxychains4 rdesktop redsocks responder seclists shellter sqlmap \
-    sshuttle windows-binaries
+  $SUDO apt-get -y -qq install bloodhound brutespray crowbar dirb dirbuster docx2txt \
+  exploitdb fcrackzip feroxbuster flameshot gdb gobuster ipmitool \
+  libimage-exiftool-perl neo4j nikto proxychains4 rdesktop redsocks responder \
+  seclists shellter sqlmap sshuttle windows-binaries
 }
 # Ensure these are installed no matter what
 install_core_hacker_bundle
@@ -336,6 +341,7 @@ beautifulsoup4
 bloodhound
 colorama
 dnspython
+donut-shellcode
 future
 htbclient
 lxml
@@ -410,15 +416,15 @@ if [[ "$update" != true ]]; then
 fi
 
 # -- Dirs: HTB Toolkit -----------------------
-if [[ "$update" != true ]]; then
-  #mkdir -p ~/htb/{boxes,credentials,shells,privesc,wordlists}
-  # Create core subdirs in our HTB_TOOLKIT_DIR
-  echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB toolkit${RESET} core subdirectories"
-  for dir in ${CREATE_TOOLKIT_DIRS[@]}; do
-      mkdir -p "${HTB_TOOLKIT_DIR}/${dir}"
-  done
-  mkdir -p "${HTB_NOTES}/templates"
-fi
+#if [[ "$update" != true ]]; then
+  ##mkdir -p ~/htb/{boxes,credentials,shells,privesc,wordlists}
+  ## Create core subdirs in our HTB_TOOLKIT_DIR
+  #echo -e "${GREEN}[*]${RESET} Creating ${GREEN}HTB toolkit${RESET} core subdirectories"
+  #for dir in ${CREATE_TOOLKIT_DIRS[@]}; do
+      #mkdir -p "${HTB_TOOLKIT_DIR}/${dir}"
+  #done
+  #mkdir -p "${HTB_NOTES}/templates"
+#fi
 
 # -- Dirs: HTB Boxes -----------------------
 if [[ "$update" != true ]]; then
@@ -471,6 +477,7 @@ echo -e "\n${GREEN}[*] ${RESET}Grabbing useful ${BOLD}shells/backdoors${RESET}"
 [[ ! -d "${HTB_SHELLS}" ]] && mkdir -p "${HTB_SHELLS}"
 cd "${HTB_SHELLS}"
 git clone https://github.com/borjmz/aspx-reverse-shell
+git clone https://github.com/ivan-sincek/php-reverse-shell
 git clone https://github.com/eb3095/php-shell
 git clone https://github.com/infodox/python-pty-shells
 git clone https://github.com/0dayCTF/reverse-shell-generator
@@ -503,6 +510,8 @@ string+=";"
 sed -i "s/^\$ip =.*/${string}/" "${file}"
 string="\$port = $PORT;"
 sed -i "s/^\$port =.*/${string}/" "${file}"
+
+
 
 
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful ${BOLD}Privilege Escalation${RESET} scanners"
@@ -754,6 +763,9 @@ curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpe
 curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEAS.bat' -o 'winpeas.bat'
 curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASany.exe' -o 'winpeas.exe'
 
+# --- EyeWitness Windows bindary for targeted browser bookmark screenshotting (EyeWitness.exe --bookmarks)
+# Future use, they don't release a pre-built binary at this time, and it's a .sln type Visual Studio build
+#curl -SL 'https://github.com/FortyNorthSecurity/EyeWitness/releases/latest/download/EyeWitness.exe' -o 'EyeWitness.exe'
 
 
 # pspy the binaries are in 'releases' not in the cloned project
@@ -1011,6 +1023,7 @@ function install_obsidian_extras() {
     cd /tmp
     curl -SL 'https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v2.0.0/Eisvogel-2.0.0.tar.gz' -o eisvogel.tar.gz
     tar -xf eisvogel.tar.gz
+    mkdir -p "${HTB_NOTES}/templates" 2>/dev/null
     cp /tmp/eisvogel.latex "${HTB_NOTES}/templates/"
     $SUDO cp /tmp/eisvogel.latex /usr/share/pandoc/data/templates/
   fi
