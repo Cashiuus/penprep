@@ -25,8 +25,9 @@ GREEN="\033[01;32m"     # Success
 YELLOW="\033[01;33m"    # Warnings/Information
 RED="\033[01;31m"       # Issues/Errors
 BLUE="\033[01;34m"      # Heading
-PURPLE="\033[01;35m"    # Other
 ORANGE="\033[38;5;208m" # Debugging
+PURPLE="\033[01;35m"    # Other
+GREY="\e[90m"           # Subdued Text
 BOLD="\033[01;01m"      # Highlight
 RESET="\033[00m"        # Normal
 ## =============[ CONSTANTS ]============= ##
@@ -103,6 +104,7 @@ if [[ $RESPONSE != "" ]]; then
   $SUDO sed -i 's|^127\.0\.0\.1.*|127.0.1.1 $RESPONSE|' "${file}"
 fi
 
+
 # =============================[ Dotfiles ]================================ #
 if [[ -d "${APP_BASE}/../../dotfiles" ]]; then
   echo -e -n "${GREEN}[+]${RESET}"
@@ -116,7 +118,7 @@ fi
 
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
-echo -e "${GREEN}[*] ${RESET}Resetting sources.list to the 2 preferred kali entries"
+echo -e "${GREEN}[*]${RESET} Resetting sources.list to the 2 preferred kali entries"
 if [[ $SUDO ]]; then
   echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
   echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
@@ -127,15 +129,16 @@ else
   echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
 fi
 
-echo -e "${GREEN}[*] ${RESET}Issuing apt-get update and dist-upgrade, please wait..."
+echo -e "${GREEN}[*]${RESET} Issuing apt-get update and dist-upgrade, please wait..."
 export DEBIAN_FRONTEND=noninteractive
 $SUDO apt-get -qq update
 $SUDO apt-get -y upgrade
 $SUDO apt-get -y -q dist-upgrade
 $SUDO apt-get -y install bash-completion build-essential curl dos2unix locate \
   gcc git jq make net-tools sudo wget unzip
+
 # Extra Packages - Utilities
-$SUDO apt-get -y install geany htop strace sysv-rc-conf tree xclip
+$SUDO apt-get -y install dconf-cli geany htop strace sysv-rc-conf tree xclip
 
 # Kali metapackages we want installed in case they already aren't
 $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
@@ -154,14 +157,6 @@ $SUDO apt-get -y install python3-pip python-is-python3
 
 
 # =============================[ System Configurations]================================ #
-# Configure Static IP
-#read -n 5 -p "[+] Enter static IP Address or just press enter for DHCP : " -e response
-#if [[ $response != "" ]]; then
-#   # do stuff
-#   ip addr add ${response}/24 dev eth0 2>/dev/null
-#fi
-
-
 # [ Terminal Tweaks ]
 if [[ ${TERM} == 'xterm-256color' ]]; then
   # Configure XFCE4 Terminal defaults in its config file
@@ -179,11 +174,11 @@ if [[ ${TERM} == 'xterm-256color' ]]; then
     mkdir -p "${HOME}/.config/xfce4/terminal/"
     cat <<EOF > "${file}"
 
-FontName=Monospace 11
 ScrollingLines=90000
 ScrollingOnOutput=FALSE
 ScrollingUnlimited=TRUE
 EOF
+#FontName=Monospace 11
 
   fi
 fi
@@ -194,7 +189,6 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   echo -e "${GREEN}[*] ${RESET}Reconfiguring GNOME and related app settings"
 
   gsettings set org.gtk.settings.file-chooser show-hidden true
-
 
   # ====[ Configure - Top bar ]==== #
   gsettings set org.gnome.desktop.datetime automatic-timezone true
@@ -297,14 +291,14 @@ while [ "x${CREATE_OPT_DIRECTORIES[count]}" != "x" ]; do
 done
 
 # Create folders in /opt
-echo -e "${GREEN}[*]${RESET} Creating ${count} directories in /opt/ path..."
-for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
-    mkdir -p "/opt/${dir}"
-done
+#echo -e "${GREEN}[*]${RESET} Creating ${count} directories in /opt/ path..."
+#for dir in ${CREATE_OPT_DIRECTORIES[@]}; do
+    #$SUDO mkdir -p "/opt/${dir}"
+#done
 
 # ===============[ Wordlists ]=============
 echo -e "${GREEN}[*] ${RESET}Adding extra symlinks"
-$SUDO ln -s /usr/share/wordlists /wordlists
+[[ ! -f /wordlists ]] && $SUDO ln -s /usr/share/wordlists /wordlists
 
 
 # This project has a 20GB wordlist that's useful for real-world cracking
@@ -316,23 +310,26 @@ $SUDO ln -s /usr/share/wordlists /wordlists
 
 
 
-
-
 # =====[ Metasploit ]===== #
-# Another one is msfdb reinit to re-run initialization
-echo -e "${GREEN}[*] ${RESET}Initializing Metasploit"
-msfdb init
-sleep 3s
+function setup_metasploit() {
+  echo -e "${GREEN}[*] ${RESET}Initializing Metasploit"
+  $SUDO msfdb init
+  sleep 3s
 
-# NOTE: Another method of init is doing: msfdb reinit
-# NOTE: Another method of loading a metasploit config .yml file:
-#   $SUDO sh -c "echo export MSF_DATABASE_CONFIG=/opt/metasploit-framework/config/database.yml >> /etc/profile"
+  # NOTE: Another method of init is doing: msfdb reinit
+  # NOTE: Another method of loading a metasploit config .yml file:
+  #   $SUDO sh -c "echo export MSF_DATABASE_CONFIG=/opt/metasploit-framework/config/database.yml >> /etc/profile"
 
-echo -e "${GREEN}[*] ${RESET} Moving MSF config file to '~/.msf4/database.yml'"
-mv /usr/share/metasploit-framework/config/database.yml ${HOME}/.msf4/database.yml
-
-cat << EOF > ~/.msf4/msfconsole.rc
-# Disabling this because I believe msf locates the .yml file automatically in this path.
+  if [[ ! -f "${HOME}/.msf4/database.yml" ]]; then
+    echo -e "${GREEN}[*] ${RESET} Copying MSF config file to '~/.msf4/database.yml'"
+    mkdir -p "${HOME}/.msf4/logs" 2>/dev/null
+    file="${HOME}/.msf4/database.yml"
+    $SUDO cp /usr/share/metasploit-framework/config/database.yml "${HOME}/.msf4/database.yml"
+    $SUDO chown "$USER":"$USER" "${file}"
+    $SUDO chmod 0600 "${file}"
+  fi
+  if ! -f ~/.msf4/msfconsole.rc ]]; then
+    cat << EOF > ~/.msf4/msfconsole.rc
 #db_connect -y ${HOME}/.msf4/database.yml
 spool ${HOME}/.msf4/logs/console.log
 
@@ -350,6 +347,9 @@ setg ExitOnSession false
 setg EnableStageEncoding true
 
 EOF
+  fi
+}
+setup_metasploit
 
 
 function configure_bash_systemwide() {
@@ -369,44 +369,42 @@ function configure_bash_systemwide() {
 
   file=/etc/bash.bashrc
   grep -q "cdspell" "${file}" \
-      || echo "shopt -sq cdspell" >> "${file}"            # Spell check 'cd' commands
+      || $SUDO sh -c "echo shopt -sq cdspell >> ${file}"            # Spell check 'cd' commands
   grep -q "autocd" "${file}" \
-      || echo "shopt -s autocd" >> "${file}"              # So you don't have to 'cd' before a folder
+      || $SUDO sh -c "echo shopt -s autocd >> ${file}"              # So you don't have to 'cd' before a folder
 
-  # TODO: Test to see if this sed works
-  grep -q "checkwinsize" "${file}" \
-      || echo "shopt -sq checkwinsize" >> "${file}"       # Wrap lines correctly after resizing
-  sed -i 's/^shopt -sq? checkwinsize/shopt -sq checkwinsize/' "${file}"
+  $SUDO sed -i 's/^shopt -sq? checkwinsize/shopt -sq checkwinsize/' "${file}"
 
   grep -q "nocaseglob" "${file}" \
-      || echo "shopt -sq nocaseglob" >> "${file}"         # Case insensitive pathname expansion
+      || $SUDO sh -c "echo shopt -sq nocaseglob >> ${file}"         # Case insensitive pathname expansion
+
   grep -q "HISTSIZE" "${file}" \
-      || echo "HISTSIZE=90000" >> "${file}"               # Bash history (memory scroll back)
-  sed -i 's/^HISTSIZE=.*/HISTSIZE=90000/' "${file}"
+    || $SUDO sh -c "echo HISTSIZE=90000 >> ${file}"
+  $SUDO sed -i 's/^HISTSIZE=.*/HISTSIZE=90000/' "${file}"
+
   grep -q "HISTFILESIZE" "${file}" \
-      || echo "HISTFILESIZE=90000" >> "${file}"           # Bash history (file .bash_history)
-  sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=90000/' "${file}"
+      || $SUDO sh -c "echo HISTFILESIZE=90000 >> ${file}"           # Bash history (file .bash_history)
+  $SUDO sed -i 's/^HISTFILESIZE=.*/HISTFILESIZE=90000/' "${file}"
 
   # If last line of file is not blank, add a blank spacer line
-  ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && echo >> "${file}"
-  sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
+  ([[ -e "${file}" && "$(tail -c 1 ${file})" != "" ]]) && $SUDO sh -c "echo >> ${file}"
+  $SUDO sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
   grep -q '^force_color_prompt' "${file}" 2>/dev/null \
-    || echo 'force_color_prompt=yes' >> "${file}"
-  sed -i 's#PS1='"'"'.*'"'"'#PS1='"'"'${debian_chroot:+($debian_chroot)}\\[\\033\[01;31m\\]\\u@\\h\\\[\\033\[00m\\]:\\[\\033\[01;34m\\]\\w\\[\\033\[00m\\]\\$ '"'"'#' "${file}"
+    || $SUDO sh -c "echo force_color_prompt=yes >> ${file}"
+  $SUDO sed -i 's#PS1='"'"'.*'"'"'#PS1='"'"'${debian_chroot:+($debian_chroot)}\\[\\033\[01;31m\\]\\u@\\h\\\[\\033\[00m\\]:\\[\\033\[01;34m\\]\\w\\[\\033\[00m\\]\\$ '"'"'#' "${file}"
   grep -q "^export LS_OPTIONS='--color=auto'" "${file}" 2>/dev/null \
-    || echo "export LS_OPTIONS='--color=auto'" >> "${file}"
+    || $SUDO sh -c "echo export LS_OPTIONS='--color=auto' >> ${file}"
 
   # All other users that are made afterwards
-  file=/etc/skel/.bashrc
-  sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
+  file="/etc/skel/.bashrc"
+  $SUDO sed -i 's/.*force_color_prompt=.*/force_color_prompt=yes/' "${file}"
 }
 
 
 function install_bash_completion() {
-    apt -y -qq install bash-completion
+    $SUDO apt -y -qq install bash-completion
     file=/etc/bash.bashrc
-    sed -i '/# enable bash completion in/,+7{/enable bash completion/!s/^#//}' "${file}"
-
+    $SUDO sed -i '/# enable bash completion in/,+7{/enable bash completion/!s/^#//}' "${file}"
 }
 # TODO: Test these for bugs
 configure_bash_systemwide
@@ -414,38 +412,76 @@ install_bash_completion
 
 
 # ====[ Install default interfaces config ]======
-function configure_network() {
+function configure_network_static() {
+  if [[ ! "$(command -v nmcli 2>&1)" ]]; then
+    # https://liquidweb.com/kb/how-to-install-and-configure-nmcli/
+    $SUDO apt-get install -y network-manager
+  fi
   file=/etc/network/interfaces
-  # TODO: add check if iface eth0 is already present & verify this is working correctly
-  grep -q '^auto eth0' "${file}" \
-    || cat <<EOF >> "${file}"
+  # Get subnet
+  subnet=`ip a | grep "inet " | tail -1 | awk '{print $2}'`
+  # Get router/gateway
+  router=`ip route show | head -1 | awk '{print $3}'`
+  # Get size of network portion of address in bytes
+  sz=`echo $subnet | awk -F / '{print $2}'`
+  bytes=`expr $sz / 8`
+  prefix=`echo $subnet | cut -d. -f1-$bytes`      # e.g., 192.168.0
+  # Get Current IP address
+  IP=`hostname -I | awk '{print $1}'`             # current IP
+  echo -n "[+] Keep IP address? ($IP) [yn]> "
+  read ans
+  if [[ "$ans" == "n" ]]; then
+    if [[ ! $STATIC_IP ]]; then
+      echo -e -n "[+] Enter new IP address: "
+      read IP
+    else
+      # Want new IP and we already entered it earlier
+      IP="$STATIC_IP"
+    fi
+    # check if specified IP is properly formatted
+    if [[ ! $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+      echo -e "[ERROR] Invalid IP"
+    fi
+    # check if specified IP works for local network
+    if [[ ! $IP =~ ^$prefix ]]; then
+      echo "[ERROR] Specified IP not usable for local network"
+      exit
+    fi
+  fi
+  echo -e "[*] Using IP Address ($IP) to configure static network"
 
-allow-hotplug eth0
-auto eth0
-iface eth0 inet dhcp
-#iface eth0 inet static
-#    address 192.168.
-#    netmask 255.255.255.0
-#    broadcast .255
-#    gateway
-#    network
-EOF
+  # fetch the UUID
+  UUID=`nmcli connection show | tail -1 | awk '{print $4}'`
+  # UUID=`nmcli connection show | head -2 | tail -1 | awk ‘{print $3}’` # Mint
+  # TODO: Add a check - if string isn't a UUID, then try #3...check string is ^[0-9\-]+$
+  # run commands to set up the permanent IP address
+  $SUDO nmcli connection modify $UUID IPv4.address $IP/$sz
+  $SUDO nmcli connection modify $UUID IPv4.gateway $router
+  $SUDO nmcli connection modify $UUID IPv4.method manual
+  $SUDO nmcli connection up $UUID
 }
-
+configure_network_static
 
 
 # ==========[ Configure GIT ]=========== #
-echo -e "${GREEN}[+]${RESET} Now setting up Git, you will be prompted to enter your name for commits."
-# -== Git global config settings ==- #
-echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your name: "
-read GIT_NAME
-git config --global user.name $GIT_NAME
-echo -e "${YELLOW}[INPUT]${RESET} Git global config :: Enter your email: "
-read GIT_EMAIL
-git config --global user.email $GIT_EMAIL
+prev_name=$(git config --global user.name)
+if [[ ! $prev_name ]]; then
+  echo -e "${GREEN}[+]${RESET} Setting up Git, you will be prompted to enter your name for commits"
+  # -== Git global config settings ==- #
+  echo -e -n "${YELLOW}[INPUT]${RESET} Git global config :: Enter your name: "
+  read GIT_NAME
+  git config --global user.name $GIT_NAME
+  echo -e -n "\n${YELLOW}[INPUT]${RESET} Git global config :: Enter your email: "
+  read GIT_EMAIL
+  #echo -e -n "\n${YELLOW}[INPUT]${RESET}"
+  #read -e -t 7 -p " Git global config :: Enter your email: " response
+  #echo -e
+  git config --global user.email "$GIT_EMAIL"
+fi
+
 git config --global color.ui auto
 
-echo -e "${GREEN}[*]${RESET} As of Oct 1, 2020, Git has changed default branch to 'main'"
+echo -e "${GREEN}[*]${RESET} NOTE: As of Oct 1, 2020, Git changed its default branch to 'main'"
 echo -e "${GREEN}[*]${RESET} Therefore, setting your git config default branch to 'main' now"
 git config --global init.defaultBranch main
 # Set the previously-default setting to suppress warnings and make this the new default
@@ -477,20 +513,19 @@ git config --global alias.clone 'clone --recursive'
 
 # ===================================[ FINISH ]====================================== #
 function finish() {
-  echo -e "\n\n${GREEN}[*]${RESET} ${GREEN}Cleaning${RESET} the aptitude pkg system"
+  echo -e "\n\n${GREEN}[*]${RESET} Cleaning the aptitude pkg system"
   #--- Clean package manager
-  echo -e "\n\n${GREEN}[*] ${RESET}Issuing apt clean and purge for all removed pkgs"
-  for FILE in clean autoremove; do $SUDO apt -y -qq "${FILE}"; done
-  # Removed -y -qq from this for testing, believe important dependencies are being removed here.
-  $SUDO apt -y purge $(dpkg -l | tail -n +6 | egrep -v '^(h|i)i' | awk '{print $2}')   # Purged packages
+  echo -e "\n\n${GREEN}[*]${RESET} Issuing apt clean and purge for all removed pkgs"
+  $SUDO apt-get autoremove --purge
+  $SUDO apt-get clean
   #--- Reset folder location
   cd ~/ &>/dev/null
   #--- Remove any history files (as they could contain sensitive info)
-  history -c 2>/dev/null
-  for i in $(cut -d: -f6 /etc/passwd | sort -u); do
-    [ -e "${i}" ] && find "${i}" -type f -name '.*_history' -delete
-  done
-  echo -e "\n\n${GREEN}[+]${RESET} ${GREEN}Updating${RESET} the locate database"
+  #history -c 2>/dev/null
+  #for i in $(cut -d: -f6 /etc/passwd | sort -u); do
+  #  [ -e "${i}" ] && find "${i}" -type f -name '.*_history' -delete
+  #done
+  echo -e "\n\n${GREEN}[+]${RESET} Updating the locate database"
   $SUDO updatedb
 
   FINISH_TIME=$(date +%s)
