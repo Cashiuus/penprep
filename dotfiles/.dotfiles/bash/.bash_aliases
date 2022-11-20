@@ -132,7 +132,8 @@ export LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40
 # Always print human-readable for various disk space commands
 alias df='df -h'
 alias free='free -h'
-alias du='du -s -h'
+alias diskfree='du -s -h'
+alias diskfree-var='du -h --all --max-depth=1 /var 2>/dev/null'
 
 # Setup SUDO action for non-root usage
 if [ $UID -ne 0 ]; then

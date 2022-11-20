@@ -59,9 +59,22 @@ sudo nano /etc/logrotate.conf
 
 
 # However, our main problem is that /var/lib has 12 GB of consumed space alone
-# If we need to see the size of everything in this directory, we can do this, it's verbose:
+# If we need to see the size of everything in this directory,
+# we can do this:
 #cd /var/lib
 #du -k 2>/dev/null
+
+
+
+
+# VMware Drag-and-drop directory
+# in a user's .cache directory, you have this directory storing files
+# you've copied in or out. If those were large, this takes up a lot of space
+DIR_PATH="${HOME}/.cache/vmware/drag_and_drop"
+ls -al "${DIR_PATH}"
+rm -rf "${DIR_PATH}"/*
+ls -al "${DIR_PATH}"
+
 
 
 
