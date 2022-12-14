@@ -12,7 +12,6 @@
 
 
 ### General settings
-set smooth
 set autoindent
 set linenumbers
 
@@ -23,8 +22,6 @@ set unix
 set softwrap
 set atblanks
 
-# Remove blank line just below titlecar for more editing space
-set morespace
 # Hide help shortcut list from bottom
 #set nohelp
 
@@ -33,7 +30,6 @@ set morespace
 set tabsize 4
 # Convert tabs to spaces
 #set tabstospaces
-
 
 ### Set certain keybindings that match other editors
 bind ^F whereis
