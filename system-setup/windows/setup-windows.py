@@ -5,15 +5,14 @@
 # File:				setup-windows.py
 # Dependencies:		n/a
 # Compatibility:	2.7+
-# Version:			
-# Creation Date:	9/22/2015
-# Revised Date:		12/16/2016
-# Author:			Cashiuus - Cashiuus@gmail.com
+# Version:
+# Creation Date:	22-SEP-2015   -   Revised Date:		17-OCT-2018
+# Author:			Cashiuus
 #
 # Purpose: 			Setup Windows 7 with certain configs (Win 10 in the works)
-#					
+#
 # =============================================================================
-# 
+#
 #
 # Configure recurring scheduled tasks
 # =============================================================================
@@ -34,22 +33,18 @@
 import os
 
 
-__version__ = 0.2
+__version__ = 0.3
 __author__ = 'Cashiuus'
 __license__ = 'MIT'
-__copyright__ = 'Copyright (C) 2015 Cashiuus'
+__copyright__ = 'Copyright (C) 2018 Cashiuus'
 
 
 # Folders to create in our new system
-folders = [
+FOLDERS = [
     r'c:\Scripts\backup-windows\Scans',
     r'c:\Scripts\virtualenvs',
     r'c:\Tools',
     ]
-
-#
-
-
 
 PIP_CORE_PACKAGES = [
     'beautifulsoup4',
@@ -58,7 +53,6 @@ PIP_CORE_PACKAGES = [
     'Pillow',
     'scrapy',
     'requests',
-    'twitter-photos',
     'virtualenv',
     'virtualenvwrapper-win',
     'xlrd',
@@ -68,7 +62,8 @@ PIP_CORE_PACKAGES = [
 # These don't install via pip, typically you download them and manually install
 # via: pip install somepackage-1.0.whl
 PYTHON_SPECIAL_PACKAGES = [
-    # lxml you can install via pip only if you are using 32-bit python, we ues 64-bit so it's in this group
+    # lxml you can install via pip only if you are using 32-bit python,
+    # we use 64-bit so it's in this special group
     'lxml',
     'numpy',
     'pywin32',
@@ -76,7 +71,7 @@ PYTHON_SPECIAL_PACKAGES = [
 
 
 # This is for virtualenvwrapper-win
-# TODO: removed scrapy from my pip installs because it has a TON of dependencies. Only install it if actually needed.
+# NOTE: Removed scrapy from my pip installs because it has a TON of dependencies. Only install it if actually needed.
 CUSTOM_VIRTUALENV_SCRIPTS = os.path.join()
 POSTMKVIRTUALENV_SCRIPT = """# Postmkvirtualenv creation script
 pip install beautifulsoup4
@@ -132,7 +127,7 @@ def make_dirs(path):
 
 def create_folders():
     # Create folder structure
-    for i in folders:
+    for i in FOLDERS:
         try:
             os.mkdir(i)
         except:
@@ -141,10 +136,8 @@ def create_folders():
 
 
 # ==========================[ Python 2.7 ]=========================== #
-
 def install_python2(PKGS):
     PY2_INSTALL_PATH = r'C:\Python27\'
-
 
     # Python 2.7 method
     os.system('python -m pip install --upgrade pip')
@@ -156,19 +149,19 @@ def install_python2(PKGS):
         os.system('py -3 -m pip install', i)
         # pip freeze
         # pip list --outdated
-
-
     return
 
 
 # ----------------[ Setup a virtualenvwrapper-win package ]-------------------------- #
 # This assumes virtualenvwrapper-win was already installed
+# After installing, make sure that your Python's "Scripts" directory is in your PATH
+#   e.g. C:\Python27\Scripts
 # Default virtualenvwrapper envs will be at %WORKON_HOME%
-# Default WORKON_HOME var is set to %USERPROFILE%\Envs
+# Default WORKON_HOME = %USERPROFILE%\Envs
 
 # To run some commands after mkvirtualenv you can use hooks.
 # First you need to define VIRTUALENVWRAPPER_HOOK_DIR variable.
-# If it is set mkvirtualenv will run postmkvirtualenv.bat script from that directory.
+# If it is set, mkvirtualenv will run postmkvirtualenv.bat script from that directory.
 
 
 # Setup a post-creation script for all new virtualenvs
@@ -199,17 +192,17 @@ shellshell.spec
 """
 
 
-# ==========================[ Python 3.5 ]=========================== #
+# ==========================[ Python 3.6 ]=========================== #
 # Article: https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-windows-10
 
 # Install silently for ALL USERS and add to PATH
 # Default install path: C:\Program Files\Python35 or %ProgramFiles%\Python X.Y
 # Default install path: %LocalAppData%\Programs\PythonXY
 os.chdir('C:\Users\Primary\Downloads')
-os.system('python-3.5.2-amd64.exe /quiet InstallAllUsers=1 PrependPath=1')
+os.system('python-3.9.0-amd64.exe /quiet InstallAllUsers=1 PrependPath=1')
 
-#PY3_INSTALL_PATH = os.path.join(os.environ('user'), '')
-PY3_INSTALL_PATH = r'c:\Program Files\Python35'
+#PY3_INSTALL_PATH = os.path.join(os.environ('user'), 'AppData', 'Local', 'Programs', 'Python')
+#PY3_INSTALL_PATH = r'c:\Program Files\Python35'
 
 
 
@@ -230,17 +223,17 @@ for i in PIP_PKGS_LIST:
 # Set new path
 
 # Python 3 path adding
-PY3_NEW_PATH = r'c:\Program Files\Python35\;C:\Program Files\Python35\Scripts\;%path%'
+#PY3_NEW_PATH = r'c:\Program Files\Python35\;C:\Program Files\Python35\Scripts\;%path%'
 
 
 # Create a virtualenv
-PYVENV_PATH = os.path.join(PY3_INSTALL_PATH, 'Tools', 'scripts')
+#PYVENV_PATH = os.path.join(PY3_INSTALL_PATH, 'Tools', 'scripts')
 
 # This isn't needed, set WORKON_PATH to dir you want to store envs into, default is %USERPROFILE%\Envs
 #os.chdir('c:\Scripts\virtualenvs')
 
-ENV_SCRIPT = r'C:\Program Files\Python35\Scripts\mkvirtualenv'
-ENV_NAME = 'py35'
+#ENV_SCRIPT = r'C:\Program Files\Python35\Scripts\mkvirtualenv'
+#ENV_NAME = 'py35'
 
 # set PYTHONHOME variable so the mkvirtualenv.bat file will skip setting it based on system PATH
 # Thereby specifying which interpreter we want for this virtualenv creation

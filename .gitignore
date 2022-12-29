@@ -2,20 +2,8 @@
 # Git gitignore Manual: http://git-scm.com/docs/gitignore
 # gitignore Example Files: https://github.com/github/gitignore
 
-### Generated Files
-*.pyc
+### Project-Specific
 *.bak
-.idea
-
-### OS Generated Files
-Desktop.ini
-.DS_Store
-.Spotlight-V100
-.Trashes
-Thumbs.db
-
-
-### Project
 *.log
 *.ovpn
 *.cap
@@ -24,3 +12,35 @@ settings.conf
 settings.sh
 settings.py
 motd
+
+### Frameworks / Envs
+.idea
+.venv
+venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+### OS Generated Files
+Desktop.ini
+.DS_Store
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/

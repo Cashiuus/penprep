@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ==============================================================================
-# File:         file.py
+# File:         google-drive-housekeeping.py
 # Author:       Cashiuus
 # Created:      10-DEC-2016     -     Revised:
 #
@@ -56,6 +56,9 @@ except ImportError:
     import _thread as thread
 import errno
 import os
+import sys
+from decimal import Decimal
+
 
 GREEN = '\033[32;1m'  # Green
 BLUE = '\033[01;34m'  # Heading
@@ -65,60 +68,96 @@ ORANGE = '\033[33m'  # Orange/Debug
 RESET = '\033[00m'  # Normal/White
 
 
-# ========================[ CORE UTILITY FUNCTIONS ]======================== #
-# Check - Root user
-# TODO: If not root, run with sudo
-def root_check():
-    if not (os.geteuid() == 0):
-        print("[-] Not currently root user. Please fix.")
-        exit(1)
-    return
+GOOGLE_PATH = r'C:\Users\cashi\Google Drive'
+# File size param by which script will search for files larger than this value, Default: 1 GB
+MAX_FILE_SIZE = 100000000
 
 
-def make_dirs(path):
+# ========= File Size Conversion Code ============ #
+SUFFIXES = 'B', 'KB', 'MB', 'GB', 'TB', 'PB'
+
+def filesize_human_readable(nbytes):
     """
-    Helper function to make all directories necessary in the desired path
+    Receive a size in bytes and convert to human-readable file size
+    :param nbytes: 
+    :return: 
     """
-    if not os.path.isdir(path):
-        try:
-            os.makedirs(path)
-        except:
-            print("[-] Error creating folder: {}".format(str(path)))
-    return
+    if nbytes == 0: return '0 B'
+    #print("[DEBUG] nbytes param provided: {}".format(repr(nbytes)))
+
+    #i = 0
+    #while nbytes >= 1024 and i < len(SUFFIXES) - 1:
+    #    nbytes /= 1024.
+    #    i += 1
+    # Better way of iterating the suffixes
+    for s in SUFFIXES:
+        if nbytes < 1024:
+            break
+        nbytes /= 1024.
+
+    #value_human = ('%.2f' % nbytes).rstrip('0').rstrip('.')
+    # Better py2 way of doing this
+    value_human = Decimal(nbytes).quantize(Decimal('0.00')).normalize()
+    # Best way - python 3 - and you could remove the check for '0' at beginning of function
+    #value_human = round(Decimal(15.9990234375), 2).normalize()
+
+    #return '%s, %s' % (value_human, SUFFIXES[i])
+    return '{} {}'.format(value_human, s)
 
 
-def create_file(path):
-    # Use os.open to create a file if it doesn't already exist
-    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
-    try:
-        file_handle = os.open(path, flags)
-    except OSError as e:
-        if e.errno == errno.EEXIST:
-            # The file already exists
-            pass
-            return False
-        else:
-            # Something went wrong, troubleshoot error
-            raise
-    else:
-        # No exception, so file was hopefully created.
-        with os.fdopen(file_handle, 'w') as file_obj:
-            file_obj.write("        return True
+def file_dist(path, start, end):
+    """
+    
+    :param path: 
+    :param start: 
+    :param end: 
+    :return: 
+    """
+
+    # Great info: https://codereview.stackexchange.com/questions/77008/number-of-files-with-specific-file-size-ranges
+    for start in [0, 1024, 4096, 16384, 262144, 1048577, 4194305]:
+        end = start * 4
+    #file_dist(GOOGLE_PATH, start, end)
 
 
 def shutdown_app():
     print("Application shutting down -- Goodbye!")
     exit(0)
-
-
 # ==========================[ BEGIN APPLICATION ]========================== #
+
+
+def find_large_files(path, sizelimit):
+    """
+    Search directory provided for all files larger than 'sizelimit'
+    :param path: 
+    :param sizelimit: 
+    :return: 
+    """
+
+    flist = []
+    # Enum the specified parent folder
+    #for root, dirs, filenames in os.walk(path):
+    for root, dirs, filenames in os.walk(unicode(path)):
+        for f in filenames:
+            # Default gets file size in Bytes
+            #fsize = os.path.getsize(os.path.join(root, f))
+            fsize = os.lstat(os.path.join(root, f)).st_size
+            if fsize > sizelimit:
+                # If file greater than x size, add to list
+                print("[+] Large File Found: {} - {}".format(filesize_human_readable(fsize), os.path.join(root, f)))
+                flist.append(os.path.join(root, f))
 
 
 
 def main():
-    try:
-    # main application flow
 
+    #if sys.argv[1]:
+    #    MAX_FILE_SIZE = sys.argv[1]
+
+    try:
+        # main application flow
+        print("[*] Searching directory for large files...\n\n")
+        find_large_files(GOOGLE_PATH, MAX_FILE_SIZE)
     except KeyboardInterrupt:
         shutdown_app()
     return
