@@ -3,7 +3,7 @@
 # File:     setup-python.sh
 #
 # Author:   Cashiuus
-# Created:  10-Mar-2016  -  Revised: 20-Oct-2020
+# Created:  10-Mar-2016  -  Revised: 04-Jan-2023
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup Python 2 & 3 in Kali Linux and specify default version.
@@ -107,8 +107,8 @@ function setup_alternatives() {
 
 function install_python3_version {
     #
-    #	This function accepts input of the python version number to try to install
-    #		install_python3_version "3.10.6"
+    #   This function accepts input of the python version number to try to install
+    #       install_python3_version "3.10.6"
     #
     echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
     #VERSION='3.9.13'
@@ -120,7 +120,7 @@ function install_python3_version {
     #$SUDO apt-get -qq update
     echo -e "${GREEN}[*]${RESET} Installing apt-get dependencies..."
     $SUDO apt-get -y install build-essential curl zlib1g-dev libncurses5-dev \
-		libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev \
+        libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev \
         libffi-dev libbz2-dev
     cd /tmp
     echo -e "${GREEN}[*]${RESET} Downloading Python installer package.."
@@ -142,9 +142,12 @@ function install_python3_version {
     #mkvirtualenv base-${VERSION} -p /usr/bin/python${V_SHORT}
     echo -e "${GREEN}[*]${RESET} Finished, look for this to be installed at /usr/local/bin/"
 }
-install_python3_version "3.9.13"
-install_python3_version "3.10.6"
+#install_python3_version "3.9.16"
+#install_python3_version "3.10.9"
+install_python3_version "3.11.1"
 # NOTE: Altinstall means these will create binaries in /usr/local/bin/python3.x
+
+
 
 
 
@@ -184,7 +187,7 @@ function finish {
     #
     # Any script-termination routines go here, but function cannot be empty
     #
-    
+
     echo -e "${GREEN}===== Update-Alternatives Listing =====${RESET}"
     update-alternatives --list python
     echo -e ""
