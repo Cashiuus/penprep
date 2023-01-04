@@ -66,17 +66,28 @@ echo -e "\n${GREEN}[*]-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup-Pyth
 echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
 echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
 
-# Setup python 3 by default, but ask before configuring python 2, default to skipping python 2.
-install_python3
+
+if [[ $# -eq 0 ]];
+    # Setup python 3 by default, default to skipping python 2.
+    install_python3
+    exit 0
+fi
+
+if [[ "$1" != "3."* ]]; then
+    echo -e "[ERR] You passed an invalid argument for a python version to install"
+    echo -e "[*] Try a version string like 3.11.1"
+    exit 1
+fi
+
 
 
 # If these aren't in the settings file, generate defaults
-echo -e -n "${GREEN}[+] ${RESET}"
-read -e -t 5 -i "N" -p " Do you want to also configure Python 2, even though it is now deprecated? [y,N] : " RESPONSE
-echo -e
-case $RESPONSE in
-  [Yy]* ) install_python2;;
-esac
+#~ echo -e -n "${GREEN}[+] ${RESET}"
+#~ read -e -t 5 -i "N" -p " Do you want to also configure Python 2, even though it is now deprecated? [y,N] : " RESPONSE
+#~ echo -e
+#~ case $RESPONSE in
+  #~ [Yy]* ) install_python2;;
+#~ esac
 
 
 
@@ -110,13 +121,13 @@ function install_python3_version {
     #   This function accepts input of the python version number to try to install
     #       install_python3_version "3.10.6"
     #
-    echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
+    #echo -e "${ORANGE}[DBG]${RESET} The version you wish to install is below. Verify it is correct..."
     #VERSION='3.9.13'
     #V_SHORT='3.9'
     VERSION="${1}"
     V_SHORT=$(echo ${VERSION} | cut -d "." -f1-2)
-    echo -e "${GREEN}[*]${RESET} Trying version ${VERSION} / ${V_SHORT}"
-    sleep 10s
+    echo -e "${GREEN}[*]${RESET} Attempting install of version ${VERSION} / ${V_SHORT}"
+    sleep 1s
     #$SUDO apt-get -qq update
     echo -e "${GREEN}[*]${RESET} Installing apt-get dependencies..."
     $SUDO apt-get -y install build-essential curl zlib1g-dev libncurses5-dev \
@@ -134,53 +145,27 @@ function install_python3_version {
     make -j ${PROCS}
     # Install it, don't use `make install` as it'll overwrite
     # the default system `python3` binary.
-    echo -e "${GREEN}[*]${RESET} Installing this Python version to update-alternatives"
+    echo -e "${GREEN}[*]${RESET} Installing this Python version into /usr/local/bin (altinstall)"
     $SUDO make altinstall
     # Version check to ensure it installed
-    echo -e -n "${GREEN}[*]${RESET} Python version check: "
+    echo -e -n "${GREEN}[*]${RESET} System Python version: "
     python${V_SHORT} --version
+    echo -e
+    # NOTE: Altinstall means these will create binaries in /usr/local/bin/python3.x
+    echo -e -n "${GREEN}[*]${RESET} Recently installed version: "
+    /usr/bin/python${V_SHORT} --version
+    echo -e
     #mkvirtualenv base-${VERSION} -p /usr/bin/python${V_SHORT}
     echo -e "${GREEN}[*]${RESET} Finished, look for this to be installed at /usr/local/bin/"
 }
 #install_python3_version "3.9.16"
 #install_python3_version "3.10.9"
-install_python3_version "3.11.1"
-# NOTE: Altinstall means these will create binaries in /usr/local/bin/python3.x
+#install_python3_version "3.11.1"
+
+# Install the version passed to script as an arg
+install_python3_version "${1}"
 
 
-
-
-
-# =====[  Python 3.9  ]======= #
-# In case it's needed
-function install_python39 {
-    #
-    #
-    #
-    echo -e "${GREEN}[*]${RESET} Your python version will be output below. Verify it is correct..."
-    VERSION='3.9.13'
-    V_SHORT='3.9'
-    #$SUDO apt-get -qq update
-    $SUDO apt-get -y install build-essential curl zlib1g-dev libncurses5-dev \
-            libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev \
-            libffi-dev libbz2-dev
-    cd /tmp
-    curl -O https://www.python.org/ftp/python/${VERSION}/Python-${VERSION}.tar.xz
-    tar -xf Python-${VERSION}.tar.xz
-    cd Python-${VERSION}
-    ./configure --enable-optimizations
-    # Start build, specify number of cores in your processor
-    PROCS=$(nproc)
-    make -j ${PROCS}
-    # Install it, don't use `make install` as it'll overwrite
-    # the default system `python3` binary.
-    $SUDO make altinstall
-    # Version check to ensure it installed
-    echo -n "${GREEN}[*]${RESET} Python version check: "
-    python${V_SHORT} --version
-    mkvirtualenv default-${VERSION} -p /usr/bin/python${V_SHORT}
-}
-#install_python39
 
 
 function finish {
@@ -189,7 +174,7 @@ function finish {
     #
 
     echo -e "${GREEN}===== Update-Alternatives Listing =====${RESET}"
-    update-alternatives --list python
+    #update-alternatives --list python
     echo -e ""
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
     echo -e "\n${GREEN}[*]${RESET} Python system setup is now complete!"
