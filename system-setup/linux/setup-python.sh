@@ -67,7 +67,7 @@ echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
 echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
 
 
-if [[ $# -eq 0 ]];
+if [[ $# -eq 0 ]]; then
     # Setup python 3 by default, default to skipping python 2.
     install_python3
     exit 0
