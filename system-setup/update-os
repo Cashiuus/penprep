@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# 1. Copy this file into ~/.local/bin
+# 2. chmod it to make it executable
+# 3. ensure that ~/.local/bin is in your PATH env variable
+
+sudo apt-get update -qq
+sudo apt-get dist-upgrade -y
+sudo apt-get autoremove --purge
+sudo apt-get clean

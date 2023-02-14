@@ -3,7 +3,7 @@
 # ==============================================================================
 # File:         file.py
 # Author:       Cashiuus
-# Created:      11-Mar-2022     -     Revised:
+# Created:      14-Feb-2023     -     Revised:
 #
 # Depends:      n/a
 # Compat:       3.7+
@@ -17,7 +17,7 @@
 __version__ = '0.0.1'
 __author__ = 'Cashiuus'
 __license__ = 'MIT'
-__copyright__ = 'Copyright (C) 2022 Cashiuus'
+__copyright__ = 'Copyright (C) 2023 Cashiuus'
 ## =======[ IMPORTS ]========= ##
 import argparse
 import errno
@@ -41,11 +41,6 @@ if sys.version > '3':
 else:
     import urlparse
     import urllib
-
-# Logging Cookbook: https://docs.python.org/3/howto/logging-cookbook.html
-# This first line must be at top of the file, outside of any functions, so it's global
-logger = logging.getLogger(__name__)
-
 
 ## =========[  TEXT COLORS  ]============= ##
 class Colors(object):
@@ -71,11 +66,16 @@ DEBUG = True
 #MY_SETTINGS = 'settings.conf'
 USER_HOME = os.environ.get('HOME')
 ACTIVE_SHELL = os.environ['SHELL']
-BASE_DIR = Path(__file__).resolve(strict=True).parent       # one parent means dir of this file
-#BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+# one parent means dir of this file, just add .parent again and again for higher dirs of a project
+BASE_DIR = Path(__file__).resolve(strict=True).parent
+APP_BASE = Path(__file__).resolve(strict=True).parent
 SAVE_DIR = BASE_DIR / 'saved'
 LOG_FILE = BASE_DIR /'debug.log'
 #FILE_NAME_WITH_DATE_EXAMPLE = "data_output-" + strftime('%Y%m%d') + ".txt"
+
+# Logging Cookbook: https://docs.python.org/3/howto/logging-cookbook.html
+# This first line must be at top of the file, outside of any functions, so it's global
+logger = logging.getLogger(__name__)
 
 
 # ==========================[ BEGIN APPLICATION ]========================== #
@@ -119,9 +119,10 @@ def main():
         ch.setLevel(logging.INFO)
         fh.setLevel(logging.INFO)
     # Message Format - See here: https://docs.python.org/3/library/logging.html#logrecord-attributes
-    formatter = logging.Formatter('%(funcName)s : %(levelname)-8s %(message)s')
+    datefmt = '%Y%m%d %I:%M:%S%p'
+    formatter = logging.Formatter('%(funcName)s : %(levelname)-8s %(message)s', datefmt=datefmt)
     ch.setFormatter(formatter)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s : %(message)s')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s:%(funcName)s: %(message)s', datefmt=datefmt)
     fh.setFormatter(formatter)
     # Add the handlers to the logger
     logger.addHandler(fh)
@@ -135,7 +136,8 @@ def main():
     #logger.error('foo', exc_info=True)
     #logger.critical('msg')
     # --------------------------
-    print("[TEMPLATE] BASE_DIR is: {}".format(BASE_DIR))
+    print("[TEMPLATE] APP_BASE is: {}".format(APP_BASE))
+
     # Quick 'n dirty args if not using argparse
     args = sys.argv[1:]
 
@@ -144,7 +146,6 @@ def main():
         sys.exit(1)
 
     # -- arg parsing --
-    parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(description="Description of this tool")
     parser.add_argument('target', help='IP/CIDR/URL of target') # positional arg
     parser.add_argument("-i", "--input-file", dest='input', nargs='*',

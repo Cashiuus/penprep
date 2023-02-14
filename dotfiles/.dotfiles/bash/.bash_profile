@@ -33,6 +33,12 @@ function git-current-branch {
 }
 export PS1="\$(git-current-branch)$PS1"
 
+# Show dolt branch in PS1 when working in a dolthub.com local repository directory
+function dolt-current-branch {
+    dolt branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1) /'
+}
+export PS1="\$(dolt-current-branch)$PS1"
+
 # Establish virtualenv loading via venv files within project directories
 check_virtualenv() {
     if [[ -e .venv ]]; then
