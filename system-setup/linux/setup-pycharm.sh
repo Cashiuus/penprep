@@ -3,7 +3,7 @@
 # File:     setup-pycharm.sh
 #
 # Author:   Cashiuus
-# Created:  10-Dec-2016     Revised: 13-Sep-2022
+# Created:  10-Dec-2016     Revised: 13-Feb-2023
 #
 #-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Download, setup pycharm, backup original pycharm settings if applicable,
@@ -26,7 +26,7 @@
 #-[ Copyright ]---------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="1.0.2"
+__version__="1.1.0"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]========== ##
 GREEN="\033[01;32m"     # Success
@@ -48,7 +48,7 @@ DEBUG=true
 # -- Edit Settings --
 BACKUPS_PATH="${HOME}/Backups"
 # TODO: Get latest pycharm version programmatically
-PYCHARM_VERSION="2022.2.1"
+PYCHARM_VERSION="2022.2.4"
 
 
 
@@ -92,6 +92,11 @@ cd /tmp
 # Example Link: https://download-cf.jetbrains.com/python/pycharm-community-2020.2.3.tar.gz
 wget --no-verbose http://download.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
 #wget -q https://download-cf.jetbrains.com/python/pycharm-community-${PYCHARM_VERSION}.tar.gz
+
+if [[ ! -f "/tmp/pycharm-community-${PYCHARM_VERSION}.tar.gz" ]]; then
+	echo -e "[ERR] Pycharm installer failed to download, fix and try again!"
+	exit 1
+fi
 tar xzf pycharm-community-${PYCHARM_VERSION}.tar.gz
 
 # TODO: Can we simply overwrite the files, or should we delete the old folder first?
