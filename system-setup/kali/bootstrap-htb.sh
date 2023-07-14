@@ -2,7 +2,7 @@
 ## =======================================================================================
 # File:     bootstrap-htb.sh
 # Author:   Cashiuus
-# Created:  08-Apr-2020     Revised: 28-Apr-2022
+# Created:  08-Apr-2020     Revised: 18-Jun-2023
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Run this script on new Kali images to automatically configure and
@@ -17,6 +17,8 @@
 # Credits:  + g0tmi1k for teaching me bash scripting through his kali OS scripts
 #
 ##-[ Changelog ]-----------------------------------------------------------------------
+#   2023-03-18: Ensuring the PEDA plugin is configured for gdb
+#   2022-11-28: Added tools like witnessme, eviltree,
 #   2022-05-18: Added xsshunter-client and ppmap (proto pollution scanner)
 #   2022-04-28: Added win php shell, enhanced updater capability, now grabs IP to put into saved shells
 #   2022-03-20: Re-organized transfer-stage so that pivoting, shells, & privesc tools are all in here (we transfer all of them)
@@ -29,7 +31,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="3.2.5"
+__version__="3.2.6"
 __author__="Cashiuus"
 ## ==========[ TEXT COLORS ]============= ##
 GREEN="\033[01;32m"     # Success
@@ -302,17 +304,18 @@ update_os_apt
 
 function install_core_hacker_bundle() {
   echo -e "\n${GREEN}[*] ${BLUE}apt-get ::${RESET} Installing core utilities"
-  $SUDO apt-get -y -qq install bash-completion build-essential curl dos2unix \
-    libreadline-dev gcc geany git gnumeric golang gzip jq libssl-dev locate \
-    make net-tools openssl openvpn powershell pv tmux wget unzip xclip
+  $SUDO apt-get -y -qq --ignore-missing install bash-completion build-essential \
+    curl dos2unix libreadline-dev gcc geany git gnumeric golang gzip jq \
+    libssl-dev locate make net-tools openssl openvpn powershell pv tmux \
+    wget unzip xclip
 
-  $SUDO apt-get -y -qq install geany htop strace sysv-rc-conf tree
+  $SUDO apt-get -y -qq --ignore-missing install geany htop strace sysv-rc-conf tree
 
   echo -e "\n${GREEN}[*] ${BLUE}apt-get ::${RESET} Installing common HTB tools"
-  $SUDO apt-get -y -qq install bloodhound brutespray crowbar dirb dirbuster docx2txt \
-  exploitdb fcrackzip feroxbuster flameshot gdb gobuster ipmitool \
-  libimage-exiftool-perl neo4j nikto proxychains4 rdesktop redsocks responder \
-  seclists shellter sqlmap sshuttle windows-binaries
+  $SUDO apt-get -y -qq --ignore-missing install bloodhound brutespray crowbar \
+  dirb dirbuster docx2txt exploitdb fcrackzip feroxbuster flameshot gdb \
+  gobuster ipmitool libimage-exiftool-perl medusa neo4j nikto proxychains4 \
+  rdesktop redsocks responder seclists shellter sqlmap sshuttle windows-binaries
 }
 # Ensure these are installed no matter what
 install_core_hacker_bundle
@@ -334,6 +337,7 @@ function install_python3() {
   $SUDO apt-get -y -qq install libpq-dev
 
   # Install baseline set of system-wide pip packages
+  # NOTE: argparse is a built-in, unless you are using Python < 2.7 or < 3.2
   file="/tmp/requirements.txt"
   cat <<EOF > "${file}"
 argparse
@@ -350,18 +354,25 @@ netaddr
 pefile
 pep8
 Pillow
+pipx
 psycopg2
 pygeoip
 python-Levenshtein
 python-libnmap
+rawsec-cli
 requests
 six
 wheel
 EOF
-  python3 -m pip install -q -r /tmp/requirements.txt || \
-    $SUDO python3 -m pip install -q -r /tmp/requirements.txt
+  python3 -m pip install -U pip
+  python3 -m pip install -q -r -U "${file}" || \
+    $SUDO python3 -m pip install -q -r -U "${file}"
 }
 [[ "$update" != true ]] && install_python3
+
+# WitnessMe project, may be useful
+python3 -m pip install -U pipx
+pipx install witnessme
 
 
 # -- Flameshot screenshotting, make it the default so global hotkeys work
@@ -558,8 +569,6 @@ done
 
 
 
-
-
 function install_covenant() {
   # -- Covenant C2 Framework (requires dotnet) -------
   echo -e "\n${GREEN}[*] ${RESET}Installing the Covenant C2 Framework for advanced labs"
@@ -625,53 +634,44 @@ EOF
 
 
 echo -e "\n${GREEN}[*] ${RESET}Loading a bunch of additional tools into ${HOME}/git/"
+
 [[ ! -d "${HOME}/git" ]] && mkdir -p "${HOME}/git"
 cd "${HOME}/git"
 declare -A gittools
 gittools["ADModule"]="https://github.com/samratashok/ADModule"
 gittools["Bloodhound"]="https://github.com/BloodHoundAD/BloodHound"
+gittools["brutespray"]="https://github.com/x90skysn3k/brutespray"
+gittools["cupp"]="https://github.com/Mebus/cupp"                # Password list custom/gen toolkits
 gittools["discover"]="https://github.com/leebaird/discover"
 gittools["dnstwist"]="https://github.com/elceef/dnstwist"
 gittools["donut"]="https://github.com/TheWover/donut"
 gittools["dotdotpwn"]="https://github.com/wireghoul/dotdotpwn"
+gittools["Empire"]="https://github.com/BC-SECURITY/Empire"
+gittools["eviltree"]="https://github.com/t3l3machus/eviltree"     # Python-based tree with search cap.
+gittools["firepwd"]="https://github.com/lclevy/firepwd"           # Firefox password extractor
+gittools["Invoke-CradleCrafter"]="https://github.com/danielbohannon/Invoke-CradleCrafter"
+gittools["Invoke-Obfuscation"]="https://github.com/danielbohannon/Invoke-Obfuscation"
+gittools["mentalist"]="https://github.com/sc0tfree/mentalist"     # Password list custom/gen toolkit
 gittools["nishang"]="https://github.com/samratashok/nishang"
 gittools["nmapAutomator"]="https://github.com/21y4d/nmapAutomator"
+gittools["pacu"]="https://github.com/RhinoSecurityLabs/pacu"      # AWS exploitation framework
 #gittools["PowerSploit"]="https://github.com/PowerShellMafia/PowerSploit"
-gittools["PowerSploit"]="https://github.com/ZeroDayLab/PowerSploit"   # This version has some PowerView additions
+gittools["pass-station"]="https://github.com/noraj/pass-station"
+gittools["peda"]="https://github.com/longld/peda"
+gittools["PowerSploit_ZeroDayLab"]="https://github.com/ZeroDayLab/PowerSploit"   # This version has some PowerView additions
 gittools["PowerUpSQL"]="https://github.com/NetSPI/PowerUpSQL"
-gittools["Seatbelt"]="https://github.com/GhostPack/Seatbelt"
-gittools["SprayingToolkit"]="https://github.com/byt3bl33d3r/SprayingToolkit"
-gittools["WindowsExploits"]="https://github.com/abatchy17/WindowsExploits"
-gittools["firepwd"]="https://github.com/lclevy/firepwd"
-gittools["tplmap"]="https://github.com/epinna/tplmap"
-gittools["SharpGen"]="https://github.com/cobbr/SharpGen"
-gittools["cupp"]="https://github.com/Mebus/cupp"
-gittools["mentalist"]="https://github.com/sc0tfree/mentalist"
 gittools["ppmap"]="https://github.com/kleiton0x00/ppmap"
+gittools["Seatbelt"]="https://github.com/GhostPack/Seatbelt"
+gittools["SharpGen"]="https://github.com/cobbr/SharpGen"        # setup requires cmd: `dotnet build`
+gittools["SprayingToolkit"]="https://github.com/byt3bl33d3r/SprayingToolkit"
+gittools["tplmap"]="https://github.com/epinna/tplmap"           # Template scanner for SSTI vulns
+gittools["WindowsExploits"]="https://github.com/abatchy17/WindowsExploits"
 gittools["xsshunter-client"]="https://github.com/mandatoryprogrammer/xsshunter_client"
+gittools["ysoserial"]="https://github.com/frohoff/ysoserial"
+gittools["ysoserial.net"]="https://github.com/pwntester/ysoserial.net"
 
-#git clone https://github.com/samratashok/ADModule
-#git clone https://github.com/BloodHoundAD/BloodHound
-#git clone https://github.com/leebaird/discover
-#git clone https://github.com/elceef/dnstwist
-#git clone https://github.com/TheWover/donut
-#git clone https://github.com/samratashok/nishang
-#git clone https://github.com/21y4d/nmapAutomator
-#git clone https://github.com/PowerShellMafia/PowerSploit
-#git clone https://github.com/NetSPI/PowerUpSQL
-#git clone https://github.com/GhostPack/Seatbelt
-#git clone https://github.com/byt3bl33d3r/SprayingToolkit
-#git clone https://github.com/abatchy17/WindowsExploits
-#git clone https://github.com/lclevy/firepwd         # Firefox password extractor
-#git clone https://github.com/epinna/tplmap          # Template scanner for SSTI vulns
 
-#git clone https://github.com/cobbr/SharpGen       # setup requires cmd: `dotnet build`
-
-# Password list customization/generation toolkits
-#git clone https://github.com/Mebus/cupp
-#git clone https://github.com/sc0tfree/mentalist
-
-# New install method
+# New install method for all git tools using array
 step=0
 for t in "${!gittools[@]}"; do
   step=$((step + 1))
@@ -684,6 +684,10 @@ for t in "${!gittools[@]}"; do
   fi
 done
 
+
+# Configure PEDA plugin for use with GDB
+grep -q "source ${HOME}/git/peda/peda.py" ~/.gdbinit 2>/dev/null \
+  || echo "source ${HOME}/git/peda/peda.py" >> ~/.gdbinit
 
 
 #[[ "$update" != true]] && cd SharpGen && dotnet build
@@ -706,6 +710,20 @@ fi
 
 # Tools needed by AutoRecon
 $SUDO apt-get -y install redis-tools wkhtmltopdf oscanner tnscmd10g
+
+
+function install_default_creds_project() {
+  # This tool leverages .csv file that remains online, so no reason
+  # to clone the git permanently, we'll just grab it and install
+  cd /tmp
+  git clone https://github.com/ihebski/DefaultCreds-cheat-sheet
+  cd DefaultCreds-cheat-sheet
+  #python3 -m pip install -r requirements.txt
+  # This prefix workaround is necessary to avoid perm issue bc it wants root/sudo
+  python3 setup.py install --user --prefix=
+  $SUDO updatedb
+}
+install_default_creds_project
 
 
 function install_vulners() {
@@ -744,6 +762,7 @@ fi
 # -- Singular web directory for file transfers ----------------------------------
 echo -e "\n${GREEN}[*]${RESET} Consolidating all our goodies in one place for ${BOLD}remote file transfers${RESET} (nc, mimi, scanners, etc)"
 [[ ! -d "${HTB_TRANSFERS}" ]] && mkdir -p "${HTB_TRANSFERS}"
+
 cd "${HTB_TRANSFERS}"
 cp -n "/usr/share/windows-binaries/nc.exe" ./
 cp -n "/usr/share/windows-binaries/wget.exe" ./
@@ -762,26 +781,37 @@ cp -n "${HOME}/git/ADModule/Microsoft.ActiveDirectory.Management.dll" ./
 curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh' -o 'linpeas.sh'
 curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEAS.bat' -o 'winpeas.bat'
 curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASany.exe' -o 'winpeas.exe'
+chmod u+x linpeas.sh
 
 # --- EyeWitness Windows bindary for targeted browser bookmark screenshotting (EyeWitness.exe --bookmarks)
 # Future use, they don't release a pre-built binary at this time, and it's a .sln type Visual Studio build
 #curl -SL 'https://github.com/FortyNorthSecurity/EyeWitness/releases/latest/download/EyeWitness.exe' -o 'EyeWitness.exe'
 
 
-# pspy the binaries are in 'releases' not in the cloned project
-# v1.2 is still the most current, checked site last on April 28, 2022
+# -- Psypy -- process monitor -- CAO 7/14/2023 is 1.2.1
+#
 echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Pspy${RESET} binaries"
-curl -SL 'https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy64s' -o pspy64s
-curl -SL 'https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy32s' -o pspy32s
-chmod +x pspy64s
-chmod +x pspy32s
+curl -SL 'https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64s' -o pspy64s
+curl -SL 'https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32s' -o pspy32s
+chmod u+x pspy64s
+chmod u+x pspy32s
 
-# --- Chisel - latest is v1.7.7
+# -- Peirates binary for Kubernetes priv. esc. uses -- CAO 7/14/2023 is v1.1.12
+# Building from source requires 1 GB+ aws-sdk libs
+echo -e "\n${GREEN}[*] ${RESET}Downloading ${BOLD}Peirates${RESET} binary"
+curl -SL 'https://github.com/inguardians/peirates/releases/latest/download/peirates-linux-amd64.tar.xz' -o peirates-linux-amd64.tar.xz
+# Extract and skip the top-level directory so that the peirates binary is by itself in current dir
+tar -xf peirates-linux-amd64.tar.xz --strip-components 1
+chmod u+x peirates
+[[ -f peirates-linux-amd64.tar.xz ]] && rm -rf peirates-linux-amd64.tar.xz
+
+
+# -- Chisel -- CAO 7/14/2023 is v1.8.1
 echo -e "\n${GREEN}[*] ${RESET}Downloading latest ${BOLD}Chisel${RESET}"
-curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_windows_amd64.gz' -o chisel.gz
+curl -SL 'https://github.com/jpillora/chisel/releases/latest/download/chisel_1.8.1_windows_amd64.gz' -o chisel.gz
 gunzip -f -q chisel.gz
 mv chisel chisel.exe
-curl -SL 'https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz' -o chisel.gz
+curl -SL 'https://github.com/jpillora/chisel/releases/latest/download/chisel_1.8.1_linux_amd64.gz' -o chisel.gz
 gunzip -f -q chisel.gz
 chmod +x chisel
 

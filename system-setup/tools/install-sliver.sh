@@ -2,10 +2,14 @@
 
 
 set -e
+
+BASE_INSTALL_PATH="/opt/sliver"     # Default is /root/, but it's more common for installs to be in /opt/
+LHOST="localhost"                   # can be "localhost", "127.0.0.1", or a public IP/FQDN
+INSTALL_USER="root"                 # Service account for running sliver-server
+
 SLIVER_GPG_KEY_ID=4449039C
-BASE_INSTALL_PATH="/opt/sliver"
-LHOST="localhost"
-INSTALL_USER="root"               # Service account for running sliver-server
+SLIVER_SERVER='sliver-server_linux'
+SLIVER_CLIENT='sliver-client_linux'
 
 
 ##  Sudo checker/init
@@ -45,82 +49,69 @@ function create_service_account() {
         echo -e "[!] User already exists"
     else
         echo -e "[*] Creating new system user: $1"
-        $SUDO addgroup --system $1
+        $SUDO addgroup --system "$1"
         $SUDO adduser --disabled-password --system --ingroup "$1" "$1"
     fi
 }
 
 
 function clean_sliver() {
-    if [[ "${BASE_INSTALL_PATH}" == "/" ]]; then
-        # wtf are you doing
-        exit 1
+    $SUDO systemctl stop sliver.service 2>/dev/null
+    if [[ "${BASE_INSTALL_PATH}" == "/" ]] \
+        || [[ "${BASE_INSTALL_PATH}" == "/opt" ]] \
+        || [[ "${BASE_INSTALL_PATH}" == "/root" ]]; then
+        # Should you srsly be using linux?
+        echo -e "[!] Skipping deletion of base install path to avoid erasing things you likely care about"
+    else
+        $SUDO rm -rf "${BASE_INSTALL_PATH}"
     fi
-    $SUDO rm -rf "${BASE_INSTALL_PATH}"
     $SUDO rm /etc/systemd/system/sliver.service
-    rm -rf "${HOME}/.sliver"
-    rm -rf "${HOME}/.sliver-client"
-    $SUDO rm -rf /root/.sliver
-    $SUDO rm -rf /root/.sliver-client
-    $SUDO rm /usr/local/bin/sliver
-    echo -e "[*] Removed this sliver mess from your system. Run script again if you wish to re-install!"
+    rm -rf "${HOME}/.sliver" 2>/dev/null
+    rm -rf "${HOME}/.sliver-client" 2>/dev/null
+    $SUDO rm -rf /root/.sliver 2>/dev/null
+    $SUDO rm -rf /root/.sliver-client 2>/dev/null
+    $SUDO rm /usr/local/bin/sliver 2>/dev/null
+    echo -e "[*] Removed Sliver framework from your system. Run script again if you wish to re-install!"
     exit 0
 }
 
 
-##  Running Main
-## =================================== ##
-case "$1" in
-    clean) clean_sliver;;
-    remove) clean_sliver;;
-esac
+function install_os_depends() {
+    if [ -n "$(command -v yum)" ]
+    then
+        $SUDO yum -y install curl gcc gcc-c++ gnupg make mingw64-gcc
+    fi
+
+    if [ -n "$(command -v apt-get)" ]
+    then
+        DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -yqq \
+            curl build-essential gpg \
+            mingw-w64 binutils-mingw-w64 g++-mingw-w64
+    fi
+
+    # Curl
+    if ! command -v curl &> /dev/null
+    then
+        echo "[!] curl could not be found"
+        exit 1
+    fi
+    # Awk
+    if ! command -v awk &> /dev/null
+    then
+        echo "[!] awk could not be found"
+        exit 1
+    fi
+    # GPG
+    if ! command -v gpg &> /dev/null
+    then
+        echo "[!] gpg could not be found"
+        exit 1
+    fi
+}
 
 
-
-#if [ "$EUID" -ne 0 ]
-  #then echo "Please run as root"
-  #exit
-#fi
-
-if [ -n "$(command -v yum)" ]
-then
-    $SUDO yum -y install gnupg curl gcc gcc-c++ make mingw64-gcc
-fi
-
-if [ -n "$(command -v apt-get)" ]
-then
-    DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -yqq \
-        gpg curl build-essential \
-        mingw-w64 binutils-mingw-w64 g++-mingw-w64
-fi
-
-# Curl
-if ! command -v curl &> /dev/null
-then
-    echo "curl could not be found"
-    exit 1
-fi
-# Awk
-if ! command -v awk &> /dev/null
-then
-    echo "awk could not be found"
-    exit 1
-fi
-# GPG
-if ! command -v gpg &> /dev/null
-then
-    echo "gpg could not be found"
-    exit 1
-fi
-
-
-[[ ! -d "${BASE_INSTALL_PATH}" ]] && $SUDO mkdir -p "${BASE_INSTALL_PATH}"
-cd "${BASE_INSTALL_PATH}"
-#cd /root
-#echo "Running from $(pwd)"
-
-
-$SUDO gpg --import <<EOF
+function install_sliver_core() {
+    $SUDO gpg --import <<EOF
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBGBlvl8BEACpoAriv9d1vf9FioSKCrretCZg4RnpjEVNDyy6Y4eFp5dyR9KK
@@ -174,47 +165,74 @@ DxkLsLOBBZZRXOrgxit+tAqinGJ6N9hOvkUlwTLfJM1tpCEFb/Z786g=
 -----END PGP PUBLIC KEY BLOCK-----
 EOF
 
-#
-# Download and Unpack Sliver Server
-#
+    #
+    # Download and Unpack Sliver Server
+    #
+    [[ ! -d "${BASE_INSTALL_PATH}" ]] && $SUDO mkdir -p "${BASE_INSTALL_PATH}"
+    cd "${BASE_INSTALL_PATH}"
+
+    for URL in $ARTIFACTS; do
+        if [[ "$URL" == *"$SLIVER_SERVER"* ]]; then
+            echo "Downloading $URL"
+            $SUDO curl --silent -L $URL --output $(basename $URL)
+        fi
+        if [[ "$URL" == *"$SLIVER_CLIENT"* ]]; then
+            echo "Downloading $URL"
+            $SUDO curl --silent -L $URL --output $(basename $URL)
+        fi
+    done
+
+    echo "Verifying signatures ..."
+    $SUDO gpg --default-key $SLIVER_GPG_KEY_ID --verify "${BASE_INSTALL_PATH}/$SLIVER_SERVER.sig" "${BASE_INSTALL_PATH}/$SLIVER_SERVER"
+    $SUDO gpg --default-key $SLIVER_GPG_KEY_ID --verify "${BASE_INSTALL_PATH}/$SLIVER_CLIENT.sig" "${BASE_INSTALL_PATH}/$SLIVER_CLIENT"
+}
+
+
+function install_sliver_client() {
+    install_os_depends
+    install_sliver_core
+    if test -f "${BASE_INSTALL_PATH}/$SLIVER_CLIENT"; then
+        $SUDO chmod 755 "${BASE_INSTALL_PATH}/$SLIVER_CLIENT"
+        $SUDO cp "${BASE_INSTALL_PATH}/$SLIVER_CLIENT" /usr/local/bin/sliver
+        $SUDO chmod 755 /usr/local/bin/sliver
+    else
+        exit 3
+    fi
+
+    if [[ ! -d "${HOME}/.sliver-client/configs" ]]; then
+        mkdir -p "${HOME}/.sliver-client/configs"
+        $SUDO chown -R "$USER":"$USER" "${HOME}/.sliver-client/"
+    fi
+    $SUDO updatedb 2>/dev/null
+    echo -e "[*] Sliver client install is complete. Run using 'sliver', goodbye!"
+    exit 0
+}
+
+
+
+##  Running Main
+## =================================== ##
 ARTIFACTS=$(curl -s "https://api.github.com/repos/BishopFox/sliver/releases/latest" | awk -F '"' '/browser_download_url/{print $4}')
-SLIVER_SERVER='sliver-server_linux'
-SLIVER_CLIENT='sliver-client_linux'
+
+case "$1" in
+    clean) clean_sliver;;
+    remove) clean_sliver;;
+    client) install_sliver_client;;    # Will install normal but no service & copy client to $HOME
+esac
+# ------------------------
 
 
-for URL in $ARTIFACTS
-do
-    if [[ "$URL" == *"$SLIVER_SERVER"* ]]; then
-        echo "Downloading $URL"
-        $SUDO curl --silent -L $URL --output $(basename $URL)
-    fi
-    if [[ "$URL" == *"$SLIVER_CLIENT"* ]]; then
-        echo "Downloading $URL"
-        $SUDO curl --silent -L $URL --output $(basename $URL)
-    fi
-done
+# -- Server/Full install portion is here and below
+install_os_depends
+install_sliver_core
 
-echo "Verifying signatures ..."
-$SUDO gpg --default-key $SLIVER_GPG_KEY_ID --verify "${BASE_INSTALL_PATH}/$SLIVER_SERVER.sig" "${BASE_INSTALL_PATH}/$SLIVER_SERVER"
-$SUDO gpg --default-key $SLIVER_GPG_KEY_ID --verify "${BASE_INSTALL_PATH}/$SLIVER_CLIENT.sig" "${BASE_INSTALL_PATH}/$SLIVER_CLIENT"
-
-
-# Install a sliver service account
-create_service_account sliver
-
+# Install a sliver service account, if applicable
+create_service_account "${INSTALL_USER}"
 
 if test -f "${BASE_INSTALL_PATH}/$SLIVER_SERVER"; then
     $SUDO mv "${BASE_INSTALL_PATH}/$SLIVER_SERVER" "${BASE_INSTALL_PATH}/sliver-server"
     $SUDO chmod 755 "${BASE_INSTALL_PATH}/sliver-server"
     $SUDO "${BASE_INSTALL_PATH}/sliver-server" unpack --force
-else
-    exit 3
-fi
-
-if test -f "${BASE_INSTALL_PATH}/$SLIVER_CLIENT"; then
-    $SUDO chmod 755 "${BASE_INSTALL_PATH}/$SLIVER_CLIENT"
-    $SUDO cp -vv "${BASE_INSTALL_PATH}/$SLIVER_CLIENT" /usr/local/bin/sliver
-    $SUDO chmod 755 /usr/local/bin/sliver
 else
     exit 3
 fi
@@ -233,7 +251,6 @@ Type=simple
 Restart=on-failure
 RestartSec=3
 User=${INSTALL_USER}
-Group=${INSTALL_USER}
 ExecStart=${BASE_INSTALL_PATH}/sliver-server daemon --lhost 127.0.0.1
 
 [Install]
@@ -248,6 +265,9 @@ $SUDO systemctl start sliver
 
 # Set perms for the install dir
 $SUDO chown -R "$INSTALL_USER":"$INSTALL_USER" "${BASE_INSTALL_PATH}"
+
+# Also fully setup the client on full installs
+install_sliver_client
 
 # Generate local configs
 if [[ "$EUID" -eq 0 ]]; then
@@ -268,6 +288,6 @@ for USER_DIR in "${USER_DIRS[@]}"; do
     fi
 done
 
-$SUDO updatedb 2>/dev/null
-echo -e "[*] Sliver install is complete. Run using 'sliver', goodbye!"
+
+echo -e "[*] Sliver framework install is complete. Run using 'sliver', goodbye!"
 exit 0
