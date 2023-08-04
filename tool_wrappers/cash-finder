@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# This helper will simply search for a keyword inside files, current dir and below.
+
+[[ -z $1 ]] && echo -e "Missing keyword arg" && exit 1
+
+find . -type f -print0 | xargs -r0 grep -i -F "$1" 2>/dev/null
