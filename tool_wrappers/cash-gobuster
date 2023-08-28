@@ -1,0 +1,322 @@
+#!/usr/bin/env bash
+## =======================================================================================
+# File:     cash-gobuster.sh
+# Author:   Cashiuus
+# Created:  17-Nov-2020     Revised: 04-Aug-2023
+#
+#   Place file in /usr/local/bin or in ~/.locain/bin and chmod u+x <file>
+#   Then, this file will be in path to use as a wrapper in place of remembering
+#   all the rediculous switches needed for standard website dir busting
+## =======================================================================================
+## ==========[  TEXT COLORS  ]============= ##
+RESET="\033[00m"        # Normal
+GREEN="\033[01;32m"     # Success
+YELLOW="\033[01;33m"    # Warnings (some terminals its yellow)
+RED="\033[01;31m"       # Errors
+BLUE="\033[01;34m"      # Headings
+PURPLE="\033[01;35m"    # Other
+GREY="\e[90m"           # Subdued Text
+BOLD="\033[01;01m"      # Normal fg color, but bold
+ORANGE="\033[38;5;208m" # Debugging
+BGRED="\033[41m"        # BG Red
+BGPURPLE="\033[45m"     # BG Purple
+BGYELLOW="\033[43m"     # BG Yellow
+BGBLUE="\033[104m"      # White font with blue background (could also use 44)
+## =============[  CONSTANTS  ]============= ##
+TDATE=$(date +%Y-%m-%d)
+APP_PATH=$(readlink -f $0)
+APP_BASE=$(dirname "${APP_PATH}")
+APP_NAME=$(basename "${APP_PATH}")
+DEBUG=false
+GO_VERSION=$(go version | awk '{print $3}' | cut -d '.' -f2)    # e.g. "17" for v1.17
+## =============[  EDIT THESE  ]============= ##
+USERAGENT='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'
+POSCODES="200,204,301,302,307,401,500"
+NEGCODES="302,404"
+EXTENSIONS="txt,html,php,asp,aspx,jsp,bak"
+THREADS="30"
+
+SECLISTS_DIR="/usr/share/seclists/Discovery/Web-Content"
+#SECLISTS_DIR="${HOME}/git/seclists/Discovery/Web-Content"
+
+PRIMARY_WORDLIST="${SECLISTS_DIR}/quickhits.txt"
+
+# This array is only used if script is modified to do analysis using many wordlists
+WORDLISTS=(
+    #"${HOME}/git/htb-toolkit/wordlists/cash-web-common.txt"
+    "${SECLISTS_DIR}/quickhits.txt"
+    "${SECLISTS_DIR}/Common-PHP-Filenames.txt"
+    "${SECLISTS_DIR}/dirsearch.txt"
+    #"${SECLISTS_DIR}/apache.txt"
+    #"${SECLISTS_DIR}/Apache.fuzz.txt"
+    #"${SECLISTS_DIR}/tomcat.txt"
+    #"${SECLISTS_DIR}/ApacheTomcat.fuzz.txt"
+    "${SECLISTS_DIR}/Common-DB-Backups.txt"
+    "${SECLISTS_DIR}/common-api-endpoints-mazen160.txt"
+    #"${SECLISTS_DIR}/spring-boot.txt"
+    "${SECLISTS_DIR}/directory-list-2.3-medium.txt"
+    #"${SECLISTS_DIR}/raft-medium-directories.txt"
+)
+
+
+
+##  Functions/Utilities
+## --------------------------------------------------------------
+function check_root() {
+  if [[ $EUID -ne 0 ]]; then
+    # If not root, check if sudo package is installed
+    if [[ $(which sudo) ]]; then
+      # This accounts for both root and sudo. If normal user, it'll use sudo.
+      # If you run script as root, $SUDO is blank and script will soldier on.
+      export SUDO="sudo"
+      echo -e "${YELLOW}[WARN] This script leverages sudo for installation. Enter your password when prompted!${RESET}"
+      sleep 1
+      # Test to ensure this user is able to use sudo
+      sudo -l >/dev/null
+      if [[ $? -eq 1 ]]; then
+        # sudo pkg is installed but current user is not in sudoers group to use it
+        echo -e "${RED}[ERROR]${RESET} You are not able to use sudo. Add user to sudoers to fix."
+        exit 1
+      fi
+    else
+      echo -e "${YELLOW}[WARN]${RESET} The 'sudo' package is not installed."
+      exit 1
+    fi
+  fi
+}
+
+
+function print() {
+  echo -e "${GREEN}[*]${RESET} $1"
+}
+
+
+function print_error() {
+  echo -e "${RED}[ERR]${RESET} $1"
+}
+
+
+function print_debug() {
+  [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DBG]${RESET} $1"
+}
+
+
+function check_error_exit() {
+  # Immediately following any statement, do this to check it was successful, exit if failed
+  #   Usage:  check_error <description of what was attempted>
+  #           check_error_exit "Python core installation"
+  if [[ "$?" -eq 0 ]]; then
+    print_debug "$1 successful, no errors"
+  else
+    # Something failed, exit.
+    print_debug "$1 failed. Check and try again"
+    #echo -e "$@, exiting." >&2
+    exit 1
+  fi
+}
+
+
+function is_installed() {
+  # Check if a program is installed (use -n to check the opposite way)
+  #
+  #   Usage: if is_installed go; then
+  #
+  if [[ "$(command -v $1 2>&1)" ]]; then
+    # command exists/is installed
+    print_debug "is_installed returned true"
+    return 0
+  else
+    print_debug "is_installed returned false"
+    return 1
+  fi
+}
+
+
+function install_gobuster() {
+    # If golang is a supported version, install via go
+    if [[ "$GO_VERSION" == "17" || "$GO_VERSION" == "18" || "$GO_VERSION" == "19" ]]; then
+        go install github.com/OJ/gobuster/v3@latest
+        check_error_exit "gobuster install via go"
+    else
+        print_error "Golang version 1.$GO_VERSION is installed, but v1.16+ is required for gobuster v3!"
+        print "Attempting gobuster install via apt"
+        # Attempt to install via apt, exit if fails
+        check_root
+        $SUDO apt-get -y install gobuster
+        check_error_exit "gobuster install via apt-get"
+    fi
+}
+
+
+function check_gobuster() {
+    if is_installed gobuster; then
+        gobuster_version=$(gobuster version)
+        print_debug "is_installed returned true -- Gobuster ($gobuster_version) is installed, we can proceed!"
+        # Check how it's installed
+        dpkg -s gobuster &>/dev/null
+        if [[ $? -eq 0 ]]; then
+            print_debug "gobuster is installed via apt-get and we can continue on"
+            return
+        else
+            # assert gobuster is installed some other way, maybe a go bin?
+            abs=$(which gobuster)
+            if [[ $(dirname "${abs}") == "${GOPATH}/bin" ]]; then
+                print_debug "gobuster path confirms it is in our GOPATH"
+                go install github.com/OJ/gobuster/v3@latest
+                #check_error_exit "gobuster install via go"
+            fi
+        fi
+    else
+        # install_gobuster
+        print_debug "is_installed returned false, so unable to do anything"
+    fi
+}
+check_gobuster
+
+
+
+##  Init & Process Arguments
+## --------------------------------------------------------------
+#APP_ARGS=$@
+if [[ "$#" -eq 0 ]]; then
+    echo -e "   Usage: $APP_NAME <URL>"
+    exit 1
+fi
+if [[ ! $(which gobuster) ]]; then
+    echo -e "[ERROR] gobuster is not installed or not in path, try again."
+    exit 1
+fi
+TARGET=$1
+# https://www.cyberciti.biz/faq/get-extract-domain-name-from-url-in-linux-unix-bash/
+URL_BASE=$(echo "$TARGET" | awk -F/ '{ print $3 }' | cut -d ":" -f1)
+
+
+# Normal single mode, using the defined wordlist
+OUTPUT_FILE="gobuster-${URL_BASE}-${TDATE}.txt"
+gobuster dir -u "${TARGET}" \
+    -w "${PRIMARY_WORDLIST}" \
+    -a "${USERAGENT}" \
+    -e -k \
+    -t "${THREADS}" \
+    -o "${OUTPUT_FILE}"
+
+# -s "${POSCODES}"
+exit 0
+
+
+function run_lists_analysis_mode() {
+    # Outputting all dirbusts to singular dir so I can identify frequency patterns
+    ANALYSIS_DIR="${HOME}/dirbusting_analysis"
+    [[ ! -d "${ANALYSIS_DIR}" ]] && mkdir -p "${ANALYSIS_DIR}"
+    OUTPUT_FILE="${ANALYSIS_DIR}/gobuster-${URL_BASE}-AggregatedOutput-${TDATE}.txt"
+
+    count=0
+    for list in "${WORDLISTS[@]}"; do
+        count=$(( count + 1 ))
+        if [[ ! -f "${list}" ]]; then
+            print_error "Wordlist not found: ${list}"
+            #echo -e "Wordlist not found: ${list}"
+            continue
+        fi
+        print "Running gobuster through wordlists (${count}/${#WORDLISTS[@]})"
+        gobuster dir -u "${TARGET}" \
+            -w "${list}" \
+            -a "${USERAGENT}" \
+            -e -k -s \
+            -t "${THREADS}" \
+            -o "${ANALYSIS_DIR}/gobuster-${URL_BASE}-list${count}.txt" | tee -a "${OUTPUT_FILE}"
+        #gobuster dir -u "${TARGET}" -w "${WORDLISTS[list]}" -a "${USERAGENT}" -e -k -s "${POSCODES}" -x "${EXTENSIONS}" -t "${THREADS}" -o "${ANALYSIS_DIR}/gobuster-${URL_BASE}-$list.txt"
+    done
+    exit 0
+}
+# run_lists_analysis_mode
+
+
+
+## ===================================================================================== ##
+
+# TODO: Filter out a 302 that redirects to any type of "/login*" pages
+
+
+#   Wordlist Reference
+
+#   Wordcount       File
+#   ---------       -----
+#   1,273,833       ${HOME}/git/seclists/Discovery/Web-Content/directory-list-2.3-big.txt
+#   220,560         /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt
+#   87,664          /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-small.txt
+#   4,660           /usr/share/seclists/Discovery/Web-Content/common.txt
+
+# Notes on Wordlists from my use
+#   common.txt doesn't have:
+#       cdn-cgi
+#       accesslogs
+#
+# -- so i added them to my custom 'common' wordlist
+
+
+
+
+
+# -- - Associative Array style code block --
+
+### This method not currently working, values all end up blank, so doing other way for now
+#declare -A WORDLISTS
+#WORDLISTS["cash-common"]="${HOME}/git/htb-toolkit/wordlists/cash-web-common.txt"
+#WORDLISTS["php-common"]="${SECLISTS_DIR}/Common-PHP-Filenames.txt"
+#WORDLISTS["dir-list-med"]="${SECLISTS_DIR}/directory-list-2.3-medium.txt"
+#WORDLISTS["raft-med"]="${SECLISTS_DIR}/raft-medium-directories.txt"
+#WORDLISTS[""]="/usr/share/seclists/Discovery/Web-Content/common.txt"
+
+count=0
+for list in "${!WORDLISTS[@]}"; do
+    count=$(( count + 1 ))
+    if [[ ! -f "${WORDLISTS[list]}" ]]; then
+        print_error "Wordlist not found: ${WORDLISTS[list]}"
+        echo -e "Wordlist not found: ${WORDLISTS[list]}"
+        continue
+    fi
+    print "Running gobuster through wordlists (${list}/${#WORDLISTS[@]})"
+    gobuster dir -u "${TARGET}" -w "${WORDLISTS[list]}" -a "${USERAGENT}" -e -k -s -t "${THREADS}" -o "${ANALYSIS_DIR}/gobuster-${URL_BASE}-$list.txt" | tee -a "${OUTPUT_FILE}"
+    #gobuster dir -u "${TARGET}" -w "${WORDLISTS[list]}" -a "${USERAGENT}" -e -k -s "${POSCODES}" -x "${EXTENSIONS}" -t "${THREADS}" -o "${ANALYSIS_DIR}/gobuster-${URL_BASE}-$list.txt"
+done
+exit 0
+
+# -- -
+
+
+
+
+
+
+# Global gobuster commands
+#   -z  no progress
+#   -o  output file to write results to
+#   -q  quiet
+#   -t  threads (default 10)
+#   -w  wordlist to use
+#
+# dir specific gobuster commands
+#   Default timeout is 10 seconds
+#
+#   -a  user agent
+#   -u  target to hit
+#
+#   -f  add / to each request
+#   -e  expanded mode, print full URLs
+#   -x  file extensions to search for
+#   -r  enable following redirects
+#   -H  specify headers, one per arg, can have multiple args
+#   -k  skip SSL cert verification
+#   -n  don't print status codes
+#
+#   -s  positive status codes that determine valid result
+#           (Default: 200,204,301,302,307,401,403)
+#   -b  negative status codes (blacklist)
+#           (Default: none)
+#
+#   -U  username for basic auth
+#   -P  password for basic auth
+
+#   --wildcard  enable wildcard responses
+## ===================================================================================== ##

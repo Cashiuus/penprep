@@ -2,7 +2,7 @@
 ## =============================================================================
 # File:     file.sh
 # Author:   Cashiuus
-# Created:  24-Jan-2022     Revised:
+# Created:  24-Jan-2023     Revised:
 #
 ##-[ Info ]---------------------------------------------------------------------
 # Purpose:  Describe script purpose
@@ -145,10 +145,10 @@ function check_error_exit() {
 function is_installed() {
   # Check if a program is installed (use -n to check the opposite way)
   #
-  #   Usage: if program_exists "go"; then
+  #   Usage: if is_installed "go"; then
   #
   if [[ "$(command -v $1 2>&1)" ]]; then
-    # command exists/is installed, so return true
+    # command exists/is installed, return 0 for clean exit code
     print_debug "is_installed evaluated to true, the checked pkg exists"
     return 0
   else

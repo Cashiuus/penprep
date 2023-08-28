@@ -1,0 +1,50 @@
+#!/bin/bash
+## =======================================================================================
+# File:     cash-dirb.sh
+# Author:   Cashiuus
+# Created:  17-Nov-2020     Revised: 04-Aug-2023
+#
+#   Place file in /usr/local/bin or in ~/.locain/bin and chmod u+x <file>
+#   Then, this file will be in path to use as a wrapper in place of remmebering
+#   all the rediculous switches needed for standard website dir busting
+## =======================================================================================
+
+#WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
+WORDLIST="/usr/share/seclists/Discovery/Web-Content/common.txt"
+USERAGENT='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'
+POSCODES="200,204,301,302,307,403,500"
+DIRB_EXTENSIONS=".txt,.html,.php,.asp,.aspx,.jsp"
+THREADS="3"
+
+
+### ===============[ Process Arguments ]============== ###
+if [[ $# -eq 0 ]]; then
+    echo -e "   Usage: $0 <URL>"
+    exit 1
+fi
+if [[ ! $(which dirb) ]]; then
+    echo -e "[ERROR] dirb is not installed or not in path, try again."
+    exit 1
+fi
+TARGET=$1
+
+
+
+dirb "${TARGET}" "${WORDLIST}" -a "${USERAGENT}" -l -r -S -X "${DIRB_EXTENSIONS}" -o dirb-results.txt
+exit 0
+## ===================================================================================== ##
+## man dirb
+#
+#   Usage: dirb <url_base> [<wordlist>] [options]
+#
+#   -a      user agent
+#   -b      don't squash or merge sequences of /../ or /./ in given URL
+#   -l      print "Location" header when found
+#   -r      don't search recursively
+#   -R      interactive recursion (ask in which dirs you want to scan)
+#   -S      silent mode
+#   -X      amplify search with these extensions
+
+
+#   -t      don't force an ending '/' on URLs
+## ===================================================================================== ##

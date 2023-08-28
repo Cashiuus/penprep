@@ -1,0 +1,206 @@
+#!/bin/bash
+## =======================================================================================
+# File:     cash-feroxbuster.sh
+# Author:   Cashiuus
+# Created:  19-Aug-2021     Revised: 04-Aug-2023
+#
+#   Place file in /usr/local/bin or in ~/.locain/bin and chmod u+x <file>
+#   Then, this file will be in path to use as a wrapper in place of remmebering
+#   all the rediculous switches needed for standard website dir busting
+## =======================================================================================
+## ==========[  TEXT COLORS  ]============= ##
+RESET="\033[00m"        # Normal
+GREEN="\033[01;32m"     # Success
+YELLOW="\033[01;33m"    # Warnings (some terminals its yellow)
+RED="\033[01;31m"       # Errors
+BLUE="\033[01;34m"      # Headings
+PURPLE="\033[01;35m"    # Other
+GREY="\e[90m"           # Subdued Text
+BOLD="\033[01;01m"      # Normal fg color, but bold
+ORANGE="\033[38;5;208m" # Debugging
+BGRED="\033[41m"        # BG Red
+BGPURPLE="\033[45m"     # BG Purple
+BGYELLOW="\033[43m"     # BG Yellow
+BGBLUE="\033[104m"      # White font with blue background (could also use 44)
+## =============[  CONSTANTS  ]============= ##
+TDATE=$(date +%Y-%m-%d)
+APP_PATH=$(readlink -f $0)
+APP_BASE=$(dirname "${APP_PATH}")
+APP_NAME=$(basename "${APP_PATH}")
+DEBUG=false
+
+USERAGENT='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'
+POSCODES="200,204,301,302,307,308,401,405,500"            # Removed 403 from this list
+EXTENSIONS="txt,html,php,asp,aspx,jsp,bak"
+THREADS="20"                                              # default: 50
+
+
+SECLISTS_DIR="/usr/share/seclists"
+PRIMARY_WORDLIST="${HOME}/git-me/htb-toolkit/wordlists/cash-web-common.txt"
+
+# This array is only used if script is modified to do analysis using many wordlists
+WORDLISTS_ARRAY=(
+    "${HOME}/git/htb-toolkit/wordlists/cash-web-common.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/quickhits.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/Common-PHP-Filenames.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/dirsearch.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/apache.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/Apache.fuzz.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/tomcat.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/ApacheTomcat.fuzz.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/Common-DB-Backups.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/common-api-endpoints-mazen160.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/spring-boot.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/directory-list-2.3-medium.txt"
+    "${SECLISTS_DIR}/Discovery/Web-Content/raft-medium-directories.txt"
+)
+
+
+
+##  Functions/Utilities
+## --------------------------------------------------------------
+function print() {
+  echo -e "${GREEN}[*]${RESET} $1"
+}
+
+function print_error() {
+  echo -e "${RED}[ERR]${RESET} $1"
+}
+
+function print_debug() {
+  [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DBG]${RESET} $1"
+}
+
+function is_installed() {
+  # Check if a program is installed (use -n to check the opposite way)
+  #
+  #   Usage: if is_installed go; then
+  #
+  if [[ "$(command -v $1 2>&1)" ]]; then
+    # command exists/is installed, true in bash meaning a 0 for clean exit code
+    print_debug "is_installed returned true"
+    return 0
+  else
+    print_debug "is_installed returned false"
+    return 1
+  fi
+}
+
+function install_or_upgrade_feroxbuster() {
+  curl -SL https://raw.githubusercontent.com/epi052/feroxbuster/master/install-nix.sh | bash -s "${HOME}/.local/bin"
+}
+
+
+##  Init & Process Arguments
+## --------------------------------------------------------------
+if [[ "$#" -eq 0 ]]; then
+    echo -e "   Usage: $APP_NAME <URL | update>\n"
+    exit 1
+fi
+# if [[ ! $(which feroxbuster) ]]; then
+if ! is_installed feroxbuster; then
+    echo -e "[ERROR] feroxbuster is not installed or not in path, try again."
+    exit 1
+fi
+TARGET=$1
+
+
+# If we want to update feroxbuster first, this will do that, then just run again with a target
+if [[ "$1" == "update" ]]; then
+  install_or_upgrade_feroxbuster
+  exit 0
+fi
+
+
+# https://www.cyberciti.biz/faq/get-extract-domain-name-from-url-in-linux-unix-bash/
+URL_BASE=$(echo "$TARGET" | awk -F/ '{ print $3 }' | cut -d ":" -f1)
+
+
+
+function run_feroxbuster_analysis() {
+  # Outputting all scans to singular dir so I can identify frequency patterns
+  ANALYSIS_DIR="${HOME}/adhoc/ferox_scans"
+  [[ ! -d "${ANALYSIS_DIR}" ]] && mkdir -p "${ANALYSIS_DIR}"
+  OUTPUT_FILE="${ANALYSIS_DIR}/feroxbuster-${URL_BASE}-Aggregated-Output-${TDATE}.txt"
+
+  count=0
+  for list in "${WORDLISTS_ARRAY[@]}"; do
+      count=$(( count + 1 ))
+      if [[ ! -f "${list}" ]]; then
+          print_error "Skipping invalid Wordlist: ${list}"
+          #echo -e "Wordlist not found: ${list}"
+          continue
+      fi
+      print "Feroxbuster scans -- (${count}/${#WORDLISTS_ARRAY[@]}) wordlists"
+      print "Current wordlist contains $(cat ${list} | wc -l) words, launching scan..."
+      feroxbuster -u "${TARGET}" \
+        -a "${USERAGENT}" \
+        -e -k -t "${THREADS}" \
+        --auto-tune \
+        --no-state \
+        -w "${list}" \
+        -o "${ANALYSIS_DIR}/feroxbuster-${URL_BASE}-list${count}.txt" | tee -a "${OUTPUT_FILE}"
+
+      if [[ "$?" -ne 0 ]]; then
+        # TODO: This doesn't work bc Ferox still exits with 0 even if it can't open URL
+        print_error "Feroxbuster errored so deleting the output file"
+        rm "${OUTPUT_FILE}"
+        # NOTE: A "*.state" file will likely be created that you can resume scan from later
+      fi
+  done
+}
+
+
+function run_feroxbuster_std() {
+  OUTPUT_FILE="feroxbuster-${URL_BASE}-${TDATE}.txt"
+  #print "Running Feroxbuster through wordlists (${count}/${#wordlists[@]})"
+  feroxbuster -u "${TARGET}" \
+    -a "${USERAGENT}" \
+    -e -k -t "${THREADS}" \
+    --auto-tune \
+    -w "${PRIMARY_WORDLIST}" \
+    --no-state
+
+  if [[ "$?" -ne 0 ]]; then
+    # TODO: This doesn't work bc Ferox still exits with 0 even if it can't open URL
+    print_debug "Feroxbuster errored so deleting the aggregate output file"
+    rm "${OUTPUT_FILE}"
+  fi
+}
+
+
+# What type of scan are we running right now
+#run_feroxbuter_analysis
+run_feroxbuster_std
+
+exit 0
+
+
+## ===================================================================================== ##
+
+    # NOTE: With no wordlist set, it'll default to raft-medium-directories.txt (30,000 words)
+
+    # -A      Use a random user agent string
+    # -e enables extracting links from response body and adding those to queue to scan too (default: false)
+    # -k disabled TLS cert validation
+    # --auto-bail will stop scanning when too many errors
+    # --auto-tune will automatically lower scan rate when too many errors
+    # -d, --depth #     default recursion depth is 4
+    # -x to specify a list of space-separate extensions
+    # --rate-limit #    default 0 (no limit), specify # req per second per directory
+    # --scan-limit #    default 0, specify # concurrent scans
+    # -t, --threads #   default 50
+    # -T, --timeout #   deafult 7, # of seconds before request times out
+
+    # --dont-scan <url> URL(s) to exclude from recursion/scans (e.g. in case --extract-links sees it)
+
+  # Send all 200/500 responses to a proxy
+  # --replay-proxy http://127.0.0.1:8080 --replay-codes 200 500 --insecure
+
+  # Find links in js/html and make addtl requests (default: false); *this adds noise for css/png type files
+  # -e, --extract-links
+
+## ===================================================================================== ##
+#
+#
+## ===================================================================================== ##
