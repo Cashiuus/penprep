@@ -1,12 +1,12 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ==============================================================================
 # File:         file.py
 # Author:       Cashiuus
-# Created:      14-Feb-2023     -     Revised:
+# Created:      15-Aug-2023     -     Revised:
 #
 # Depends:      n/a
-# Compat:       3.7+
+# Compat:       3.9+
 #
 #-[ Usage ]---------------------------------------------------------------------
 #
@@ -14,22 +14,21 @@
 #
 #
 # ==============================================================================
-__version__ = '0.0.1'
-__author__ = 'Cashiuus'
-__license__ = 'MIT'
-__copyright__ = 'Copyright (C) 2023 Cashiuus'
-## =======[ IMPORTS ]========= ##
+__version__ = "0.0.1"
+__author__ = "Cashiuus"
+__license__ = "MIT"
+__copyright__ = "Copyright (C) 2023 Cashiuus"
+## =======[ IMPORTS ]======= ##
 import argparse
 import errno
 import logging
 from logging import handlers
 import os
-import platform
 import subprocess
 import sys
 from pathlib import Path
 from random import randrange
-from time import sleep, strftime
+from time import sleep
 
 try: from colorama import init, Fore
 except ImportError: pass
@@ -60,53 +59,71 @@ class Colors(object):
     BACKWHITE = '\033[47m'  # White background
 
 
-## =======[ Constants & Settings ]========= ##
+## =======[ Constants & Settings ]======= ##
 VERBOSE = True
 DEBUG = True
-#MY_SETTINGS = 'settings.conf'
-USER_HOME = os.environ.get('HOME')
-ACTIVE_SHELL = os.environ['SHELL']
-# one parent means dir of this file, just add .parent again and again for higher dirs of a project
+TDATE = f"{datetime.now():%Y-%m-%d}"      # "2022-02-15"
+# MY_SETTINGS = 'settings.conf'
+# USER_HOME = Path.home()
+# ACTIVE_SHELL = os.environ['SHELL']
+# One parent means the dir of this file
+# Just add .parent again and again for higher dirs of a project
 BASE_DIR = Path(__file__).resolve(strict=True).parent
-APP_BASE = Path(__file__).resolve(strict=True).parent
+# APP_HOME = Path(__file__).resolve(strict=True).parent
 SAVE_DIR = BASE_DIR / 'saved'
 LOG_FILE = BASE_DIR /'debug.log'
-#FILE_NAME_WITH_DATE_EXAMPLE = "data_output-" + strftime('%Y%m%d') + ".txt"
+#FILE_NAME_WITH_DATE_EXAMPLE = f"data_output_{TDATE}.txt"
 
 # Logging Cookbook: https://docs.python.org/3/howto/logging-cookbook.html
 # This first line must be at top of the file, outside of any functions, so it's global
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
-# ==========================[ BEGIN APPLICATION ]========================== #
-
-
-
+## ======================[ BEGIN APPLICATION ]====================== ##
 
 
 
+def check_match_in_list(input_string, check_list, case_sensitive=False):
+    """
+    General example of using the any() method for list-based True/False evaluations,
+    including whether it should be case-sensitive or not.
+
+    return True     If string matches an item in the check_list
+    """
+    # -- True/False "contains" evaluation --
+    # result = False
+    if case_sensitive:
+        # result = any(w in input_string for w in check_list)
+        return any(w in input_string for w in check_list)
+    else:
+        # result = any(w.lower() in input_string.lower() for w in check_list)
+        return any(w.lower() in input_string.lower() for w in check_list)
 
 
 
+def set_output_dir(input_file):
+    input_file = Path(input_file)
+    output_dir = input_file if input_file.is_dir() else input_file.parent
+    log.debug(f"helper func has set output_dir to: {output_dir}")
+    return output_dir
 
 
 # ---------------------
 #       SHUTDOWN
 # ---------------------
 def shutdown_app():
-    #logger.debug("shutdown_app :: Application shutdown function executing")
+    #log.debug("shutdown_app :: Application shutdown function executing")
     print("Application shutting down -- Goodbye!")
-    exit(0)
+    sys.exit(0)
 
 # ---------------------
 #   main
 # ---------------------
 def main():
     """
-    Main function of the script
-
+    Main function of script when run directly, executing the primary purpose of this file.
     """
-    logger.setLevel(logging.DEBUG)
+    log.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()
     # FileHandler accepts string or Path object for filename; mode 'w' truncates log, 'a' appends
     fh = logging.FileHandler(LOG_FILE, mode='w')
@@ -120,23 +137,23 @@ def main():
         fh.setLevel(logging.INFO)
     # Message Format - See here: https://docs.python.org/3/library/logging.html#logrecord-attributes
     datefmt = '%Y%m%d %I:%M:%S%p'
-    formatter = logging.Formatter('%(funcName)s : %(levelname)-8s %(message)s', datefmt=datefmt)
+    formatter = logging.Formatter('%(asctime)s %(funcName)s : %(levelname)-8s %(message)s', datefmt=datefmt)
     ch.setFormatter(formatter)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s:%(funcName)s: %(message)s', datefmt=datefmt)
     fh.setFormatter(formatter)
     # Add the handlers to the logger
-    logger.addHandler(fh)
-    logger.addHandler(ch)
-    logger.debug('Logger initialized')
+    log.addHandler(fh)
+    log.addHandler(ch)
+    log.debug('Logger initialized')
     # ----- Levels
-    #logger.debug('msg')
-    #logger.info('msg')
-    #logger.warning('msg')
-    #logger.error('msg')
-    #logger.error('foo', exc_info=True)
-    #logger.critical('msg')
+    #log.debug('msg')
+    #log.info('msg')
+    #log.warning('msg')
+    #log.error('msg')
+    #log.error('foo', exc_info=True)
+    #log.critical('msg')
     # --------------------------
-    print("[TEMPLATE] APP_BASE is: {}".format(APP_BASE))
+    print("[TEMPLATE] BASE_DIR is: {}".format(BASE_DIR))
 
     # Quick 'n dirty args if not using argparse
     args = sys.argv[1:]
@@ -147,32 +164,30 @@ def main():
 
     # -- arg parsing --
     parser = argparse.ArgumentParser(description="Description of this tool")
-    parser.add_argument('target', help='IP/CIDR/URL of target') # positional arg
-    parser.add_argument("-i", "--input-file", dest='input', nargs='*',
-                        help="Specify a file containing the output of an nmap "
-                             "scan in xml format.")
+    # parser.add_argument('target', help='IP/CIDR/URL of target') # positional arg
+    parser.add_argument('-i', "--input_file", help="an input file")
+    # parser.add_argument("-i", "--input-file", dest='input', nargs='*',
+    #                     help="Specify one or more files, (process as a list)")
     parser.add_argument("-o", "--output-file", dest='output',
                         help="Specify output file name")
     parser.add_argument('--url', action='store', default=None, dest='url',
                         help='Pass URL to request')
 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Display error information")
+    parser.add_argument("--debug", action="store_true",
+                        help="Show debug messages for troubleshooting or verbosity")
 
     args = parser.parse_args()
 
+    if args.debug:
+        log.setLevel(logging.DEBUG)
+
     # If we have a mandatory arg, use it here; if not given, display usage
-    if not args.target:
-        parser.print_help()
-        exit(1)
+    # parser.print_help() - will print args as usage info
 
-    # Now store our args into variables for use
-    # NOTE: infile will be a list of files, bc args.filename accepts multiple input files
-    infile = args.input
-    outfile = args.output
-    url = args.url
-
+    # Process Args and execute script remainder
+    file_exists = os.path.isfile(args.input_file)
+    output_dir = set_output_dir(args.input_file) if file_exists else None
 
     #  -- Config File parsing --
     #config = ConfigParser()
@@ -188,7 +203,9 @@ def main():
         # main application flow
         pass
     except KeyboardInterrupt:
-        shutdown_app()
+        # shutdown_app()
+        print("[*] Shutting down")
+        sys.exit(0)
     return
 
 

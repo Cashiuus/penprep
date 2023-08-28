@@ -22,6 +22,7 @@ du -h --summarize /var 2>/dev/null
 
 # Instead of the above, we can achieve this by adding in one-file-system so it skips the externally mounted drive(s)
 
+# NOTE: if this doesn't work, check your aliases, there might be a "du=du -s -h" screwing it up by adding summarize
 du -h --one-file-system --max-depth=1 / 2>/dev/null
 echo -e '\n\n'
 
@@ -30,10 +31,13 @@ echo -e '\n\n'
 
 
 
+# Find large files only on local filesystem (-xdev) not mounted shares
+find / -size +1G -xdev 2>/dev/null
+
 
 ### Some basic housekeeping cleanup quick wins
 
-sudo apt-get clean all		# or yum clean all
+sudo apt-get clean all          # or yum clean all
 sudo rm -rf /var/cache/apt
 sudo rm -rf /var/cache/yum
 
@@ -48,7 +52,7 @@ journalctl --disk-usage
 sudo journalctl --vacuum-size=100M
 
 # also decrease the limit on how much space journal can use
-#	Uncomment and set: SystemMaxUse=50M
+#       Uncomment and set: SystemMaxUse=50M
 sudo nano /etc/systemd/journald.conf
 
 
@@ -72,7 +76,7 @@ sudo nano /etc/logrotate.conf
 # you've copied in or out. If those were large, this takes up a lot of space
 DIR_PATH="${HOME}/.cache/vmware/drag_and_drop"
 ls -al "${DIR_PATH}"
-rm -rf "${DIR_PATH}"/*
+sudo rm -rf "${DIR_PATH}"/*
 ls -al "${DIR_PATH}"
 
 
