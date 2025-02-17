@@ -3,7 +3,7 @@
 # File:     setup-python.sh
 #
 # Author:   Cashiuus
-# Created:  10-Mar-2016  -  Revised: 04-Jan-2023
+# Created:  10-Mar-2016  -  Revised: 17-Feb-2025
 #
 ##-[ Info ]-------------------------------------------------------------------------------
 # Purpose:  Setup Python 2 & 3 in Kali Linux and specify default version.
@@ -15,7 +15,7 @@
 ##-[ Copyright ]--------------------------------------------------------------------------
 #   MIT License ~ http://opensource.org/licenses/MIT
 ## =======================================================================================
-__version__="3.0"
+__version__="4.0"
 __author__="Cashiuus"
 ## ========[ TEXT COLORS ]=============== ##
 GREEN="\033[01;32m"     # Success
@@ -35,7 +35,7 @@ APP_ARGS=$@
 LOG_FILE="${APP_BASE}/debug.log"
 # --------------- #
 py2version="2.7"
-py3version="3"             # Kali is 3.8, while Debian is 3.7, so being generic here
+py3version="3"             # Kali is 3.13, while Debian is 3.7, so being generic here
 DEFAULT_VERSION="3"        # Determines which is set to default (2 or 3)
 DEFAULT_PY3_ENV="default-py3"
 DEFAULT_PY2_ENV="default-py2"
@@ -66,7 +66,6 @@ echo -e "\n${GREEN}[*]-----------${RESET}[ ${PURPLE}PENPREP${RESET} - Setup-Pyth
 echo -e "${BLUE}\tAuthor:  ${RESET}${__author__}"
 echo -e "${BLUE}\tVersion: ${RESET}${__version__}"
 
-
 if [[ $# -eq 0 ]]; then
     # Setup python 3 by default, default to skipping python 2.
     install_python3
@@ -79,8 +78,6 @@ if [[ "$1" != "3."* ]]; then
     exit 1
 fi
 
-
-
 # If these aren't in the settings file, generate defaults
 #~ echo -e -n "${GREEN}[+] ${RESET}"
 #~ read -e -t 5 -i "N" -p " Do you want to also configure Python 2, even though it is now deprecated? [y,N] : " RESPONSE
@@ -88,9 +85,6 @@ fi
 #~ case $RESPONSE in
   #~ [Yy]* ) install_python2;;
 #~ esac
-
-
-
 
 
 function setup_alternatives() {
@@ -173,8 +167,9 @@ function finish {
     # Any script-termination routines go here, but function cannot be empty
     #
 
-    echo -e "${GREEN}===== Update-Alternatives Listing =====${RESET}"
+    #echo -e "${GREEN}===== Update-Alternatives Listing =====${RESET}"
     #update-alternatives --list python
+
     echo -e ""
     [[ "$DEBUG" = true ]] && echo -e "${ORANGE}[DEBUG] :: function finish :: Script complete${RESET}"
     echo -e "\n${GREEN}[*]${RESET} Python system setup is now complete!"
