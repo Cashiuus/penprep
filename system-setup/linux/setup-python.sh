@@ -147,7 +147,7 @@ function install_python3_version {
     echo -e
     # NOTE: Altinstall means these will create binaries in /usr/local/bin/python3.x
     echo -e -n "${GREEN}[*]${RESET} Recently installed version: "
-    /usr/bin/python${V_SHORT} --version
+    /usr/local/bin/python${V_SHORT} --version
     echo -e
     #mkvirtualenv base-${VERSION} -p /usr/bin/python${V_SHORT}
     echo -e "${GREEN}[*]${RESET} Finished, look for this to be installed at /usr/local/bin/"

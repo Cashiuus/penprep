@@ -152,9 +152,11 @@ $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
   wpscan yersinia zsh
 
 # Enabling python 3 default
-$SUDO apt-get -y remove --purge python-pip
+$SUDO apt-get -y -q remove --purge python-pip
 $SUDO apt-get -y install python3-pip python-is-python3
 
+# Some default python libraries that are commonly used
+$SUDO apt-get -y install python-pipx
 
 # =============================[ System Configurations]================================ #
 # [ Terminal Tweaks ]

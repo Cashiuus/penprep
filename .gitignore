@@ -12,6 +12,7 @@ settings.conf
 settings.sh
 settings.py
 motd
+data.json
 
 ### Frameworks / Envs
 .idea

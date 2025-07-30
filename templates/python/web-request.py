@@ -10,33 +10,48 @@ __version__ = '0.0.1'
 __author__ = 'Cashiuus'
 __license__ = 'MIT'
 __copyright__ = 'Copyright (C) 2023 Cashiuus'
-
-
+## =======[ IMPORTS ]======= ##
 import argparse
 import os
 import re
 import sys
-
 from pathlib import Path
+from random import randrange, random
 
 import requests
 from colorama import Fore, Back, Style
 
+# Hack to ignore Insecure warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 APP_DIR = Path(__file__).resolve(strict=True).parent
 
 UA_Chrome = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"
 UA_ChromeMobile = "Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36"
-
 headers = {'user-agent': UA_Chrome}
 
 
-def jitter_delay(i_max=8):
-    """Generate random number for sleep function
-            Usage: time.sleep(jitter_delay(i_max=25))
+def jitter_delay(max_delay=8):
+    """ Generate random number for sleep function.
+
+    Usage: time.sleep(jitter_delay(max_delay=25))
     """
-    return randrange(2, i_max, 1)
+    rng = randrange(1, max_delay, 1)
+    dec = random.random()
+    delay_value = rng + dec
+    return delay_value
+    # return randrange(1, max_delay, 1)
+
+
+def jitter_delay_and_sleep(max_delay=8):
+    """ Gen random number and delay for that many seconds. """
+    rng = randrange(1, max_delay, 1)
+    dec = random.random()
+    delay_value = rng + dec
+    log.debug("Jitter value generated: % ", delay_value)
+    sleep(delay_value)
+    # return False so caller can use this method in a while loop
+    return False
 
 
 def format_text(title, item):
@@ -54,8 +69,6 @@ def format_text(title, item):
 
 
 
-
-
 def main():
     """
         This script will issue a web request to your target and output the response values
@@ -63,9 +76,8 @@ def main():
 
         Usage: script.py <Target_URL> [-p|--proxy]
     """
-
     parser = argparse.ArgumentParser(description="Template for handling custom web requests")
-    parser.add_argument('target', help='URL of target to issue request') # positional arg
+    parser.add_argument('target', help='URL of target to issue request')
     parser.add_argument("-p", "--proxy", dest='proxy', action="store_true",
                         help="Enable proxying the request through defined proxies")
 

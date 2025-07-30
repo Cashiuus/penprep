@@ -26,6 +26,7 @@ from logging import handlers
 import os
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from random import randrange
 from time import sleep
@@ -79,9 +80,9 @@ LOG_FILE = BASE_DIR /'debug.log'
 log = logging.getLogger(__name__)
 
 
+
+
 ## ======================[ BEGIN APPLICATION ]====================== ##
-
-
 
 def check_match_in_list(input_string, check_list, case_sensitive=False):
     """
@@ -98,7 +99,6 @@ def check_match_in_list(input_string, check_list, case_sensitive=False):
     else:
         # result = any(w.lower() in input_string.lower() for w in check_list)
         return any(w.lower() in input_string.lower() for w in check_list)
-
 
 
 def set_output_dir(input_file):
@@ -153,7 +153,7 @@ def main():
     #log.error('foo', exc_info=True)
     #log.critical('msg')
     # --------------------------
-    print("[TEMPLATE] BASE_DIR is: {}".format(BASE_DIR))
+    # print("[TEMPLATE] BASE_DIR is: {}".format(BASE_DIR))
 
     # Quick 'n dirty args if not using argparse
     args = sys.argv[1:]
