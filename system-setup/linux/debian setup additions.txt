@@ -1,0 +1,42 @@
+
+# Debian packages missing
+
+'updatedb' is part of the 'locate' package, not installed by default
+
+
+
+
+# --
+#   conky
+# --
+
+### for conky setup script, and anything that uses killall
+
+# NOTE: Debian 9 did not come with killall installed
+# if 'killall' is not installed, install the pkg that it comes with
+apt-get install psmisc
+
+
+also may need to change the conky.conf file to dynamically assign network iface for the screen view
+
+- the alias "update-kali" could be changed to update-os and account for debian?
+
+
+
+
+### Add this stuff to debian setup script
+
+sudo apt-get -y install psmisc
+sudo apt-get -y install geany-plugins
+
+
+
+- Window Manager settings
+    - change window manager style to "Kokodi"
+    - enable windows snapping to other windows (checkbox boolean)
+
+    
+    
+- Desktop
+    - Icons -> Icon size: 40 (from default 48)
+    

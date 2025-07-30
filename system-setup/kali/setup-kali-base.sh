@@ -148,15 +148,12 @@ $SUDO apt-get -y install kali-linux-pwtools kali-linux-sdr kali-linux-top10 \
 $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
   mitmproxy neo4j nikto openssh-server openssl proxychains rdesktop responder \
   screen shellter snmp-mibs-downloader sqlmap swftools tmux tshark vlan \
-  whatweb wifite windows-binaries \
+  whatweb wifite windows-binaries witnessme \
   wpscan yersinia zsh
 
 # Enabling python 3 default
 $SUDO apt-get -y -q remove --purge python-pip
 $SUDO apt-get -y install python3-pip python-is-python3
-
-# Some default python libraries that are commonly used
-$SUDO apt-get -y install python-pipx
 
 # =============================[ System Configurations]================================ #
 # [ Terminal Tweaks ]
