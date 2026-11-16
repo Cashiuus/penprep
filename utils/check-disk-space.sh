@@ -31,15 +31,15 @@ echo -e '\n\n'
 
 
 
-# Find large files only on local filesystem (-xdev) not mounted shares
-find / -size +1G -xdev 2>/dev/null
-
-
 ### Some basic housekeeping cleanup quick wins
 
 sudo apt-get clean all          # or yum clean all
 sudo rm -rf /var/cache/apt
 sudo rm -rf /var/cache/yum
+
+
+# Clear python pip cache
+pip cache purge || python -m pip cache purge
 
 
 # Manage your journal log space, keep the directory but delete all of the files
@@ -49,10 +49,12 @@ ls -al /var/log/journal/
 journalctl --disk-usage
 
 # or we can do it this way, removing files until the dir is below this threshold of 100 MB
-sudo journalctl --vacuum-size=100M
+sudo journalctl --vacuum-size=200M
 
 # also decrease the limit on how much space journal can use
-#       Uncomment and set: SystemMaxUse=50M
+
+echo -e "Uncomment and set: SystemMaxUse=100M"
+sleep(5)
 sudo nano /etc/systemd/journald.conf
 
 
@@ -70,7 +72,6 @@ sudo nano /etc/logrotate.conf
 
 
 
-
 # VMware Drag-and-drop directory
 # in a user's .cache directory, you have this directory storing files
 # you've copied in or out. If those were large, this takes up a lot of space
@@ -80,6 +81,9 @@ sudo rm -rf "${DIR_PATH}"/*
 ls -al "${DIR_PATH}"
 
 
+
+# Find large files only on local filesystem (-xdev) not mounted shares
+find / -size +1G -xdev 2>/dev/null
 
 
 
