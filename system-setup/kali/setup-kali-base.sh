@@ -72,7 +72,7 @@ gsettings set org.gnome.desktop.session idle-delay 0
 
 
 function print_banner() {
-    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2021 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
+    echo -e "\n${BLUE}=============[  ${RESET}${BOLD}Kali 2026 Base Pentest Installer  ${RESET}${BLUE}]=============${RESET}"
     cat /etc/os-release
     cat /proc/version
     uname -a
@@ -82,13 +82,24 @@ function print_banner() {
 print_banner
 sleep 4
 
-# =============================[ Setup VM Tools ]================================ #
+# ====[ Setup VM Tools ]==== #
 # https://github.com/vmware/open-vm-tools
-if [[ ! $(which vmware-toolbox-cmd) ]]; then
-  echo -e "${YELLOW}[INFO] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
-  sleep 4
-  $SUDO apt-get -y install open-vm-tools-desktop fuse
-  $SUDO reboot
+# VMware vm does not have this file, while AWS boxes do and will be "xen"
+# Azure VM's are more specific for identifying, also excluding those
+# asset_tag=$($SUDO dmidecode -s chassis-asset-tag)
+asset_tag=$(</sys/devices/virtual/dmi/id/chassis_asset_tag)
+azure_tag="7783-7084-3265-9085-8269-3286-77"
+if [[ ! -f /sys/hypervisor/type ]] &&  [[ ! $(which vmware-toolbox-cmd) ]]; then
+  if [[ "$asset_tag" == "$azure_tag" ]]; then
+    echo -e "[*] Skipping VM Tools for Azure VM"
+  else
+    echo -e "${YELLOW}[INFO] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
+    sleep 2
+    $SUDO apt-get -y install open-vm-tools-desktop fuse
+    echo -e "${YELLOW}[WARN] Rebooting in 5 seconds, type CTRL+C to cancel..."
+    sleep 5
+    $SUDO reboot
+  fi
 fi
 
 
@@ -118,16 +129,16 @@ fi
 
 # =============================[ APT Packages ]================================ #
 # Change the apt/sources.list repository listings to just a single entry:
-echo -e "${GREEN}[*]${RESET} Resetting sources.list to the 2 preferred kali entries"
-if [[ $SUDO ]]; then
-  echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
-  echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-  echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-else
-  echo "# kali-rolling" > /etc/apt/sources.list
-  echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
-  echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
-fi
+# echo -e "${GREEN}[*]${RESET} Resetting sources.list to the 2 preferred kali entries"
+# if [[ $SUDO ]]; then
+#   echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
+#   echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+#   echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+# else
+#   echo "# kali-rolling" > /etc/apt/sources.list
+#   echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
+#   echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
+# fi
 
 echo -e "${GREEN}[*]${RESET} Issuing apt-get update and dist-upgrade, please wait..."
 export DEBIAN_FRONTEND=noninteractive
@@ -150,6 +161,9 @@ $SUDO apt-get -y install armitage arp-scan beef-xss dirb dirbuster exploitdb \
   screen shellter snmp-mibs-downloader sqlmap swftools tmux tshark vlan \
   whatweb wifite windows-binaries witnessme \
   wpscan yersinia zsh
+
+# Wireless
+$SUDO apt-get -y install airgeddon fluxion eaphammer
 
 # Enabling python 3 default
 $SUDO apt-get -y -q remove --purge python-pip
@@ -188,6 +202,9 @@ if [[ ${GDMSESSION} == 'default' ]]; then
   echo -e "${GREEN}[*] ${RESET}Reconfiguring GNOME and related app settings"
 
   gsettings set org.gtk.settings.file-chooser show-hidden true
+
+  gsettings set org.gnome.desktop.session idle-delay 0
+  gsettings set org.gnome.desktop.screensaver lock-enabled false
 
   # ====[ Configure - Top bar ]==== #
   gsettings set org.gnome.desktop.datetime automatic-timezone true
@@ -244,6 +261,20 @@ if [[ ${GDMSESSION} == 'default' ]]; then
 elif [[ ${GDMSESSION} == 'lightdm-xsession' ]]; then
   echo -e "${YELLOW}[INFO]${RESET} Light Desktop Manager detected, skipping GNOME tweaks..."
   dconf write /org/gnome/nautilus/preferences/show-hidden-files true
+
+  # Disable XFCE Screensaver and Lock Screen
+  xfconf-query -c xfce4-screensaver -p /saver/enabled -n -t bool -s false
+  xfconf-query -c xfce4-screensaver -p /lock/enabled -n -t bool -s false
+  xfconf-query -c xfce4-screensaver -p /lock/sleep-activation -n -t bool -s false
+
+  # Disable XFCE Power Manager Display Blanking & Sleep
+  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-enabled -n -t bool -s false
+  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -n -t int -s 0
+  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -n -t uint -s 0
+  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -n -t uint -s 0
+  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/inactivity-on-ac -n -t uint -s 0
+  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/lock-screen-suspend-hibernate -n -t bool -s false
+
   # Configure Thunar File Browser
   xfconf-query -n -c thunar -p /last-show-hidden -t bool -s true
   xfconf-query -n -c thunar -p /last-details-view-column-widths -t string -s "50,133,50,50,178,50,50,73,70"

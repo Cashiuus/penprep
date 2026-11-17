@@ -132,7 +132,7 @@ function print_banner() {
       ▓ |  |             ':    | ▓
       ▓ |  |                   | ▓
       ▓ :   '                  : ▓
-       ▓ \   '     TMC        / ▓
+       ▓ \   '     HTB        / ▓
         ▓ \   '              / ▓
          ▓ \   '            / ▓
           ▓ `\            /` ▓
@@ -239,16 +239,24 @@ function install_or_update_git() {
 export DISPLAY=:0.0
 export TERM=xterm-256color
 
-# -- VM Tools First and Foremost ---------
+# ====[ Setup VM Tools ]==== #
 # https://github.com/vmware/open-vm-tools
 # VMware vm does not have this file, while AWS boxes do and will be "xen"
+# Azure VM's are more specific for identifying, also excluding those
+# asset_tag=$($SUDO dmidecode -s chassis-asset-tag)
+asset_tag=$(</sys/devices/virtual/dmi/id/chassis_asset_tag)
+azure_tag="7783-7084-3265-9085-8269-3286-77"
 if [[ ! -f /sys/hypervisor/type ]] &&  [[ ! $(which vmware-toolbox-cmd) ]]; then
-  echo -e "\n${YELLOW}[WARN] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
-  sleep 2
-  $SUDO apt-get -y -qq install open-vm-tools-desktop fuse
-  echo -e "${YELLOW}[WARN] Rebooting in 5 seconds, type CTRL+C to cancel..."
-  sleep 5
-  $SUDO reboot
+  if [[ "$asset_tag" == "$azure_tag" ]]; then
+    echo -e "[*] Skipping VM Tools for Azure VM"
+  else
+    echo -e "${YELLOW}[INFO] Now installing vm-tools. This will require a reboot. Re-run script after reboot...${RESET}"
+    sleep 2
+    $SUDO apt-get -y install open-vm-tools-desktop fuse
+    echo -e "${YELLOW}[WARN] Rebooting in 5 seconds, type CTRL+C to cancel..."
+    sleep 5
+    $SUDO reboot
+  fi
 fi
 
 # ==========[ Updater ]=============
@@ -274,22 +282,22 @@ function configure_terminal_settings() {
 
 
 # =============[ APT Packages ]============= #
-function reset_apt_sources() {
-  # Change the apt/sources.list repository listings to just a single entry:
-  echo -e "\n${GREEN}[*] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
-  file=/etc/apt/sources.list
-  [[ -e "${file}" ]] && $SUDO cp -n $file{,.bkup}
-  if [[ $SUDO ]]; then
-    echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
-    echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-    echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
-  else
-    echo "# kali-rolling" > /etc/apt/sources.list
-    echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
-    echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
-  fi
-}
-[[ "$update" != true ]] && reset_apt_sources
+# function reset_apt_sources() {
+#   # Change the apt/sources.list repository listings to just a single entry:
+#   echo -e "\n${GREEN}[*] ${RESET}Resetting Aptitude sources.list to the 2 preferred kali entries"
+#   file=/etc/apt/sources.list
+#   [[ -e "${file}" ]] && $SUDO cp -n $file{,.bkup}
+#   if [[ $SUDO ]]; then
+#     echo "# kali-rolling" | $SUDO tee /etc/apt/sources.list
+#     echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+#     echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" | $SUDO tee -a /etc/apt/sources.list
+#   else
+#     echo "# kali-rolling" > /etc/apt/sources.list
+#     echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
+#     echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free" >> /etc/apt/sources.list
+#   fi
+# }
+# [[ "$update" != true ]] && reset_apt_sources
 
 
 function update_os_apt() {
@@ -369,10 +377,6 @@ EOF
     $SUDO python3 -m pip install -q -r -U "${file}"
 }
 [[ "$update" != true ]] && install_python3
-
-# WitnessMe project, may be useful
-python3 -m pip install -U pipx
-pipx install witnessme
 
 
 # -- Flameshot screenshotting, make it the default so global hotkeys work
@@ -523,23 +527,9 @@ string="\$port = $PORT;"
 sed -i "s/^\$port =.*/${string}/" "${file}"
 
 
-
-
 echo -e "\n${GREEN}[*] ${RESET}Grabbing useful ${BOLD}Privilege Escalation${RESET} scanners"
 [[ ! -d "${HTB_PRIVESC}" ]] && mkdir -p "${HTB_PRIVESC}"
 cd "${HTB_PRIVESC}"
-#git clone https://github.com/AlessandroZ/BeRoot
-#git clone https://github.com/gentilkiwi/mimikatz
-##git clone https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite peass
-#git clone https://github.com/enjoiz/Privesc Privesc-PS
-#git clone https://github.com/n1nj4sec/pupy
-#git clone https://github.com/skelsec/pypykatz
-#git clone https://github.com/rasta-mouse/Sherlock
-#git clone https://github.com/etc5had0w/suider
-#git clone https://github.com/rasta-mouse/Watson
-#git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester
-#git clone https://github.com/pentestmonkey/windows-privesc-check
-
 
 declare -A gittools_privesc
 gittools_privesc["BeRoot"]="https://github.com/AlessandroZ/BeRoot"
@@ -554,7 +544,6 @@ gittools_privesc["Watson"]="https://github.com/rasta-mouse/Watson"
 gittools_privesc["Windows-Exploit-Suggester"]="https://github.com/AonCyberLabs/Windows-Exploit-Suggester"
 gittools_privesc["windows-privesc-check"]="https://github.com/pentestmonkey/windows-privesc-check"
 
-
 step=0
 for t in "${!gittools_privesc[@]}"; do
   step=$((step + 1))
@@ -566,7 +555,6 @@ for t in "${!gittools_privesc[@]}"; do
     echo -e "${GREEN}[*]${RESET} (${step}/${#gittools_privesc[@]}) $t installed/updated successfully\n"
   fi
 done
-
 
 
 function install_covenant() {
@@ -783,7 +771,7 @@ curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPE
 curl -SL 'https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASany.exe' -o 'winpeas.exe'
 chmod u+x linpeas.sh
 
-# --- EyeWitness Windows bindary for targeted browser bookmark screenshotting (EyeWitness.exe --bookmarks)
+# --- EyeWitness Windows binary for targeted browser bookmark screenshotting (EyeWitness.exe --bookmarks)
 # Future use, they don't release a pre-built binary at this time, and it's a .sln type Visual Studio build
 #curl -SL 'https://github.com/FortyNorthSecurity/EyeWitness/releases/latest/download/EyeWitness.exe' -o 'EyeWitness.exe'
 
@@ -806,12 +794,12 @@ chmod u+x peirates
 [[ -f peirates-linux-amd64.tar.xz ]] && rm -rf peirates-linux-amd64.tar.xz
 
 
-# -- Chisel -- CAO 7/14/2023 is v1.8.1
+# -- Chisel -- CAO 10/2026 is v1.12
 echo -e "\n${GREEN}[*] ${RESET}Downloading latest ${BOLD}Chisel${RESET}"
-curl -SL 'https://github.com/jpillora/chisel/releases/latest/download/chisel_1.8.1_windows_amd64.gz' -o chisel.gz
+curl -SL 'https://github.com/jpillora/chisel/releases/latest/download/chisel_1.12_windows_amd64.gz' -o chisel.gz
 gunzip -f -q chisel.gz
 mv chisel chisel.exe
-curl -SL 'https://github.com/jpillora/chisel/releases/latest/download/chisel_1.8.1_linux_amd64.gz' -o chisel.gz
+curl -SL 'https://github.com/jpillora/chisel/releases/latest/download/chisel_1.12_linux_amd64.gz' -o chisel.gz
 gunzip -f -q chisel.gz
 chmod +x chisel
 
@@ -878,12 +866,11 @@ EOF
 # -- Burpsuite -----------------------------------------------------------------
 echo -e "\n${GREEN}[*] ${RESET}Centralizing ${BOLD}Burpsuite${RESET} configs, extensions, libs, etc. into ${BURPSUITE_CONFIG_DIR}"
 mkdir -p "${BURPSUITE_CONFIG_DIR}"/{configs,libs,extensions,projects}
-if [[ ! -f "${BURPSUITE_CONFIG_DIR}/libs/jython-2.7.2.jar" ]]; then
+if [[ ! -f "${BURPSUITE_CONFIG_DIR}/libs/jython-2.7.5b1.jar" ]]; then
   cd "${BURPSUITE_CONFIG_DIR}/libs"
-  # Jython 2.7.2 is still latest version available as of Apr 28, 2022
-  jython_url='https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/jython-standalone-2.7.2.jar'
+  jython_url='https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.5b1/jython-standalone-2.7.5b1.jar'
   echo -e "${GREEN}[*] ${RESET}Downloading ${BOLD}Jython${RESET} lib for Burpsuite (Python add-on support)"
-  curl -SL "${jython_url}" -o jython-2.7.2.jar
+  curl -SL "${jython_url}" -o jython-2.7.5b1.jar
 fi
 
 echo -e "\n${GREEN}[*] ${RESET}Grabbing ${BOLD}Burpsuite${RESET} extensions"
@@ -892,7 +879,7 @@ cd "${BURPSUITE_CONFIG_DIR}/extensions"
 install_or_update_git "domain_hunter" "https://github.com/bit4woo/domain_hunter"
 
 # Paramalyzer - analyze a site's parameters; useful on large-scale site testing
-curl -SL "https://github.com/JGillam/burp-paramalyzer/releases/download/v2.1.0/paramalyzer-2.1.0.jar" -o paramalyzer.jar
+curl -SL "https://github.com/JGillam/burp-paramalyzer/releases/download/v2.2.3/paramalyzer-2.2.3.jar" -o paramalyzer.jar
 # Load this up into BurpSuite from: Extender -> Extensions -> Add
 
 
@@ -1008,7 +995,7 @@ function download_torrent() {
 function install_obsidian_appimage() {
   echo -e "${GREEN}[*] ${RESET}Installing and configuring ${BOLD}Obsidian${RESET}, a Markdown-based notetaking app"
   cd /tmp/
-  url='https://github.com/obsidianmd/obsidian-releases/releases/download/v0.14.6/Obsidian-0.14.6.AppImage'
+  url='https://github.com/obsidianmd/obsidian-releases/releases/download/v1.14.4/Obsidian-1.14.4.AppImage'
   curl -SL "${url}" -o obsidian
   $SUDO mv /tmp/obsidian /usr/local/sbin/obsidian
   $SUDO chmod +x /usr/local/sbin/obsidian
@@ -1051,7 +1038,7 @@ function install_obsidian_extras() {
     # Eisvogel is also here: https://github.com/Wandmalfarbe/pandoc-latex-template
     echo -e "\n${GREEN}[*] ${RESET}Downloading Eisvogel latex template"
     cd /tmp
-    curl -SL 'https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v2.0.0/Eisvogel-2.0.0.tar.gz' -o eisvogel.tar.gz
+    curl -SL 'https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v3.5.1/Eisvogel-3.5.1.tar.gz' -o eisvogel.tar.gz
     tar -xf eisvogel.tar.gz
     mkdir -p "${HTB_NOTES}/templates" 2>/dev/null
     cp /tmp/eisvogel.latex "${HTB_NOTES}/templates/"
@@ -1088,7 +1075,7 @@ fi
 
 if [[ ! -f /usr/share/pandoc/data/templates/eisvogel.latex ]]; then
   echo -e "[ERROR] eisvogel.latex file missing!"
-  echo -e "  Download it: https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v2.0.0/Eisvogel-2.0.0.tar.gz"
+  echo -e "  Download it: https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v3.5.1/Eisvogel-3.5.1.tar.gz"
   echo -e "  Save it to: /usr/share/pandoc/data/templates/eisvogel.latex"
   echo -e "  Then try again!"
   exit
@@ -1115,7 +1102,6 @@ EOF
   fi
 }
 [[ "$update" != true ]] && install_obsidian_extras
-
 
 
 
